@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { User, Activity, CreditCard, FolderOpen, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
+import FichaClinicaForm from "./paciente/FichaClinicaForm";
+import OdontogramaVisual from "./paciente/OdontogramaVisual";
 
 type TabValue = "datos" | "odontograma" | "presupuestos" | "archivos";
 
@@ -47,25 +49,9 @@ export default function PatientTabs({ pacienteId }: PatientTabsProps) {
       {/* Contenido Dinámico de la Pestaña */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:p-10 min-h-[400px] animate-in fade-in zoom-in-95 duration-300">
         
-        {activeTab === "datos" && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-extrabold text-gray-900">Datos Personales y Antecedentes</h2>
-            <p className="text-sm text-gray-500">Aquí irá el formulario completo de la ficha clínica del paciente y su historial médico.</p>
-            {/* Próximamente: Componente <FichaClinicaForm /> */}
-          </div>
-        )}
+        {activeTab === "datos" && <FichaClinicaForm />}
 
-        {activeTab === "odontograma" && (
-          <div className="space-y-4 text-center py-12">
-            <div className="w-16 h-16 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">🦷</span>
-            </div>
-            <h2 className="text-xl font-extrabold text-gray-900">Odontograma Interactivo</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">
-              El mapa dental 2D del paciente <span className="text-xs text-gray-300">({pacienteId.split('-')[0]})</span> se cargará aquí para poder seleccionar piezas y asignar tratamientos cromáticos.
-            </p>
-          </div>
-        )}
+        {activeTab === "odontograma" && <OdontogramaVisual />}
 
         {activeTab === "presupuestos" && (
           <div className="space-y-4">
