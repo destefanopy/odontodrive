@@ -12,7 +12,7 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        sidebar: "#1c1c1e",
+        sidebar: "#48d1cc",
         accent: {
           DEFAULT: "#00d6b4",
           hover: "#00b396",
