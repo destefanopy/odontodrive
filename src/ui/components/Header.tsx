@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Bell, ChevronDown, Menu, X, Home, Users } from "lucide-react";
+import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { name: "Dashboard", href: "/", icon: Home },
   { name: "Pacientes", href: "/pacientes", icon: Users },
+  { name: "Calendario", href: "/agenda", icon: Calendar }
 ];
 
 export default function Header() {

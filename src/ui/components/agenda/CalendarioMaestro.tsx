@@ -42,7 +42,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
       <div className="h-full w-full calendarmacro">
         <FullCalendar
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
+          initialView="timeGridDay"
           headerToolbar={{
             left: "prev,next today",
             center: "title",
@@ -85,6 +85,21 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           border-radius: 8px;
           text-transform: capitalize;
           font-weight: 600;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 640px) {
+          .calendarmacro .fc-toolbar-title {
+            font-size: 1.1rem !important;
+          }
+          .calendarmacro .fc-button {
+            padding: 0.3rem 0.6rem !important;
+            font-size: 0.75rem !important;
+          }
+          .calendarmacro .fc-header-toolbar {
+            flex-direction: column;
+            gap: 1rem;
+          }
         }
         .calendarmacro .fc-button-primary:hover {
           background-color: #374151 !important;
