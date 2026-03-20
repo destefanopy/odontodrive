@@ -1,22 +1,28 @@
-// Mock data layer to keep strict separation of concerns (SoC)
-// Real implementation would use the Supabase wrappers in `infrastructure/`
+import { supabase } from '@/infrastructure/supabase';
 
-export interface Patient {
+// Intefaces que reflejan las tablas reales de Supabase
+export interface Paciente {
   id: string;
-  name: string;
-  avatar: string;
-  nextAppointment: string;
-  status: 'espera' | 'sala' | 'atendido';
+  nombres_apellidos: string;
+  telefono_celular: string | null;
+  fecha_ingreso: string;
 }
 
-export const getPatientsToday = async (): Promise<Patient[]> => {
-  // Simulate network delay
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { id: '1', name: 'Laura Gómez', avatar: 'LG', nextAppointment: '10:00', status: 'sala' },
-        { id: '2', name: 'Carlos Díaz', avatar: 'CD', nextAppointment: '11:30', status: 'espera' },
-      ]);
-    }, 500);
-  });
+/**
+ * Obtiene los últimos pacientes registrados en la base de datos real.
+ * Respeta la separación de responsabilidades (SoC).
+ */
+export const getUltimosPacientes = async (): Promise<Paciente[]> => {
+  const { data, error } = await supabase
+    .from('pacientes')
+    .select('*')
+    .order('fecha_ingreso', { ascending: false })
+    .limit(5);
+
+  if (error) {
+    console.error('Error obteniendo pacientes:', error.message);
+    return [];
+  }
+
+  return data as Paciente[];
 };
