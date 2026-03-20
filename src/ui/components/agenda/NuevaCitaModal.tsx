@@ -56,13 +56,13 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
 
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-              <User className="w-4 h-4 text-emerald-600" />
+              <User className="w-4 h-4 text-[#31b8b3]" />
               Paciente
             </label>
             <select
               name="paciente_id"
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
             >
               <option value="">Seleccione un paciente...</option>
               {pacientes.map((p) => (
@@ -85,7 +85,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
                 name="fecha"
                 defaultValue={formatDateForInput(initialDate)}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
               />
             </div>
 
@@ -99,7 +99,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
                 name="hora_inicio"
                 defaultValue={formatTimeForInput(initialDate) || "09:00"}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
               />
             </div>
           </div>
@@ -120,14 +120,14 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
                     : "10:00"
                 }
                 required
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
               />
             </div>
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-gray-500" />
+              <FileText className="w-4 h-4 text-[#31b8b3]" />
               Motivo de Consulta
             </label>
             <input
@@ -135,7 +135,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
               name="motivo"
               placeholder="Ej. Diagnóstico, Limpieza..."
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
             />
           </div>
 
@@ -150,7 +150,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
             <button
               type="submit"
               disabled={isPending}
-              className="px-5 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 text-white shadow-md hover:bg-emerald-700 disabled:opacity-70 transition-all"
+              className="px-5 py-2.5 rounded-xl text-sm font-bold bg-[#31b8b3] text-white shadow-md hover:bg-[#279490] disabled:opacity-70 transition-all"
               onClick={(e) => {
                 const select = e.currentTarget.form?.querySelector('select[name="paciente_id"]') as HTMLSelectElement;
                 const hiddenInput = e.currentTarget.form?.querySelector('#nombre_paciente_hidden') as HTMLInputElement;
