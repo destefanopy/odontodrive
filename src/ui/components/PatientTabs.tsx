@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import FichaClinicaForm from "./paciente/FichaClinicaForm";
 import OdontogramaVisual from "./paciente/OdontogramaVisual";
 import DatosPersonalesForm from "./paciente/DatosPersonalesForm";
+import PresupuestosView from "./paciente/PresupuestosView";
 import { AntecedentesMedicos, Paciente } from "@/core/api";
 
 type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos";
@@ -60,13 +61,7 @@ export default function PatientTabs({ paciente, initialOdontograma, initialAntec
 
         {activeTab === "odontograma" && <OdontogramaVisual pacienteId={paciente.id} initialOdontograma={initialOdontograma} />}
 
-        {activeTab === "presupuestos" && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-extrabold text-gray-900">Planes de Tratamiento</h2>
-            <p className="text-sm text-gray-500">Lista de presupuestos aprobados y caja de pagos del paciente.</p>
-            {/* Próximamente: Componente <PresupuestosList /> */}
-          </div>
-        )}
+        {activeTab === "presupuestos" && <PresupuestosView paciente={paciente} />}
 
         {activeTab === "archivos" && (
           <div className="space-y-4 text-center py-12">
