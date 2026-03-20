@@ -134,7 +134,7 @@ export default function Dashboard() {
                    <div 
                      className={cn(
                        "w-2.5 rounded-full transition-all duration-500 ease-out", 
-                       i === 6 ? "bg-accent shadow-[0_0_10px_rgba(212,243,74,0.5)]" : "bg-gray-600 group-hover:bg-gray-400",
+                       i === 6 ? "bg-accent shadow-[0_0_10px_rgba(0,214,180,0.5)]" : "bg-gray-600 group-hover:bg-gray-400",
                        "h-full"
                      )} 
                      style={{ height: `${h}%` }}

@@ -14,8 +14,8 @@ const config: Config = {
         foreground: "var(--foreground)",
         sidebar: "#1c1c1e",
         accent: {
-          DEFAULT: "#d4f34a",
-          hover: "#c1e137",
+          DEFAULT: "#00d6b4",
+          hover: "#00b396",
         },
         card: "#ffffff",
         cardDark: "#222224",
