@@ -122,10 +122,24 @@ export async function crearCitaAction(formData: FormData) {
     };
 
     await createCita(nuevaCita);
+
+    revalidatePath("/agenda");
+    revalidatePath(`/pacientes/${pacienteId}`);
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error en crearCitaAction:", error);
+    return { error: error.message || "Error al guardar la cita.", success: false };
+  }
+}
+
+export async function borrarCitaAction(id: string) {
+  try {
+    const { deleteCita } = await import("@/core/api");
+    await deleteCita(id);
     revalidatePath("/agenda");
     return { success: true };
-  } catch (error: unknown) {
-    const errorMsg = error instanceof Error ? error.message : "Error agendando la cita.";
-    return { error: errorMsg, success: false };
+  } catch (error: any) {
+    return { error: error.message || "Error al borrar la cita.", success: false };
   }
 }

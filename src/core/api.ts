@@ -229,15 +229,20 @@ export const getCitas = async (): Promise<Cita[]> => {
   return data as Cita[];
 };
 
-export const createCita = async (cita: Omit<Cita, 'id'>): Promise<Cita | null> => {
-  const { data, error } = await supabase
-    .from('citas')
-    .insert([cita])
-    .select()
-    .single();
-
+export async function createCita(cita: Omit<Cita, "id" | "created_at">) {
+  const { error } = await supabase.from("citas").insert(cita);
+  
   if (error) {
-    throw new Error(error.message);
+    console.error("Error al agendar cita:", error.message);
+    throw new Error("No se pudo agendar la cita en la base de datos.");
   }
-  return data as Cita;
+}
+
+export async function deleteCita(id: string) {
+  const { error } = await supabase.from("citas").delete().eq("id", id);
+  
+  if (error) {
+    console.error("Error al borrar cita:", error.message);
+    throw new Error("No se pudo borrar la cita en la base de datos.");
+  }
 };

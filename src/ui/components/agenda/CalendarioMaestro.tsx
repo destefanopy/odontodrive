@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -8,15 +8,20 @@ import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import { Cita, Paciente } from "@/core/api";
 import NuevaCitaModal from "./NuevaCitaModal";
+import { borrarCitaAction } from "@/app/pacientes/actions";
 
-interface CalendarioMaestroProps {
+interface CalendarioProps {
   initialCitas: Cita[];
   pacientes: Paciente[];
 }
 
-export default function CalendarioMaestro({ initialCitas, pacientes }: CalendarioMaestroProps) {
-  const [modalOpen, setModalOpen] = useState(false);
+export default function CalendarioMaestro({ initialCitas, pacientes }: CalendarioProps) {
+  const [citas] = useState<Cita[]>(initialCitas);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [isDeleting, startTransition] = useTransition();
 
   const events = initialCitas.map((cita) => ({
     id: cita.id,
@@ -29,12 +34,31 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
 
   const handleDateClick = (arg: { date: Date }) => {
     setSelectedDate(arg.date);
-    setModalOpen(true);
+    setIsModalOpen(true);
   };
 
-  const handleSelect = (arg: { start: Date; end: Date }) => {
-    setSelectedDate(arg.start);
-    setModalOpen(true);
+  const handleSelect = (info: any) => {
+    setSelectedDate(info.start);
+    setIsModalOpen(true);
+  };
+
+  const handleEventClick = (info: any) => {
+    setSelectedEvent(info.event);
+    setIsEventModalOpen(true);
+  };
+
+  const handleDeleteCita = () => {
+    if (!selectedEvent) return;
+    
+    startTransition(async () => {
+      const result = await borrarCitaAction(selectedEvent.id);
+      if (result.success) {
+        setIsEventModalOpen(false);
+        setSelectedEvent(null);
+      } else {
+        alert("Error: " + result.error);
+      }
+    });
   };
 
   return (
@@ -57,7 +81,8 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           dateClick={handleDateClick}
           selectable={true}
           select={handleSelect}
-          contentHeight="auto"
+          eventClick={handleEventClick}
+          height="100%"
           eventContent={(eventInfo) => (
             <div className="p-1.5 overflow-hidden flex flex-col h-full rounded shadow-sm relative pl-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#31b8b3] bg-[#e6f7fa] text-[#1e7e7a]">
               <div className="font-extrabold text-[11px] leading-tight truncate">{eventInfo.event.title}</div>
@@ -98,6 +123,10 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           background-color: #1e7e7a !important;
         }
 
+        .fc .fc-day-today {
+          background-color: #f8fafc !important;
+        }
+
         /* Mobile specific adjustments */
         @media (max-width: 640px) {
           .calendarmacro .fc-toolbar-title {
@@ -112,7 +141,6 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
             flex-direction: column;
             gap: 1rem;
           }
-        }
         }
         
         .calendarmacro {
@@ -133,12 +161,50 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
         }
       `}</style>
 
-      {modalOpen && (
-        <NuevaCitaModal
-          pacientes={pacientes}
-          initialDate={selectedDate}
-          onClose={() => setModalOpen(false)}
-        />
+      <NuevaCitaModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        selectedDate={selectedDate}
+        pacientes={pacientes}
+      />
+
+      {isEventModalOpen && selectedEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setIsEventModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
+            <h2 className="text-xl font-black text-gray-900 mb-2">Detalles de la Cita</h2>
+            <div className="space-y-4 mb-6 text-sm text-gray-700">
+              <div>
+                <span className="font-bold text-gray-900 uppercase text-[10px]">Paciente:</span>
+                <p className="font-medium">{selectedEvent.title.split(' - ')[0]}</p>
+              </div>
+              <div>
+                <span className="font-bold text-gray-900 uppercase text-[10px]">Motivo:</span>
+                <p>{selectedEvent.title.split(' - ')[1] || "Sin Motivo"}</p>
+              </div>
+              <div>
+                <span className="font-bold text-gray-900 uppercase text-[10px]">Horario:</span>
+                <p>{selectedEvent.start.toLocaleString()} - {selectedEvent.end.toLocaleString()}</p>
+              </div>
+            </div>
+            
+            <div className="flex justify-between gap-3">
+              <button
+                onClick={() => setIsEventModalOpen(false)}
+                className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200"
+              >
+                Cerrar
+              </button>
+              <button
+                onClick={handleDeleteCita}
+                disabled={isDeleting}
+                className="flex-1 py-3 px-4 bg-red-50 text-red-600 border border-red-200 font-bold rounded-xl hover:bg-red-100 hover:border-red-300 disabled:opacity-50"
+              >
+                {isDeleting ? "Cancelando..." : "Cancelar Cita"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
