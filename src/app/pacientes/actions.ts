@@ -110,8 +110,8 @@ export async function crearCitaAction(formData: FormData) {
       return { error: "Faltan datos obligatorios para agendar la cita.", success: false };
     }
 
-    const fechaInicioStr = `${fecha}T${horaInicio}:00`;
-    const fechaFinStr = `${fecha}T${horaFin}:00`;
+    const fechaInicioStr = `${fecha}T${horaInicio}:00-03:00`;
+    const fechaFinStr = `${fecha}T${horaFin}:00-03:00`;
 
     const nuevaCita = {
       paciente_id: pacienteId,

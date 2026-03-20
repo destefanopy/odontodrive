@@ -81,6 +81,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
         .calendarmacro .fc-button-primary {
           background-color: #111827 !important;
           border-color: #111827 !important;
+          color: #ffffff !important;
           border-radius: 8px;
           text-transform: capitalize;
           font-weight: 600;
