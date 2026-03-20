@@ -129,6 +129,7 @@ export default function Header() {
             <div className="mt-auto w-full mb-4">
               <div className="flex items-center gap-3 p-3 bg-white/40 rounded-xl">
                 <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="https://api.dicebear.com/9.x/notionists/svg?seed=JanaSantander&backgroundColor=e6f7fa" alt="Profile" className="w-full h-full object-cover p-1 bg-white" />
                 </div>
                 <div>
