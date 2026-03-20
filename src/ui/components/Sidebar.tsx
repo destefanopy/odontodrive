@@ -2,23 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  Calendar,
-  FileText,
-  Activity,
-  CreditCard,
-  Bot,
-} from "lucide-react";
+import { Home, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Dashboard", href: "/", icon: Home },
-  { name: "Agenda", href: "/agenda", icon: Calendar },
-  { name: "Ficha Clínica", href: "/ficha", icon: FileText },
-  { name: "Odontograma", href: "/odontograma", icon: Activity },
-  { name: "Presupuestos", href: "/presupuestos", icon: CreditCard },
-  { name: "OdontólogoIA", href: "/chat", icon: Bot },
+  { name: "Pacientes", href: "/pacientes", icon: Users },
 ];
 
 export default function Sidebar() {
