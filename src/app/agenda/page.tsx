@@ -1,20 +1,35 @@
-import { Card } from "@/ui/components/Card";
-import { Calendar as CalendarIcon } from "lucide-react";
+import CalendarioMaestro from "@/ui/components/agenda/CalendarioMaestro";
+import { getCitas, getUltimosPacientes } from "@/core/api";
+import Sidebar from "@/ui/components/Sidebar";
+import Header from "@/ui/components/Header";
 
-export default function Agenda() {
+export default async function AgendaPage() {
+  const citas = await getCitas();
+  const pacientes = await getUltimosPacientes();
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20 h-full flex flex-col">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Agenda Modular</h1>
-        <p className="text-sm text-gray-500">Administra los tiempos de la clínica de forma ágil.</p>
+    <div className="flex h-screen bg-gray-50/50">
+      <Sidebar />
+      <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <Header />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50/50 p-6">
+          <div className="max-w-[1400px] mx-auto h-full flex flex-col">
+            <div className="mb-6 flex justify-between items-center">
+              <div>
+                <h1 className="text-2xl font-black text-gray-900 tracking-tight">Agenda Maestra</h1>
+                <p className="text-sm text-gray-500 font-medium">
+                  Atención diaria, semanal y administración de turnos de la clínica.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:p-8 animate-in fade-in zoom-in-95 duration-300 relative z-10">
+              <CalendarioMaestro initialCitas={citas} pacientes={pacientes} />
+            </div>
+            
+          </div>
+        </main>
       </div>
-      <Card className="flex-1 border-none shadow-xl bg-white flex flex-col items-center justify-center">
-         <div className="p-4 bg-accent/20 rounded-full mb-4">
-           <CalendarIcon className="w-12 h-12 text-sidebar" />
-         </div>
-         <h2 className="text-xl font-bold text-gray-800">Calendario de Turnos</h2>
-         <p className="text-gray-500 text-sm mt-2">Próximamente: Integración con Dr. Agenda</p>
-      </Card>
     </div>
   );
 }

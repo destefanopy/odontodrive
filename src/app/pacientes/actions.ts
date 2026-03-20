@@ -94,3 +94,38 @@ export async function actualizarPacienteAction(pacienteId: string, formData: For
     return { error: errorMsg, success: false };
   }
 }
+
+export async function crearCitaAction(formData: FormData) {
+  try {
+    const { createCita } = await import("@/core/api");
+    
+    const pacienteId = formData.get("paciente_id")?.toString();
+    const nombrePaciente = formData.get("nombre_paciente")?.toString();
+    const motivo = formData.get("motivo")?.toString() || "Consulta Métrica";
+    const fecha = formData.get("fecha")?.toString();
+    const horaInicio = formData.get("hora_inicio")?.toString();
+    const horaFin = formData.get("hora_fin")?.toString();
+
+    if (!pacienteId || !fecha || !horaInicio || !horaFin) {
+      return { error: "Faltan datos obligatorios para agendar la cita.", success: false };
+    }
+
+    const fechaInicioStr = `${fecha}T${horaInicio}:00`;
+    const fechaFinStr = `${fecha}T${horaFin}:00`;
+
+    const nuevaCita = {
+      paciente_id: pacienteId,
+      nombre_paciente: nombrePaciente || "Paciente",
+      motivo,
+      fecha_inicio: new Date(fechaInicioStr).toISOString(),
+      fecha_fin: new Date(fechaFinStr).toISOString(),
+    };
+
+    await createCita(nuevaCita);
+    revalidatePath("/agenda");
+    return { success: true };
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Error agendando la cita.";
+    return { error: errorMsg, success: false };
+  }
+}

@@ -3,6 +3,7 @@ import PatientTabs from "@/ui/components/PatientTabs";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Phone, Calendar } from "lucide-react";
 import Link from "next/link";
+import AgendarCitaBoton from "@/ui/components/paciente/AgendarCitaBoton";
 
 interface PageProps {
   params: {
@@ -53,6 +54,9 @@ export default async function PacientePerfilPage({ params }: PageProps) {
               </span>
             </div>
           </div>
+        </div>
+        <div className="flex gap-3 mt-4 md:mt-0">
+          <AgendarCitaBoton paciente={paciente} />
         </div>
       </div>
 

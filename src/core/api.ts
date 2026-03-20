@@ -16,6 +16,15 @@ export interface Paciente {
   contacto_urgencia?: string | null;
 }
 
+export interface Cita {
+  id?: string;
+  paciente_id: string;
+  nombre_paciente: string;
+  motivo: string;
+  fecha_inicio: string; // ISO String
+  fecha_fin: string;    // ISO String
+}
+
 /**
  * Obtiene los últimos pacientes registrados en la base de datos real.
  * Respeta la separación de responsabilidades (SoC).
@@ -199,4 +208,36 @@ export const saveAntecedentes = async (pacienteId: string, datos: Omit<Anteceden
     if (error) throw new Error(error.message);
     return data as AntecedentesMedicos;
   }
+};
+
+/**
+ * API DE AGENDA Y CITAS
+ */
+
+export const getCitas = async (): Promise<Cita[]> => {
+  const { data, error } = await supabase
+    .from('citas')
+    .select('*')
+    .order('fecha_inicio', { ascending: true });
+
+  if (error) {
+    if (error.code !== '42P01') { // 42P01 is "undefined_table"
+      console.warn('Error buscando citas:', error.message);
+    }
+    return [];
+  }
+  return data as Cita[];
+};
+
+export const createCita = async (cita: Omit<Cita, 'id'>): Promise<Cita | null> => {
+  const { data, error } = await supabase
+    .from('citas')
+    .insert([cita])
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data as Cita;
 };
