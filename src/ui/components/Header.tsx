@@ -9,20 +9,20 @@ export default function Header() {
         <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="https://i.pravatar.cc/150?u=a042581f4e29026024d"
-            alt="Dr. Avatar"
-            className="w-full h-full object-cover"
+            src="https://api.dicebear.com/9.x/notionists/svg?seed=JanaSantander&backgroundColor=e6f7fa"
+            alt="Dra. Avatar"
+            className="w-full h-full object-cover p-1 bg-white"
           />
         </div>
         <div className="flex flex-col">
           <div className="flex items-center gap-1">
             <span className="text-sm font-bold text-gray-900">
-              Dr. Lucas Bennett
+              Dra. Jana Santander
             </span>
             <ChevronDown className="w-3 h-3 text-gray-500" />
           </div>
           <span className="text-xs text-gray-500 font-medium">
-            lucas@odontodrive.com
+            jana.santander@example.com
           </span>
         </div>
       </div>

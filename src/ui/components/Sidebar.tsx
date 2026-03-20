@@ -27,8 +27,8 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-sidebar text-gray-900 h-screen flex flex-col items-start p-4 border-r border-[#31b8b3] shadow-lg z-20">
       <div className="flex items-center gap-3 mb-10 px-2 w-full mt-2">
-        <div className="w-8 h-8 rounded-lg bg-gray-900 text-white flex items-center justify-center font-black text-xl shadow-md">
-          O
+        <div className="w-8 h-8 rounded-lg bg-gray-900 text-white flex items-center justify-center font-black text-xl shadow-md pb-0.5">
+          🦷
         </div>
         <span className="text-xl font-extrabold tracking-tight text-gray-900">
           Odontodrive
