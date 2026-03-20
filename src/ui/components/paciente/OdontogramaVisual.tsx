@@ -6,12 +6,7 @@ import { cn } from "@/lib/utils";
 // Estados posibles de un diente
 type ToothState = "sano" | "caries" | "tratado" | "ausente";
 
-// Array base de piezas dentales para un adulto (simplificado para el Vibe)
-const adultTeeth = [
-  { id: "18", label: "18" }, { id: "17", label: "17" }, { id: "16", label: "16" }, { id: "15", label: "15" },
-  { id: "14", label: "14" }, { id: "13", label: "13" }, { id: "12", label: "12" }, { id: "11", label: "11" },
-  // ... Añadir las demás piezas según esquema FDI, simulamos el arco superior e inferior
-];
+
 
 // Recreamos rápidamente los arcos para el ejemplo interactivo
 const maxilarSuperior = [18,17,16,15,14,13,12,11, 21,22,23,24,25,26,27,28];

@@ -12,7 +12,7 @@ interface PatientTabsProps {
   pacienteId: string;
 }
 
-export default function PatientTabs({ pacienteId }: PatientTabsProps) {
+export default function PatientTabs({}: PatientTabsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>("datos");
 
   const tabs = [
