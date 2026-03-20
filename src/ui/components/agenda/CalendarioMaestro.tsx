@@ -50,8 +50,8 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           }}
           locales={[esLocale]}
           locale="es"
-          slotMinTime="08:00:00"
-          slotMaxTime="20:00:00"
+          slotMinTime="07:00:00"
+          slotMaxTime="22:00:00"
           allDaySlot={false}
           events={events}
           dateClick={handleDateClick}
@@ -59,11 +59,12 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           select={handleSelect}
           contentHeight="auto"
           eventContent={(eventInfo) => (
-            <div className="p-1 overflow-hidden">
-              <div className="font-bold text-xs">{eventInfo.event.title}</div>
-              <div className="text-[10px] opacity-90">{eventInfo.timeText}</div>
+            <div className="p-1.5 overflow-hidden flex flex-col h-full rounded shadow-sm relative pl-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#31b8b3] bg-[#e6f7fa] text-[#1e7e7a]">
+              <div className="font-extrabold text-[11px] leading-tight truncate">{eventInfo.event.title}</div>
+              <div className="text-[10px] opacity-90 font-medium truncate">{eventInfo.timeText}</div>
             </div>
           )}
+          eventClassNames="!bg-transparent !border-none"
         />
       </div>
 
@@ -78,31 +79,44 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           color: #374151;
           text-transform: capitalize;
         }
+        /* Botones Superiores */
         .calendarmacro .fc-button-primary {
-          background-color: #111827 !important;
-          border-color: #111827 !important;
+          background-color: #31b8b3 !important;
+          border-color: #31b8b3 !important;
           color: #ffffff !important;
           border-radius: 8px;
           text-transform: capitalize;
-          font-weight: 600;
+          font-weight: 700;
+          box-shadow: 0 2px 10px -3px rgba(49, 184, 179, 0.4);
+        }
+        
+        .calendarmacro .fc-button-primary:hover {
+          background-color: #279490 !important;
+        }
+
+        .calendarmacro .fc-button-active {
+          background-color: #1e7e7a !important;
         }
 
         /* Mobile specific adjustments */
         @media (max-width: 640px) {
           .calendarmacro .fc-toolbar-title {
-            font-size: 1.1rem !important;
+            font-size: 0.95rem !important; /* Más pequeño para cel */
+            white-space: nowrap;
           }
           .calendarmacro .fc-button {
-            padding: 0.3rem 0.6rem !important;
-            font-size: 0.75rem !important;
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.70rem !important;
           }
           .calendarmacro .fc-header-toolbar {
             flex-direction: column;
             gap: 1rem;
           }
         }
-        .calendarmacro .fc-button-primary:hover {
-          background-color: #374151 !important;
+        }
+        
+        .calendarmacro {
+          font-family: inherit;
         }
         .calendarmacro .fc-button-active {
           background-color: #059669 !important;
