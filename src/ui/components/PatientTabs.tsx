@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { User, Activity, CreditCard, FolderOpen, Video, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
