@@ -6,6 +6,14 @@ export interface Paciente {
   nombres_apellidos: string;
   telefono_celular: string | null;
   fecha_ingreso: string;
+  documento_identidad?: string | null;
+  fecha_nacimiento?: string | null;
+  sexo?: string | null;
+  grupo_sanguineo?: string | null;
+  estado_civil?: string | null;
+  lugar_residencia?: string | null;
+  profesion?: string | null;
+  contacto_urgencia?: string | null;
 }
 
 /**
@@ -43,6 +51,20 @@ export const getPacienteById = async (id: string): Promise<Paciente | null> => {
   }
 
   return data as Paciente;
+};
+
+export const updatePacienteData = async (pacienteId: string, datos: Partial<Paciente>): Promise<boolean> => {
+  const { error } = await supabase
+    .from('pacientes')
+    .update(datos)
+    .eq('id', pacienteId);
+
+  if (error) {
+    console.error('Error actualizando paciente:', error.message);
+    throw new Error(error.message);
+  }
+
+  return true;
 };
 
 /**

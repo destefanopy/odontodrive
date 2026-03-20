@@ -1,25 +1,25 @@
-"use client";
-
 import { useState } from "react";
-import { User, Activity, CreditCard, FolderOpen, Video } from "lucide-react";
+import { User, Activity, CreditCard, FolderOpen, Video, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import FichaClinicaForm from "./paciente/FichaClinicaForm";
 import OdontogramaVisual from "./paciente/OdontogramaVisual";
-import { AntecedentesMedicos } from "@/core/api";
+import DatosPersonalesForm from "./paciente/DatosPersonalesForm";
+import { AntecedentesMedicos, Paciente } from "@/core/api";
 
-type TabValue = "datos" | "odontograma" | "presupuestos" | "archivos";
+type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos";
 
 interface PatientTabsProps {
-  pacienteId: string;
+  paciente: Paciente;
   initialOdontograma: Record<number, string>;
   initialAntecedentes?: AntecedentesMedicos | null;
 }
 
-export default function PatientTabs({ pacienteId, initialOdontograma, initialAntecedentes }: PatientTabsProps) {
+export default function PatientTabs({ paciente, initialOdontograma, initialAntecedentes }: PatientTabsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>("datos");
 
   const tabs = [
-    { id: "datos", label: "Ficha Clínica", icon: User },
+    { id: "datos", label: "Datos Personales", icon: User },
+    { id: "ficha", label: "Historia Médica", icon: FileText },
     { id: "odontograma", label: "Odontograma", icon: Activity },
     { id: "presupuestos", label: "Presupuestos", icon: CreditCard },
     { id: "archivos", label: "Archivos e IA", icon: FolderOpen },
@@ -52,9 +52,11 @@ export default function PatientTabs({ pacienteId, initialOdontograma, initialAnt
       {/* Contenido Dinámico de la Pestaña */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:p-10 min-h-[400px] animate-in fade-in zoom-in-95 duration-300">
         
-        {activeTab === "datos" && <FichaClinicaForm pacienteId={pacienteId} initialData={initialAntecedentes} />}
+        {activeTab === "datos" && <DatosPersonalesForm paciente={paciente} />}
+        
+        {activeTab === "ficha" && <FichaClinicaForm pacienteId={paciente.id} initialData={initialAntecedentes} />}
 
-        {activeTab === "odontograma" && <OdontogramaVisual pacienteId={pacienteId} initialOdontograma={initialOdontograma} />}
+        {activeTab === "odontograma" && <OdontogramaVisual pacienteId={paciente.id} initialOdontograma={initialOdontograma} />}
 
         {activeTab === "presupuestos" && (
           <div className="space-y-4">

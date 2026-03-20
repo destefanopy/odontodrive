@@ -58,7 +58,7 @@ export default async function PacientePerfilPage({ params }: PageProps) {
 
       {/* Contenido Funcional (Pestañas Sub-componentizadas) */}
       <PatientTabs 
-        pacienteId={paciente.id} 
+        paciente={paciente} 
         initialOdontograma={initialOdontograma} 
         initialAntecedentes={initialAntecedentes}
       />
