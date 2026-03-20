@@ -26,3 +26,22 @@ export const getUltimosPacientes = async (): Promise<Paciente[]> => {
 
   return data as Paciente[];
 };
+
+/**
+ * Obtiene un paciente específico por su ID.
+ */
+export const getPacienteById = async (id: string): Promise<Paciente | null> => {
+  const { data, error } = await supabase
+    .from('pacientes')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('Error obteniendo el paciente:', error.message);
+    return null;
+  }
+
+  return data as Paciente;
+};
+
