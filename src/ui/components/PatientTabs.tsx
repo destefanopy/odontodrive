@@ -10,9 +10,10 @@ type TabValue = "datos" | "odontograma" | "presupuestos" | "archivos";
 
 interface PatientTabsProps {
   pacienteId: string;
+  initialOdontograma: Record<number, string>;
 }
 
-export default function PatientTabs({}: PatientTabsProps) {
+export default function PatientTabs({ pacienteId, initialOdontograma }: PatientTabsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>("datos");
 
   const tabs = [
@@ -51,7 +52,7 @@ export default function PatientTabs({}: PatientTabsProps) {
         
         {activeTab === "datos" && <FichaClinicaForm />}
 
-        {activeTab === "odontograma" && <OdontogramaVisual />}
+        {activeTab === "odontograma" && <OdontogramaVisual pacienteId={pacienteId} initialOdontograma={initialOdontograma} />}
 
         {activeTab === "presupuestos" && (
           <div className="space-y-4">

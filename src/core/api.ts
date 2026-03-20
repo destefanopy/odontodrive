@@ -65,3 +65,60 @@ export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'
 
   return newPaciente as Paciente;
 };
+
+/**
+ * API DEL ODONTOGRAMA
+ */
+
+export const getOdontograma = async (pacienteId: string): Promise<Record<number, string>> => {
+  const { data, error } = await supabase
+    .from('odontograma_registros')
+    .select('pieza_dental, estado')
+    .eq('paciente_id', pacienteId);
+
+  if (error) {
+    console.error('Error obteniendo odontograma:', error.message);
+    return {};
+  }
+
+  const result: Record<number, string> = {};
+  if (data) {
+    data.forEach(item => {
+      // Mapeamos a Record<number, string> (Ej: { 18: 'caries' })
+      result[item.pieza_dental] = item.estado;
+    });
+  }
+  return result;
+};
+
+export const saveOdontograma = async (pacienteId: string, registros: Record<number, string>): Promise<boolean> => {
+  // Estrategia Vibe Atómico: Descartamos el estado anterior y persistimos el nuevo completo para evitar comprobaciones complejas de deltas.
+  const { error: deleteError } = await supabase
+    .from('odontograma_registros')
+    .delete()
+    .eq('paciente_id', pacienteId);
+
+  if (deleteError) {
+    console.error('Error limpiando odontograma anterior:', deleteError.message);
+    throw new Error(deleteError.message);
+  }
+
+  const arrParaInsertar = Object.entries(registros).map(([pieza, estado]) => ({
+    paciente_id: pacienteId,
+    pieza_dental: parseInt(pieza, 10),
+    estado: estado
+  }));
+
+  if (arrParaInsertar.length > 0) {
+    const { error: insertError } = await supabase
+      .from('odontograma_registros')
+      .insert(arrParaInsertar);
+
+    if (insertError) {
+      console.error('Error guardando odontograma:', insertError.message);
+      throw new Error(insertError.message);
+    }
+  }
+
+  return true;
+};

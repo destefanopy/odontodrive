@@ -1,4 +1,4 @@
-import { getPacienteById } from "@/core/api";
+import { getPacienteById, getOdontograma } from "@/core/api";
 import PatientTabs from "@/ui/components/PatientTabs";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Phone, Calendar } from "lucide-react";
@@ -12,6 +12,7 @@ interface PageProps {
 
 export default async function PacientePerfilPage({ params }: PageProps) {
   const paciente = await getPacienteById(params.id);
+  const initialOdontograma = await getOdontograma(params.id);
 
   if (!paciente) {
     notFound();
@@ -55,7 +56,7 @@ export default async function PacientePerfilPage({ params }: PageProps) {
       </div>
 
       {/* Contenido Funcional (Pestañas Sub-componentizadas) */}
-      <PatientTabs pacienteId={paciente.id} />
+      <PatientTabs pacienteId={paciente.id} initialOdontograma={initialOdontograma} />
     </div>
   );
 }

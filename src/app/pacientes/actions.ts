@@ -28,3 +28,15 @@ export async function registrarPacienteAction(prevState: unknown, formData: Form
   revalidatePath("/pacientes");
   redirect("/pacientes");
 }
+
+export async function guardarOdontogramaAction(pacienteId: string, teethData: Record<number, string>) {
+  try {
+    const { saveOdontograma } = await import("@/core/api");
+    await saveOdontograma(pacienteId, teethData);
+    revalidatePath(`/pacientes/${pacienteId}`);
+    return { success: true };
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Error guardando el odontograma.";
+    return { error: errorMsg, success: false };
+  }
+}

@@ -1,10 +1,15 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
+import { guardarOdontogramaAction } from "@/app/pacientes/actions";
+import { Save, AlertCircle } from "lucide-react";
 
 // Estados posibles de un diente
 type ToothState = "sano" | "caries" | "tratado" | "ausente";
+
+interface OdontogramaProps {
+  pacienteId: string;
+  initialOdontograma?: Record<number, string>;
+}
 
 
 
@@ -12,9 +17,21 @@ type ToothState = "sano" | "caries" | "tratado" | "ausente";
 const maxilarSuperior = [18,17,16,15,14,13,12,11, 21,22,23,24,25,26,27,28];
 const maxilarInferior = [48,47,46,45,44,43,42,41, 31,32,33,34,35,36,37,38];
 
-export default function OdontogramaVisual() {
-  const [teethData, setTeethData] = useState<Record<number, ToothState>>({});
+export default function OdontogramaVisual({ pacienteId, initialOdontograma = {} }: OdontogramaProps) {
+  const [teethData, setTeethData] = useState<Record<number, ToothState>>(initialOdontograma as Record<number, ToothState>);
   const [selectedTool, setSelectedTool] = useState<ToothState>("sano");
+  const [isPending, startTransition] = useTransition();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleSave = () => {
+    setErrorMsg(null);
+    startTransition(async () => {
+      const result = await guardarOdontogramaAction(pacienteId, teethData);
+      if (result?.error) {
+        setErrorMsg(result.error);
+      }
+    });
+  };
 
   const toggleTooth = (id: number) => {
     setTeethData((prev) => ({
@@ -42,24 +59,42 @@ export default function OdontogramaVisual() {
           </p>
         </div>
 
-        {/* Barra de herramientas */}
-        <div className="flex bg-gray-100 p-1.5 rounded-full shadow-inner gap-1">
-          {(["sano", "caries", "tratado", "ausente"] as ToothState[]).map((tool) => (
-            <button
-              key={tool}
-              onClick={() => setSelectedTool(tool)}
-              className={cn(
-                "px-4 py-1.5 rounded-full text-xs font-bold capitalize transition-all",
-                selectedTool === tool
-                  ? "bg-white shadow-sm text-gray-900"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
-              )}
-            >
-              {tool}
-            </button>
-          ))}
+        <div className="flex items-center gap-4 flex-wrap md:flex-nowrap">
+          {/* Barra de herramientas */}
+          <div className="flex bg-gray-100 p-1.5 rounded-full shadow-inner gap-1">
+            {(["sano", "caries", "tratado", "ausente"] as ToothState[]).map((tool) => (
+              <button
+                key={tool}
+                onClick={() => setSelectedTool(tool)}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-xs font-bold capitalize transition-all",
+                  selectedTool === tool
+                    ? "bg-white shadow-sm text-gray-900"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
+                )}
+              >
+                {tool}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handleSave}
+            disabled={isPending}
+            className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed whitespace-nowrap"
+          >
+            <Save className="w-4 h-4" />
+            {isPending ? "Guardando..." : "Guardar"}
+          </button>
         </div>
       </div>
+
+      {errorMsg && (
+        <div className="flex items-center gap-2 bg-red-50 text-red-700 p-3 rounded-xl text-sm font-medium">
+          <AlertCircle className="w-5 h-5" />
+          {errorMsg}
+        </div>
+      )}
 
       {/* Grid del Odontograma */}
       <div className="bg-gray-50 rounded-3xl p-8 border border-gray-100 flex flex-col items-center gap-12 sm:min-w-[700px] overflow-x-auto">
