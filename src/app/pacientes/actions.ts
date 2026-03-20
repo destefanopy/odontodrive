@@ -62,3 +62,35 @@ export async function guardarFichaAction(pacienteId: string, formData: FormData)
     return { error: errorMsg, success: false };
   }
 }
+
+export async function actualizarPacienteAction(pacienteId: string, formData: FormData) {
+  try {
+    const { updatePacienteData } = await import("@/core/api");
+    const datos = {
+      nombres_apellidos: formData.get("nombres_apellidos")?.toString() || "",
+      telefono_celular: formData.get("telefono_celular")?.toString() || null,
+      documento_identidad: formData.get("documento_identidad")?.toString() || null,
+      fecha_nacimiento: formData.get("fecha_nacimiento")?.toString() || null,
+      sexo: formData.get("sexo")?.toString() || null,
+      grupo_sanguineo: formData.get("grupo_sanguineo")?.toString() || null,
+      estado_civil: formData.get("estado_civil")?.toString() || null,
+      lugar_residencia: formData.get("lugar_residencia")?.toString() || null,
+      profesion: formData.get("profesion")?.toString() || null,
+      contacto_urgencia: formData.get("contacto_urgencia")?.toString() || null,
+    };
+    
+    if (!datos.fecha_nacimiento) datos.fecha_nacimiento = null;
+
+    if (!datos.nombres_apellidos.trim()) {
+       return { error: "El Nombre y Apellido no pueden estar vacíos.", success: false };
+    }
+
+    await updatePacienteData(pacienteId, datos);
+    revalidatePath(`/pacientes/${pacienteId}`);
+    revalidatePath(`/pacientes`);
+    return { success: true };
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Error guardando los datos personales.";
+    return { error: errorMsg, success: false };
+  }
+}
