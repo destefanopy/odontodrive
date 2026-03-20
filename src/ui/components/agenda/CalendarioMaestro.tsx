@@ -161,12 +161,13 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
         }
       `}</style>
 
-      <NuevaCitaModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        selectedDate={selectedDate}
-        pacientes={pacientes}
-      />
+      {isModalOpen && (
+        <NuevaCitaModal
+          pacientes={pacientes}
+          initialDate={selectedDate}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
 
       {isEventModalOpen && selectedEvent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
