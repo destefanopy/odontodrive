@@ -29,7 +29,7 @@ export async function registrarPacienteAction(prevState: unknown, formData: Form
   redirect("/pacientes");
 }
 
-export async function guardarOdontogramaAction(pacienteId: string, teethData: Record<number, string>) {
+export async function guardarOdontogramaAction(pacienteId: string, teethData: Record<number, any>) {
   try {
     const { saveOdontograma } = await import("@/core/api");
     await saveOdontograma(pacienteId, teethData);
