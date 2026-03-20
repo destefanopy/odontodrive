@@ -61,7 +61,9 @@ export default function PatientTabs({ pacienteId }: PatientTabsProps) {
               <span className="text-3xl">🦷</span>
             </div>
             <h2 className="text-xl font-extrabold text-gray-900">Odontograma Interactivo</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">El mapa dental 2D se cargará aquí para poder seleccionar piezas y asignar tratamientos cromáticos.</p>
+            <p className="text-sm text-gray-500 max-w-md mx-auto">
+              El mapa dental 2D del paciente <span className="text-xs text-gray-300">({pacienteId.split('-')[0]})</span> se cargará aquí para poder seleccionar piezas y asignar tratamientos cromáticos.
+            </p>
           </div>
         )}
 
