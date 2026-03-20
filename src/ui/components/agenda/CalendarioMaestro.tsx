@@ -57,7 +57,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           dateClick={handleDateClick}
           selectable={true}
           select={handleSelect}
-          height="100%"
+          contentHeight="auto"
           eventContent={(eventInfo) => (
             <div className="p-1 overflow-hidden">
               <div className="font-bold text-xs">{eventInfo.event.title}</div>
