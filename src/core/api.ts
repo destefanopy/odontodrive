@@ -122,3 +122,59 @@ export const saveOdontograma = async (pacienteId: string, registros: Record<numb
 
   return true;
 };
+
+/**
+ * API DE ANTECEDENTES MÉDICOS (Ficha Clínica)
+ */
+
+export interface AntecedentesMedicos {
+  id?: string;
+  paciente_id: string;
+  alergias?: string | null;
+  problemas_coagulacion?: string | null;
+  enfermedades_sistemicas?: string | null;
+  internaciones_previas?: string | null;
+  antecedentes_familiares?: string | null;
+  medicacion_actual?: string | null;
+  observaciones?: string | null;
+}
+
+export const getAntecedentes = async (pacienteId: string): Promise<AntecedentesMedicos | null> => {
+  const { data, error } = await supabase
+    .from('antecedentes_medicos')
+    .select('*')
+    .eq('paciente_id', pacienteId)
+    .single();
+
+  // PGRST116 == 0 rows returned, which is fine for a new patient
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error obteniendo antecedentes:', error.message);
+    return null;
+  }
+  return data as AntecedentesMedicos | null;
+};
+
+export const saveAntecedentes = async (pacienteId: string, datos: Omit<AntecedentesMedicos, 'id' | 'paciente_id'>): Promise<AntecedentesMedicos | null> => {
+  const existente = await getAntecedentes(pacienteId);
+
+  if (existente && existente.id) {
+    // Update
+    const { data, error } = await supabase
+      .from('antecedentes_medicos')
+      .update(datos)
+      .eq('paciente_id', pacienteId)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as AntecedentesMedicos;
+  } else {
+    // Insert
+    const { data, error } = await supabase
+      .from('antecedentes_medicos')
+      .insert([{ paciente_id: pacienteId, ...datos }])
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as AntecedentesMedicos;
+  }
+};

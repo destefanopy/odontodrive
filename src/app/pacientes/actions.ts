@@ -40,3 +40,25 @@ export async function guardarOdontogramaAction(pacienteId: string, teethData: Re
     return { error: errorMsg, success: false };
   }
 }
+
+export async function guardarFichaAction(pacienteId: string, formData: FormData) {
+  try {
+    const { saveAntecedentes } = await import("@/core/api");
+    const datos = {
+      alergias: formData.get("alergias")?.toString() || null,
+      problemas_coagulacion: formData.get("problemas_coagulacion")?.toString() || null,
+      enfermedades_sistemicas: formData.get("enfermedades_sistemicas")?.toString() || null,
+      internaciones_previas: formData.get("internaciones_previas")?.toString() || null,
+      antecedentes_familiares: formData.get("antecedentes_familiares")?.toString() || null,
+      medicacion_actual: formData.get("medicacion_actual")?.toString() || null,
+      observaciones: formData.get("observaciones")?.toString() || null,
+    };
+    
+    await saveAntecedentes(pacienteId, datos);
+    revalidatePath(`/pacientes/${pacienteId}`);
+    return { success: true };
+  } catch (error: unknown) {
+    const errorMsg = error instanceof Error ? error.message : "Error guardando la ficha clínica.";
+    return { error: errorMsg, success: false };
+  }
+}

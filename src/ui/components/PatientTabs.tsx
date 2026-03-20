@@ -5,15 +5,17 @@ import { User, Activity, CreditCard, FolderOpen, Video } from "lucide-react";
 import { cn } from "@/lib/utils";
 import FichaClinicaForm from "./paciente/FichaClinicaForm";
 import OdontogramaVisual from "./paciente/OdontogramaVisual";
+import { AntecedentesMedicos } from "@/core/api";
 
 type TabValue = "datos" | "odontograma" | "presupuestos" | "archivos";
 
 interface PatientTabsProps {
   pacienteId: string;
   initialOdontograma: Record<number, string>;
+  initialAntecedentes?: AntecedentesMedicos | null;
 }
 
-export default function PatientTabs({ pacienteId, initialOdontograma }: PatientTabsProps) {
+export default function PatientTabs({ pacienteId, initialOdontograma, initialAntecedentes }: PatientTabsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>("datos");
 
   const tabs = [
@@ -50,7 +52,7 @@ export default function PatientTabs({ pacienteId, initialOdontograma }: PatientT
       {/* Contenido Dinámico de la Pestaña */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 lg:p-10 min-h-[400px] animate-in fade-in zoom-in-95 duration-300">
         
-        {activeTab === "datos" && <FichaClinicaForm />}
+        {activeTab === "datos" && <FichaClinicaForm pacienteId={pacienteId} initialData={initialAntecedentes} />}
 
         {activeTab === "odontograma" && <OdontogramaVisual pacienteId={pacienteId} initialOdontograma={initialOdontograma} />}
 
