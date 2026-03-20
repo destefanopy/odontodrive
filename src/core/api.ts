@@ -45,3 +45,23 @@ export const getPacienteById = async (id: string): Promise<Paciente | null> => {
   return data as Paciente;
 };
 
+/**
+ * Registra un nuevo paciente en la base de datos real.
+ * Respeta la separación de responsabilidades (SoC).
+ */
+export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'>): Promise<Paciente | null> => {
+  // Use ISO string without milliseconds or local time formats depending on DB format
+  const fechaIngreso = new Date().toISOString(); 
+  const { data: newPaciente, error } = await supabase
+    .from('pacientes')
+    .insert([{ ...data, fecha_ingreso: fechaIngreso }])
+    .select('*')
+    .single();
+
+  if (error) {
+    console.error('Error creando paciente:', error.message);
+    throw new Error(error.message);
+  }
+
+  return newPaciente as Paciente;
+};

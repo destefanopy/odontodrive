@@ -16,10 +16,10 @@ export default async function PacientesPage() {
             Listado general y registro de nuevos ingresos.
           </p>
         </div>
-        <button className="flex items-center justify-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition-colors w-full md:w-auto">
+        <Link href="/pacientes/nuevo" className="flex items-center justify-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition-colors w-full md:w-auto">
           <Plus className="w-4 h-4" />
           Nuevo Paciente
-        </button>
+        </Link>
       </div>
 
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
