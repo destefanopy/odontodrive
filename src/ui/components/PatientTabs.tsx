@@ -26,7 +26,7 @@ export default function PatientTabs({ paciente, initialOdontograma, initialAntec
     { id: "datos", label: "Datos Personales", icon: User },
     { id: "ficha", label: "Historia Médica", icon: FileText },
     { id: "odontograma", label: "Odontograma", icon: Activity },
-    { id: "presupuestos", label: "Cotizador", icon: CreditCard },
+    { id: "presupuestos", label: "Presupuestos", icon: CreditCard },
     { id: "pagos", label: "Abonos y Deudas", icon: Wallet },
     { id: "archivos", label: "Archivos e IA", icon: FolderOpen },
   ];
