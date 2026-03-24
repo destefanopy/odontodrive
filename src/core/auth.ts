@@ -39,7 +39,7 @@ export const authService = {
 
   async adminBanUser(userId: string) {
     return supabase.rpc('admin_eliminar_usuario', {
-      user_id: userId
+      target_user_id: userId
     });
   }
 };
