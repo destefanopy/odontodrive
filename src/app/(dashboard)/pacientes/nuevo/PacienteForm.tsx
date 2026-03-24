@@ -1,39 +1,45 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
-import { registrarPacienteAction } from "../actions";
+import { createPaciente } from "@/core/api";
 import { useState } from "react";
 import { AlertCircle, ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/ui/components/Card";
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="flex items-center justify-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-full text-sm font-bold shadow-md hover:bg-teal-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed w-full md:w-auto"
-    >
-      <Save className="w-4 h-4" />
-      {pending ? "Guardando..." : "Guardar Paciente"}
-    </button>
-  );
-}
+import { useRouter } from "next/navigation";
 
 export default function PacienteForm() {
   const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setError(null);
-    const result = await registrarPacienteAction(null, formData);
-    if (result?.error) {
-      setError(result.error);
+    setPending(true);
+
+    const formData = new FormData(e.currentTarget);
+    const nombres_apellidos = formData.get("nombres_apellidos")?.toString() || "";
+    const telefono_celular = formData.get("telefono_celular")?.toString() || null;
+
+    if (!nombres_apellidos.trim()) {
+      setError("El nombre y apellido son obligatorios.");
+      setPending(false);
+      return;
+    }
+
+    try {
+      await createPaciente({ nombres_apellidos, telefono_celular });
+      router.push("/pacientes");
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || "No se pudo crear el paciente.");
+    } finally {
+      setPending(false);
     }
   };
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <Card className="p-6 md:p-8 space-y-6 bg-white border-none shadow-sm rounded-3xl">
         {error && (
           <div className="flex items-center gap-2 bg-red-50 text-red-700 p-4 rounded-xl text-sm font-medium">
@@ -80,7 +86,14 @@ export default function PacienteForm() {
           <ArrowLeft className="w-4 h-4" />
           Cancelar
         </Link>
-        <SubmitButton />
+        <button
+          type="submit"
+          disabled={pending}
+          className="flex items-center justify-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-full text-sm font-bold shadow-md hover:bg-teal-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed w-full md:w-auto"
+        >
+          <Save className="w-4 h-4" />
+          {pending ? "Guardando..." : "Guardar Paciente"}
+        </button>
       </div>
     </form>
   );

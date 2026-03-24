@@ -1,9 +1,9 @@
 "use client";
 
 import { Activity, Pill, Stethoscope, FileText, Save, AlertCircle, HeartCrack, Syringe, ClipboardList } from "lucide-react";
-import { useState, useTransition } from "react";
-import { guardarFichaAction } from "@/app/(dashboard)/pacientes/actions";
-import { AntecedentesMedicos } from "@/core/api";
+import { useState } from "react";
+import { saveAntecedentes, AntecedentesMedicos } from "@/core/api";
+import { useRouter } from "next/navigation";
 
 interface FichaProps {
   pacienteId: string;
@@ -11,21 +11,37 @@ interface FichaProps {
 }
 
 export default function FichaClinicaForm({ pacienteId, initialData }: FichaProps) {
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const router = useRouter();
 
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setErrorMsg(null);
-    startTransition(async () => {
-      const result = await guardarFichaAction(pacienteId, formData);
-      if (result?.error) {
-        setErrorMsg(result.error);
-      }
-    });
+    setIsPending(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const datos = {
+        alergias: formData.get("alergias")?.toString() || null,
+        problemas_coagulacion: formData.get("problemas_coagulacion")?.toString() || null,
+        enfermedades_sistemicas: formData.get("enfermedades_sistemicas")?.toString() || null,
+        internaciones_previas: formData.get("internaciones_previas")?.toString() || null,
+        antecedentes_familiares: formData.get("antecedentes_familiares")?.toString() || null,
+        medicacion_actual: formData.get("medicacion_actual")?.toString() || null,
+        observaciones: formData.get("observaciones")?.toString() || null,
+      };
+      await saveAntecedentes(pacienteId, datos);
+      router.refresh();
+    } catch (error: any) {
+      setErrorMsg(error.message || "Error guardando la ficha clínica.");
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
-    <form action={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
+    <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-xl font-extrabold text-gray-900">Ficha Médica Base</h2>

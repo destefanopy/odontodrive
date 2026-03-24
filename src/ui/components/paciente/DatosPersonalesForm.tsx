@@ -1,30 +1,58 @@
 "use client";
 
 import { Save, AlertCircle, User, Phone, MapPin, Briefcase, Heart, Droplet, Hash, Calendar } from "lucide-react";
-import { useState, useTransition } from "react";
-import { actualizarPacienteAction } from "@/app/(dashboard)/pacientes/actions";
-import { Paciente } from "@/core/api";
+import { useState } from "react";
+import { updatePacienteData, Paciente } from "@/core/api";
+import { useRouter } from "next/navigation";
 
 interface DatosProps {
   paciente: Paciente;
 }
 
 export default function DatosPersonalesForm({ paciente }: DatosProps) {
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const router = useRouter();
   
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setErrorMsg(null);
-    startTransition(async () => {
-      const result = await actualizarPacienteAction(paciente.id, formData);
-      if (result?.error) {
-        setErrorMsg(result.error);
+    setIsPending(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const datos = {
+        nombres_apellidos: formData.get("nombres_apellidos")?.toString() || "",
+        telefono_celular: formData.get("telefono_celular")?.toString() || null,
+        documento_identidad: formData.get("documento_identidad")?.toString() || null,
+        fecha_nacimiento: formData.get("fecha_nacimiento")?.toString() || null,
+        sexo: formData.get("sexo")?.toString() || null,
+        grupo_sanguineo: formData.get("grupo_sanguineo")?.toString() || null,
+        estado_civil: formData.get("estado_civil")?.toString() || null,
+        lugar_residencia: formData.get("lugar_residencia")?.toString() || null,
+        profesion: formData.get("profesion")?.toString() || null,
+        contacto_urgencia: formData.get("contacto_urgencia")?.toString() || null,
+      };
+      
+      if (!datos.fecha_nacimiento) datos.fecha_nacimiento = null;
+
+      if (!datos.nombres_apellidos.trim()) {
+         setErrorMsg("El Nombre y Apellido no pueden estar vacíos.");
+         setIsPending(false);
+         return;
       }
-    });
+
+      await updatePacienteData(paciente.id, datos);
+      router.refresh();
+    } catch (error: any) {
+      setErrorMsg(error.message || "Error guardando los datos personales.");
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
-    <form action={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
+    <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
       <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-xl font-extrabold text-gray-900">Datos Personales</h2>

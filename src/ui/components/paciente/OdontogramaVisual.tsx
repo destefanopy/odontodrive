@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Save, AlertCircle } from "lucide-react";
-import { guardarOdontogramaAction } from "@/app/(dashboard)/pacientes/actions";
+import { saveOdontograma } from "@/core/api";
 
 export type SurfaceState = "healthy" | "caries" | "treated" | "absent";
 
@@ -52,7 +52,7 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
 
   const [teethData, setTeethData] = useState<Record<number, ToothSurfaces>>(migrateInitial(initialOdontograma));
   const [activeTool, setActiveTool] = useState<ToolType>("caries");
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
 
   const handleSurfaceClick = (toothId: number, surface: keyof ToothSurfaces) => {
     setTeethData((prev) => {
@@ -185,16 +185,16 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
     );
   };
 
-  const handleSave = () => {
-    startTransition(async () => {
-      // El Server Action ya está en actions.ts, y acepta any record.
-      const result = await guardarOdontogramaAction(pacienteId, teethData);
-      if (result.error) {
-        alert("Error: " + result.error);
-      } else {
-        alert("¡Odontograma guardado con éxito!");
-      }
-    });
+  const handleSave = async () => {
+    setIsPending(true);
+    try {
+      await saveOdontograma(pacienteId, teethData);
+      alert("¡Odontograma guardado con éxito!");
+    } catch (error: any) {
+      alert("Error: " + (error.message || "No se pudo guardar el odontograma"));
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (

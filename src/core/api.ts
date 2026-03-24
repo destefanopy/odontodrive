@@ -103,7 +103,7 @@ export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'
  * API DEL ODONTOGRAMA
  */
 
-export const getOdontograma = async (pacienteId: string): Promise<Record<number, string>> => {
+export const getOdontograma = async (pacienteId: string): Promise<Record<number, any>> => {
   const { data, error } = await supabase
     .from('odontograma_registros')
     .select('pieza_dental, estado')
@@ -114,17 +114,17 @@ export const getOdontograma = async (pacienteId: string): Promise<Record<number,
     return {};
   }
 
-  const result: Record<number, string> = {};
+  const result: Record<number, any> = {};
   if (data) {
     data.forEach(item => {
-      // Mapeamos a Record<number, string> (Ej: { 18: 'caries' })
+      // Mapeamos a Record<number, any> (Ej: { 18: { top: 'caries' } })
       result[item.pieza_dental] = item.estado;
     });
   }
   return result;
 };
 
-export const saveOdontograma = async (pacienteId: string, registros: Record<number, string>): Promise<boolean> => {
+export const saveOdontograma = async (pacienteId: string, registros: Record<number, any>): Promise<boolean> => {
   // Estrategia Vibe Atómico: Descartamos el estado anterior y persistimos el nuevo completo para evitar comprobaciones complejas de deltas.
   const { error: deleteError } = await supabase
     .from('odontograma_registros')

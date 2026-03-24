@@ -6,9 +6,9 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
-import { Cita, Paciente } from "@/core/api";
+import { Cita, Paciente, deleteCita } from "@/core/api";
 import NuevaCitaModal from "./NuevaCitaModal";
-import { borrarCitaAction } from "@/app/(dashboard)/pacientes/actions";
+import { useRouter } from "next/navigation";
 
 interface CalendarioProps {
   initialCitas: Cita[];
@@ -21,7 +21,8 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [isDeleting, startTransition] = useTransition();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
 
   const events = initialCitas.map((cita) => ({
     id: cita.id,
@@ -47,18 +48,20 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
     setIsEventModalOpen(true);
   };
 
-  const handleDeleteCita = () => {
+  const handleDeleteCita = async () => {
     if (!selectedEvent) return;
     
-    startTransition(async () => {
-      const result = await borrarCitaAction(selectedEvent.id);
-      if (result.success) {
-        setIsEventModalOpen(false);
-        setSelectedEvent(null);
-      } else {
-        alert("Error: " + result.error);
-      }
-    });
+    setIsDeleting(true);
+    try {
+      await deleteCita(selectedEvent.id);
+      setIsEventModalOpen(false);
+      setSelectedEvent(null);
+      router.refresh();
+    } catch (error: any) {
+      alert("Error: " + (error.message || "Error al borrar la cita."));
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (

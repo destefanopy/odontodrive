@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { X, Calendar, Clock, User, FileText } from "lucide-react";
-import { Paciente } from "@/core/api";
-import { crearCitaAction } from "@/app/(dashboard)/pacientes/actions";
+import { Paciente, createCita } from "@/core/api";
+import { useRouter } from "next/navigation";
 
 interface NuevaCitaModalProps {
   pacientes: Paciente[];
@@ -12,8 +12,9 @@ interface NuevaCitaModalProps {
 }
 
 export default function NuevaCitaModal({ pacientes, initialDate, onClose }: NuevaCitaModalProps) {
-  const [isPending, startTransition] = useTransition();
+  const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const router = useRouter();
 
   const formatDateForInput = (date: Date | null) => {
     if (!date) return "";
@@ -25,16 +26,42 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
     return date.toTimeString().slice(0, 5);
   };
 
-  const handleSubmit = (formData: FormData) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setErrorMsg(null);
-    startTransition(async () => {
-      const result = await crearCitaAction(formData);
-      if (result?.error) {
-        setErrorMsg(result.error);
-      } else {
-        onClose();
+    setIsPending(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      const pacienteId = formData.get("paciente_id")?.toString();
+      const nombrePaciente = formData.get("nombre_paciente")?.toString();
+      const motivo = formData.get("motivo")?.toString() || "Consulta Métrica";
+      const fecha = formData.get("fecha")?.toString();
+      const horaInicio = formData.get("hora_inicio")?.toString();
+      const horaFin = formData.get("hora_fin")?.toString();
+
+      if (!pacienteId || !fecha || !horaInicio || !horaFin) {
+        throw new Error("Faltan datos obligatorios para agendar la cita.");
       }
-    });
+
+      const fechaInicioStr = `${fecha}T${horaInicio}:00-03:00`;
+      const fechaFinStr = `${fecha}T${horaFin}:00-03:00`;
+
+      await createCita({
+        paciente_id: pacienteId,
+        nombre_paciente: nombrePaciente || "Paciente",
+        motivo,
+        fecha_inicio: new Date(fechaInicioStr).toISOString(),
+        fecha_fin: new Date(fechaFinStr).toISOString(),
+      });
+
+      router.refresh();
+      onClose();
+    } catch (err: any) {
+      setErrorMsg(err.message || "Error al borrar la cita.");
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
@@ -47,7 +74,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
           </button>
         </div>
 
-        <form action={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {errorMsg && (
             <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl mb-4 font-medium">
               {errorMsg}
