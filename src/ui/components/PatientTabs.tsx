@@ -7,6 +7,7 @@ import FichaClinicaForm from "./paciente/FichaClinicaForm";
 import OdontogramaVisual from "./paciente/OdontogramaVisual";
 import DatosPersonalesForm from "./paciente/DatosPersonalesForm";
 import PresupuestosView from "./paciente/PresupuestosView";
+import ArchivosIA from "./paciente/ArchivosIA";
 import { AntecedentesMedicos, Paciente } from "@/core/api";
 
 type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos";
@@ -64,16 +65,7 @@ export default function PatientTabs({ paciente, initialOdontograma, initialAntec
         {activeTab === "presupuestos" && <PresupuestosView paciente={paciente} />}
 
         {activeTab === "archivos" && (
-          <div className="space-y-4 text-center py-12">
-            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
-               <Video className="w-8 h-8 text-blue-500" />
-            </div>
-            <h2 className="text-xl font-extrabold text-gray-900">OdontólogoIA y Radiografías</h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">Sube una radiografía para que la IA la analice y detecte anomalías automáticamente.</p>
-            <button className="mt-4 bg-gray-900 text-white px-6 py-2 rounded-full text-sm font-bold shadow-md hover:bg-gray-800">
-              Subir Archivo
-            </button>
-          </div>
+          <ArchivosIA pacienteId={paciente.id} />
         )}
 
       </div>

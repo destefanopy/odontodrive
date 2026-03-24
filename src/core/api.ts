@@ -267,3 +267,104 @@ export async function deletePaciente(pacienteId: string) {
   }
   return true;
 }
+
+/**
+ * API DE ARCHIVOS E IA (Storage)
+ */
+
+export interface DocumentoPaciente {
+  id: string;
+  paciente_id: string;
+  nombre: string;
+  url_archivo: string;
+  tipo: string;
+  fase_clinica: 'antes' | 'evolucion' | 'final' | 'ninguna';
+  fecha_subida: string;
+  notas?: string;
+  user_id: string;
+  signedUrl?: string; // Generado en tiempo de ejecución
+}
+
+export const uploadPacienteFile = async (
+  pacienteId: string, 
+  file: File, 
+  tipo: string, 
+  fase: string
+): Promise<DocumentoPaciente> => {
+  const fileExt = file.name.split('.').pop();
+  const filePath = `${pacienteId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+  // 1. Upload to storage
+  const { error: uploadError } = await supabase.storage
+    .from('pacientes_archivos')
+    .upload(filePath, file);
+
+  if (uploadError) throw uploadError;
+
+  // 2. Insert into DB
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
+  const { data, error } = await supabase
+    .from('documentos_paciente')
+    .insert({
+      paciente_id: pacienteId,
+      nombre: file.name,
+      url_archivo: filePath,
+      tipo,
+      fase_clinica: fase,
+      user_id: authData.user.id
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error insertando documento:', error.message);
+    throw new Error(error.message);
+  }
+  
+  return data as DocumentoPaciente;
+}
+
+export const getPacienteFiles = async (pacienteId: string): Promise<DocumentoPaciente[]> => {
+  const { data, error } = await supabase
+    .from('documentos_paciente')
+    .select('*')
+    .eq('paciente_id', pacienteId)
+    .order('fecha_subida', { ascending: false });
+
+  if (error) {
+    if (error.code !== '42P01') { 
+      console.error('Error obteniendo archivos:', error.message);
+    }
+    return [];
+  }
+  
+  const filesWithUrls = await Promise.all(
+    (data || []).map(async (doc) => {
+      if (doc.url_archivo.startsWith('http')) {
+        return { ...doc, signedUrl: doc.url_archivo };
+      }
+
+      const { data: urlData } = await supabase.storage
+        .from('pacientes_archivos')
+        .createSignedUrl(doc.url_archivo, 3600);
+        
+      return {
+        ...doc,
+        signedUrl: urlData?.signedUrl || null
+      };
+    })
+  );
+
+  return filesWithUrls as DocumentoPaciente[];
+}
+
+export async function deletePacienteFile(id: string, storagePath: string) {
+  if (!storagePath.startsWith('http')) {
+    await supabase.storage.from('pacientes_archivos').remove([storagePath]);
+  }
+  const { error } = await supabase.from('documentos_paciente').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
