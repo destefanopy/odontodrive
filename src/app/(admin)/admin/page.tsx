@@ -52,14 +52,20 @@ export default function AdminConsole() {
   };
 
   const handleBanUser = async (userId: string) => {
-    if (!confirm("⚠️ ADVERTENCIA: Esta acción dará de baja temporal/permanente al odontólogo e impedirá que inicie sesión. ¿Proceder?")) return;
+    const word = window.prompt("⚠️ ADVERTENCIA ROJA: Se ELIMINARÁ PERMANENTEMENTE toda la cuenta de este profesional junto con toda su agenda, presupuestos y cientos de pacientes. Esta acción es IRREVERSIBLE.\n\nEscribe la palabra 'eliminar' en minúsculas para confirmar:");
+    
+    if (word !== "eliminar") {
+      if (word !== null) alert("Operación cancelada: La palabra de seguridad fue incorrecta.");
+      return;
+    }
+
     try {
       const { error } = await authService.adminBanUser(userId);
       if (error) throw error;
       // Refrescar
       fetchUsers();
     } catch (err: any) {
-      alert("Error bajando usuario: " + err.message);
+      alert("Error eliminando de base de datos: " + err.message);
     }
   };
 
