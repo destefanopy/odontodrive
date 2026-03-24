@@ -1,9 +1,11 @@
-import { getPacienteById, getOdontograma, getAntecedentes } from "@/core/api";
+"use client";
+import { useEffect, useState } from "react";
+import { getPacienteById, getOdontograma, getAntecedentes, Paciente, AntecedentesMedicos } from "@/core/api";
 import PatientTabs from "@/ui/components/PatientTabs";
-import { notFound } from "next/navigation";
-import { ArrowLeft, Phone, Calendar } from "lucide-react";
+import { ArrowLeft, Phone, Calendar, Loader2 } from "lucide-react";
 import Link from "next/link";
 import AgendarCitaBoton from "@/ui/components/paciente/AgendarCitaBoton";
+import { useRouter } from "next/navigation";
 
 interface PageProps {
   params: {
@@ -11,13 +13,37 @@ interface PageProps {
   };
 }
 
-export default async function PacientePerfilPage({ params }: PageProps) {
-  const paciente = await getPacienteById(params.id);
-  const initialOdontograma = await getOdontograma(params.id);
-  const initialAntecedentes = await getAntecedentes(params.id);
+export default function PacientePerfilPage({ params }: PageProps) {
+  const [paciente, setPaciente] = useState<Paciente | null>(null);
+  const [initialOdontograma, setOdontograma] = useState<any>(null);
+  const [initialAntecedentes, setAntecedentes] = useState<AntecedentesMedicos | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  if (!paciente) {
-    notFound();
+  useEffect(() => {
+    Promise.all([
+      getPacienteById(params.id),
+      getOdontograma(params.id),
+      getAntecedentes(params.id)
+    ]).then(([p, o, a]) => {
+      if (!p) {
+        router.push("/pacientes");
+        return;
+      }
+      setPaciente(p);
+      setOdontograma(o);
+      setAntecedentes(a);
+      setLoading(false);
+    });
+  }, [params.id, router]);
+
+  if (loading || !paciente) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
+        <p className="text-gray-500 font-medium animate-pulse">Cargando expediente médico...</p>
+      </div>
+    );
   }
 
   const fechaAlta = new Date(paciente.fecha_ingreso).toLocaleDateString();

@@ -1,9 +1,30 @@
+"use client";
 import CalendarioMaestro from "@/ui/components/agenda/CalendarioMaestro";
-import { getCitas, getUltimosPacientes } from "@/core/api";
+import { useEffect, useState } from "react";
+import { getCitas, getUltimosPacientes, Cita, Paciente } from "@/core/api";
+import { Loader2 } from "lucide-react";
 
-export default async function AgendaPage() {
-  const citas = await getCitas();
-  const pacientes = await getUltimosPacientes();
+export default function AgendaPage() {
+  const [citas, setCitas] = useState<Cita[]>([]);
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([getCitas(), getUltimosPacientes()]).then(([c, p]) => {
+      setCitas(c);
+      setPacientes(p);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
+        <p className="text-gray-500 font-medium animate-pulse">Sincronizando agenda clínica...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[1400px] w-full mx-auto flex-1 flex flex-col h-full overflow-hidden">

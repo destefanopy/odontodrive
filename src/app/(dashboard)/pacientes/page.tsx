@@ -1,9 +1,28 @@
-import { getUltimosPacientes } from "@/core/api";
-import { Users, Plus, ChevronRight } from "lucide-react";
+"use client";
+import { useEffect, useState } from "react";
+import { getUltimosPacientes, Paciente } from "@/core/api";
+import { Users, Plus, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-export default async function PacientesPage() {
-  const pacientes = await getUltimosPacientes();
+export default function PacientesPage() {
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getUltimosPacientes().then(data => {
+      setPacientes(data);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
+        <p className="text-gray-500 font-medium animate-pulse">Cargando pacientes de la nube...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 mt-4 lg:mt-0">
