@@ -411,11 +411,17 @@ export interface Pago {
   pacientes?: { nombres_apellidos: string };
 }
 
-export async function createPago(pago: Omit<Pago, 'id' | 'fecha_pago' | 'user_id' | 'pacientes'>) {
+export async function createPago(pago: Omit<Pago, 'id' | 'user_id' | 'pacientes' | 'fecha_pago'> & { fecha_pago?: string }) {
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) throw new Error("No autenticado");
 
-  const { error } = await supabase.from('pagos').insert({ ...pago, user_id: authData.user.id });
+  const payload = {
+    ...pago,
+    fecha_pago: pago.fecha_pago || new Date().toISOString(),
+    user_id: authData.user.id
+  };
+
+  const { error } = await supabase.from('pagos').insert(payload);
   if (error) throw new Error(error.message);
   return true;
 }
@@ -437,6 +443,50 @@ export async function getPagos(pacienteId?: string): Promise<Pago[]> {
 
 export async function deletePago(id: string) {
   const { error } = await supabase.from('pagos').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+export interface Deuda {
+  id: string;
+  paciente_id: string;
+  monto: number;
+  concepto: string;
+  fecha: string;
+  user_id: string;
+  pacientes?: { nombres_apellidos: string };
+}
+
+export async function createDeuda(deuda: Omit<Deuda, 'id' | 'user_id' | 'pacientes' | 'fecha'> & { fecha?: string }) {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
+  const payload = {
+    ...deuda,
+    fecha: deuda.fecha || new Date().toISOString(),
+    user_id: authData.user.id
+  };
+
+  const { error } = await supabase.from('deudas').insert(payload);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+export async function getDeudas(pacienteId?: string): Promise<Deuda[]> {
+  let query = supabase.from('deudas').select('*, pacientes(nombres_apellidos)');
+  if (pacienteId) {
+    query = query.eq('paciente_id', pacienteId);
+  }
+  const { data, error } = await query.order('fecha', { ascending: false });
+  if (error && error.code !== '42P01') {
+    console.error("Error obteniendo deudas:", error.message);
+    return [];
+  }
+  return (data || []) as Deuda[];
+}
+
+export async function deleteDeuda(id: string) {
+  const { error } = await supabase.from('deudas').delete().eq('id', id);
   if (error) throw new Error(error.message);
   return true;
 }

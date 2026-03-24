@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { User, Activity, CreditCard, FolderOpen, Video, FileText } from "lucide-react";
+import { User, Activity, CreditCard, FolderOpen, Video, FileText, Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
 import FichaClinicaForm from "./paciente/FichaClinicaForm";
 import OdontogramaVisual from "./paciente/OdontogramaVisual";
 import DatosPersonalesForm from "./paciente/DatosPersonalesForm";
 import PresupuestosView from "./paciente/PresupuestosView";
 import ArchivosIA from "./paciente/ArchivosIA";
+import PagosView from "./paciente/PagosView";
 import { AntecedentesMedicos, Paciente } from "@/core/api";
 
-type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos";
+type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos" | "pagos";
 
 interface PatientTabsProps {
   paciente: Paciente;
@@ -25,7 +26,8 @@ export default function PatientTabs({ paciente, initialOdontograma, initialAntec
     { id: "datos", label: "Datos Personales", icon: User },
     { id: "ficha", label: "Historia Médica", icon: FileText },
     { id: "odontograma", label: "Odontograma", icon: Activity },
-    { id: "presupuestos", label: "Presupuestos", icon: CreditCard },
+    { id: "presupuestos", label: "Cotizador", icon: CreditCard },
+    { id: "pagos", label: "Abonos y Deudas", icon: Wallet },
     { id: "archivos", label: "Archivos e IA", icon: FolderOpen },
   ];
 
@@ -63,6 +65,8 @@ export default function PatientTabs({ paciente, initialOdontograma, initialAntec
         {activeTab === "odontograma" && <OdontogramaVisual pacienteId={paciente.id} initialOdontograma={initialOdontograma} />}
 
         {activeTab === "presupuestos" && <PresupuestosView paciente={paciente} />}
+
+        {activeTab === "pagos" && <PagosView paciente={paciente} />}
 
         {activeTab === "archivos" && (
           <ArchivosIA pacienteId={paciente.id} />

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useTransition, useEffect } from "react";
-import { Plus, Trash2, Printer, Save, DollarSign, Wallet, ArrowDownCircle, Loader2 } from "lucide-react";
+import { useState, useRef, useTransition } from "react";
+import { Plus, Trash2, Printer, Save } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import PresupuestoPDFTemplate from "./PresupuestoPDFTemplate";
-import { Paciente, Pago, createPago, getPagos, deletePago } from "@/core/api";
+import { Paciente } from "@/core/api";
 
 interface PresupuestoItem {
   id: string;
@@ -23,64 +23,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   const [descuento, setDescuento] = useState<number>(0);
   const [isPending, startTransition] = useTransition();
 
-  // Pagos State
-  const [pagos, setPagos] = useState<Pago[]>([]);
-  const [loadingPagos, setLoadingPagos] = useState(true);
-  const [isPaying, setIsPaying] = useState(false);
-  const [nuevoPago, setNuevoPago] = useState<{ monto: number; metodo: string; concepto: string }>({
-    monto: 0,
-    metodo: "Efectivo",
-    concepto: ""
-  });
-
   const printRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    cargarPagos();
-  }, [paciente.id]);
-
-  const cargarPagos = async () => {
-    try {
-      const data = await getPagos(paciente.id);
-      setPagos(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoadingPagos(false);
-    }
-  };
-
-  const handleRegistrarPago = async () => {
-    if (nuevoPago.monto <= 0 || !nuevoPago.concepto) {
-      alert("Por favor, ingresa un monto válido y un concepto.");
-      return;
-    }
-    setIsPaying(true);
-    try {
-      await createPago({
-        paciente_id: paciente.id,
-        monto: nuevoPago.monto,
-        metodo_pago: nuevoPago.metodo,
-        concepto: nuevoPago.concepto
-      });
-      setNuevoPago({ monto: 0, metodo: "Efectivo", concepto: "" });
-      await cargarPagos();
-    } catch (error: any) {
-      alert("Error al registrar pago: " + error.message);
-    } finally {
-      setIsPaying(false);
-    }
-  };
-
-  const handleBorrarPago = async (id: string) => {
-    if (!confirm("¿Eliminar este pago? Esta acción no se puede deshacer.")) return;
-    try {
-      await deletePago(id);
-      await cargarPagos();
-    } catch (error: any) {
-      alert("Error eliminando pago: " + error.message);
-    }
-  };
 
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -100,10 +43,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   };
 
   const subtotal = items.reduce((acc, item) => acc + (Number(item.costo) || 0), 0);
-  const totalPresupuesto = Math.max(0, subtotal - (Number(descuento) || 0));
-  
-  const totalAbonado = pagos.reduce((acc, p) => acc + Number(p.monto), 0);
-  const totalPendiente = Math.max(0, totalPresupuesto - totalAbonado);
+  const total = Math.max(0, subtotal - (Number(descuento) || 0));
 
   const formatGs = (num: number) => new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG", maximumFractionDigits: 0 }).format(num);
 
@@ -233,114 +173,9 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
               <span>- {formatGs(descuento)}</span>
             </div>
             <div className="flex justify-between text-xl font-extrabold text-gray-900 pt-3 border-t border-gray-100">
-              <span>Total Cotizado:</span>
-              <span>{formatGs(totalPresupuesto)}</span>
+              <span>Total a Pagar:</span>
+              <span>{formatGs(total)}</span>
             </div>
-            {pagos.length > 0 && (
-              <>
-                <div className="flex justify-between text-blue-600 font-bold border-t border-gray-100 pt-2 mt-2">
-                  <span>Total Abonado:</span>
-                  <span>{formatGs(totalAbonado)}</span>
-                </div>
-                <div className="flex justify-between text-2xl text-red-500 font-black border-t border-gray-200 pt-3">
-                  <span>Saldo Pendiente:</span>
-                  <span>{formatGs(totalPendiente)}</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* SECCIÓN PAGOS Y ABONOS */}
-      <div className="mt-12 bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-               <Wallet className="w-5 h-5 text-blue-600" />
-             </div>
-             <div>
-               <h2 className="text-xl font-extrabold text-gray-900">Registro de Abonos</h2>
-               <p className="text-xs text-gray-500 font-medium">Asienta los pagos realizados por el paciente.</p>
-             </div>
-           </div>
-        </div>
-
-        <div className="p-6 grid md:grid-cols-2 gap-8">
-          {/* Formulario de Pago */}
-          <div className="space-y-4 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
-            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-              <Plus className="w-4 h-4 text-emerald-500" /> Nuevo Pago
-            </h3>
-            
-            <div className="space-y-3">
-              <input
-                type="number"
-                placeholder="Monto (Gs) *"
-                value={nuevoPago.monto || ""}
-                onChange={e => setNuevoPago({...nuevoPago, monto: Number(e.target.value)})}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-900"
-              />
-              <input
-                type="text"
-                placeholder="Concepto (Ej. Entrega inicial ortodoncia) *"
-                value={nuevoPago.concepto}
-                onChange={e => setNuevoPago({...nuevoPago, concepto: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-              />
-              <div className="grid grid-cols-3 gap-2">
-                {["Efectivo", "Tarjeta", "Transferencia"].map(met => (
-                  <button
-                    key={met}
-                    onClick={() => setNuevoPago({...nuevoPago, metodo: met})}
-                    className={`py-2 text-xs font-bold rounded-lg border transition-all ${nuevoPago.metodo === met ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-gray-200 text-gray-500'}`}
-                  >
-                    {met}
-                  </button>
-                ))}
-              </div>
-              <button 
-                onClick={handleRegistrarPago}
-                disabled={isPaying}
-                className="w-full mt-2 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4" />}
-                Registrar Ingreso a Caja
-              </button>
-            </div>
-          </div>
-
-          {/* Historial de Pagos */}
-          <div className="space-y-4">
-             <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-              <ArrowDownCircle className="w-4 h-4 text-blue-500" /> Últimos Movimientos
-            </h3>
-
-            {loadingPagos ? (
-              <div className="py-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-gray-300" /></div>
-            ) : pagos.length === 0 ? (
-              <div className="py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                <p className="text-sm text-gray-500 font-medium">No se han registrado abonos aún.</p>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
-                {pagos.map(pago => (
-                  <div key={pago.id} className="flex items-center justify-between bg-white border border-gray-100 p-3 rounded-xl hover:shadow-sm transition-all group">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-900">{formatGs(pago.monto)}</span>
-                      <span className="text-[10px] text-gray-500 font-medium">{pago.concepto} • {pago.metodo_pago}</span>
-                      <span className="text-[9px] text-gray-400">{new Date(pago.fecha_pago).toLocaleString()}</span>
-                    </div>
-                    <button 
-                      onClick={() => handleBorrarPago(pago.id)}
-                      className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -353,7 +188,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
           items={items}
           subtotal={subtotal}
           descuento={descuento}
-          total={totalPresupuesto}
+          total={total}
         />
       </div>
     </div>
