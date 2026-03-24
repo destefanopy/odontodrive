@@ -341,8 +341,8 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
 function GaleriaThumbnail({ doc, onViewer, onDelete, onMove, onAI }: { doc: DocumentoPaciente; onViewer: (url: string) => void; onDelete: (id: string, path: string) => void; onMove: (id: string, fase: string) => void; onAI?: (doc: DocumentoPaciente) => void }) {
   const isImage = doc.tipo_archivo === 'fotografia' || (doc.signedUrl && doc.signedUrl.match(/\.(jpeg|jpg|gif|png|webp)/i));
   const phases = ["antes", "evolucion", "final"];
-  const currentPhaseIndex = phases.indexOf(doc.fase_clinica);
-  const nextPhase = phases[currentPhaseIndex + 1];
+  const currentPhaseIndex = phases.indexOf(doc.fase_clinica) >= 0 ? phases.indexOf(doc.fase_clinica) : 0;
+  const nextPhase = phases[(currentPhaseIndex + 1) % phases.length];
 
   return (
     <div className="group relative aspect-square rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
@@ -378,15 +378,13 @@ function GaleriaThumbnail({ doc, onViewer, onDelete, onMove, onAI }: { doc: Docu
          </button>
        )}
 
-       {nextPhase && (
-         <button 
-           onClick={(e) => { e.stopPropagation(); onMove(doc.id, nextPhase); }}
-           className="absolute top-2 left-2 p-1.5 bg-white/80 backdrop-blur-md text-gray-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm font-bold text-[10px] flex items-center gap-1"
-           title={`Mover a ${nextPhase}`}
-         >
-           Mover <MoveRight className="w-3 h-3 text-accent" />
-         </button>
-       )}
+       <button 
+         onClick={(e) => { e.stopPropagation(); onMove(doc.id, nextPhase); }}
+         className="absolute top-2 left-2 p-1.5 bg-white/80 backdrop-blur-md text-gray-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm font-bold text-[10px] flex items-center gap-1"
+         title={`Mover a ${nextPhase}`}
+       >
+         Mover <MoveRight className="w-3 h-3 text-accent" />
+       </button>
        
        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
          <p className="text-[10px] text-white font-bold truncate">{doc.url_archivo.split('/').pop()}</p>
