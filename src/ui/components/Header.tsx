@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar } from "lucide-react";
+import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar, LogOut } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { authService } from "@/core/auth";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -15,6 +16,12 @@ const navItems = [
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await authService.signOut();
+    router.push("/login");
+  };
 
   return (
     <>
@@ -48,7 +55,13 @@ export default function Header() {
               <span className="text-sm font-bold text-gray-900">
                 Dra. Jana Santander
               </span>
-              <ChevronDown className="w-3 h-3 text-gray-500" />
+              <button 
+                onClick={handleLogout} 
+                className="ml-2 p-1 rounded-md text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors" 
+                title="Cerrar sesión"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
             <span className="text-xs text-gray-500 font-medium">
               jana.santander@example.com
@@ -133,10 +146,17 @@ export default function Header() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="https://api.dicebear.com/9.x/notionists/svg?seed=JanaSantander&backgroundColor=e6f7fa" alt="Profile" className="w-full h-full object-cover p-1 bg-white" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <p className="text-xs font-bold text-gray-900">Dra. Jana Santander</p>
                   <p className="text-[10px] text-gray-700">Ver Perfil</p>
                 </div>
+                <button 
+                  onClick={handleLogout} 
+                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shadow-sm"
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </aside>
