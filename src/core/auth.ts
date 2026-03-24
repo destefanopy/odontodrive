@@ -24,4 +24,22 @@ export const authService = {
   async signOut() {
     return supabase.auth.signOut();
   },
+
+  // --- ADMIN RPC FUNCIONES ---
+  async adminGetAllUsers() {
+    return supabase.rpc('admin_get_all_users');
+  },
+
+  async adminUpgradePlan(userId: string, nuevoPlan: string) {
+    return supabase.rpc('admin_mejorar_plan', {
+      user_id: userId,
+      nuevo_plan: nuevoPlan
+    });
+  },
+
+  async adminBanUser(userId: string) {
+    return supabase.rpc('admin_eliminar_usuario', {
+      user_id: userId
+    });
+  }
 };
