@@ -158,7 +158,7 @@ export default function AdminConsole() {
                         {u.es_admin ? "Administrador" : "Odontólogo"}
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
-                        {!u.es_admin && u.activo && (
+                        {!u.es_admin && (
                           <>
                             {u.plan !== 'premium' && (
                               <button 
@@ -172,7 +172,7 @@ export default function AdminConsole() {
                               onClick={() => handleBanUser(u.id)}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors border border-red-200"
                             >
-                              Dar de Baja
+                              Eliminar Permanente
                             </button>
                           </>
                         )}
