@@ -277,7 +277,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
 }
 
 function GaleriaThumbnail({ doc, onViewer, onDelete }: { doc: DocumentoPaciente; onViewer: (url: string) => void; onDelete: (id: string, path: string) => void }) {
-  const isImage = doc.tipo === 'fotografia' || (doc.signedUrl && doc.signedUrl.match(/\.(jpeg|jpg|gif|png|webp)/i));
+  const isImage = doc.tipo_archivo === 'fotografia' || (doc.signedUrl && doc.signedUrl.match(/\.(jpeg|jpg|gif|png|webp)/i));
 
   return (
     <div className="group relative aspect-square rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
@@ -285,7 +285,7 @@ function GaleriaThumbnail({ doc, onViewer, onDelete }: { doc: DocumentoPaciente;
           // eslint-disable-next-line @next/next/no-img-element
           <img 
             src={doc.signedUrl} 
-            alt={doc.nombre}
+            alt={doc.url_archivo.split('/').pop() || "Imagen clínica"}
             className="w-full h-full object-cover mix-blend-multiply hover:mix-blend-normal transition-all duration-300 group-hover:scale-110"
             onClick={() => onViewer(doc.signedUrl!)}
           />
@@ -303,7 +303,7 @@ function GaleriaThumbnail({ doc, onViewer, onDelete }: { doc: DocumentoPaciente;
        </button>
        
        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-         <p className="text-[10px] text-white font-bold truncate">{doc.nombre}</p>
+         <p className="text-[10px] text-white font-bold truncate">{doc.url_archivo.split('/').pop()}</p>
          <p className="text-[9px] text-white/80">{new Date(doc.fecha_subida).toLocaleDateString()}</p>
        </div>
     </div>

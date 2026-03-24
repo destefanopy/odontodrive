@@ -275,12 +275,12 @@ export async function deletePaciente(pacienteId: string) {
 export interface DocumentoPaciente {
   id: string;
   paciente_id: string;
-  nombre: string;
   url_archivo: string;
-  tipo: string;
+  tipo_archivo: string;
   fase_clinica: 'antes' | 'evolucion' | 'final' | 'ninguna';
   fecha_subida: string;
-  notas?: string;
+  texto_extraido?: string;
+  analisis_ia?: any;
   user_id: string;
   signedUrl?: string; // Generado en tiempo de ejecución
 }
@@ -309,9 +309,8 @@ export const uploadPacienteFile = async (
     .from('documentos_paciente')
     .insert({
       paciente_id: pacienteId,
-      nombre: file.name,
       url_archivo: filePath,
-      tipo,
+      tipo_archivo: tipo,
       fase_clinica: fase,
       user_id: authData.user.id
     })
