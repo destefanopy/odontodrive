@@ -395,3 +395,48 @@ export async function analyzeImagesWithAI(signedUrls: string[], customPrompt?: s
   
   return res.result;
 }
+
+/**
+ * API DE FINANZAS Y PAGOS
+ */
+
+export interface Pago {
+  id: string;
+  paciente_id: string;
+  monto: number;
+  metodo_pago: string;
+  concepto: string;
+  fecha_pago: string;
+  user_id: string;
+  pacientes?: { nombres_apellidos: string };
+}
+
+export async function createPago(pago: Omit<Pago, 'id' | 'fecha_pago' | 'user_id' | 'pacientes'>) {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
+  const { error } = await supabase.from('pagos').insert({ ...pago, user_id: authData.user.id });
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+export async function getPagos(pacienteId?: string): Promise<Pago[]> {
+  let query = supabase.from('pagos').select('*, pacientes(nombres_apellidos)');
+  
+  if (pacienteId) {
+    query = query.eq('paciente_id', pacienteId);
+  }
+  
+  const { data, error } = await query.order('fecha_pago', { ascending: false });
+  if (error && error.code !== '42P01') {
+    console.error("Error obteniendo pagos:", error.message);
+    return [];
+  }
+  return (data || []) as Pago[];
+}
+
+export async function deletePago(id: string) {
+  const { error } = await supabase.from('pagos').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
