@@ -7,6 +7,9 @@ export const authService = {
       password,
     });
   },
+  async getUser() {
+    return supabase.auth.getUser();
+  },
 
   async signUp(email: string, password: string, name: string) {
     return supabase.auth.signUp({

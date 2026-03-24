@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -14,8 +14,20 @@ const navItems = [
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userData, setUserData] = useState<{name: string, email: string} | null>(null);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    authService.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setUserData({
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || "Odontólogo",
+          email: user.email || ""
+        });
+      }
+    });
+  }, []);
 
   const handleLogout = async () => {
     await authService.signOut();
@@ -44,15 +56,15 @@ export default function Header() {
           <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://api.dicebear.com/9.x/notionists/svg?seed=JanaSantander&backgroundColor=e6f7fa"
-              alt="Dra. Avatar"
+              src={`https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`}
+              alt="Avatar"
               className="w-full h-full object-cover p-1 bg-white"
             />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1">
               <span className="text-sm font-bold text-gray-900">
-                Dra. Jana Santander
+                {userData ? userData.name : "Cargando..."}
               </span>
               <button 
                 onClick={handleLogout} 
@@ -63,7 +75,7 @@ export default function Header() {
               </button>
             </div>
             <span className="text-xs text-gray-500 font-medium">
-              jana.santander@example.com
+              {userData ? userData.email : ""}
             </span>
           </div>
         </div>
@@ -143,10 +155,10 @@ export default function Header() {
               <div className="flex items-center gap-3 p-3 bg-white/40 rounded-xl">
                 <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="https://api.dicebear.com/9.x/notionists/svg?seed=JanaSantander&backgroundColor=e6f7fa" alt="Profile" className="w-full h-full object-cover p-1 bg-white" />
+                  <img src={`https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`} alt="Profile" className="w-full h-full object-cover p-1 bg-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-bold text-gray-900">Dra. Jana Santander</p>
+                  <p className="text-xs font-bold text-gray-900 truncate pr-1">{userData ? userData.name : "Cargando..."}</p>
                   <p className="text-[10px] text-gray-700">Ver Perfil</p>
                 </div>
                 <button 
