@@ -377,3 +377,21 @@ export async function updatePacienteFileFase(id: string, fase: string) {
   if (error) throw new Error(error.message);
   return true;
 }
+
+export async function analyzeImagesWithAI(signedUrls: string[], customPrompt?: string): Promise<string> {
+  const req = await fetch('/api/openai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      imageUrls: signedUrls,
+      prompt: customPrompt
+    })
+  });
+
+  const res = await req.json();
+  if (!req.ok) {
+    throw new Error(res.error || "Error al conectar con OdontólogoIA.");
+  }
+  
+  return res.result;
+}

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { UploadCloud, Image as ImageIcon, FileText, Sparkles, Loader2, Trash2, X, MoveRight } from "lucide-react";
-import { DocumentoPaciente, uploadPacienteFile, getPacienteFiles, deletePacienteFile, updatePacienteFileFase } from "@/core/api";
+import { UploadCloud, Image as ImageIcon, FileText, Sparkles, Loader2, Trash2, X, MoveRight, BrainCircuit } from "lucide-react";
+import { DocumentoPaciente, uploadPacienteFile, getPacienteFiles, deletePacienteFile, updatePacienteFileFase, analyzeImagesWithAI } from "@/core/api";
 import { cn } from "@/lib/utils";
 
 interface ArchivosIAProps {
@@ -21,6 +21,10 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
   
   // Fullscreen Viewer State
   const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+
+  // IA State
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiAnalysisResult, setAiAnalysisResult] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -98,6 +102,23 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
       await cargarArchivos();
     } catch (err: any) {
       alert("Error moviendo foto: " + err.message);
+    }
+  };
+
+  const handleIAAnalysis = async (docs: DocumentoPaciente[], contextMsg: string) => {
+    const urls = docs.map(d => d.signedUrl).filter(Boolean) as string[];
+    if (urls.length === 0) return;
+
+    setIsAnalyzing(true);
+    setAiAnalysisResult(null);
+
+    try {
+      const resp = await analyzeImagesWithAI(urls, contextMsg);
+      setAiAnalysisResult(resp);
+    } catch (err: any) {
+      alert("OdontólogoIA Error: " + err.message);
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -206,7 +227,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
       {/* Galería Visual por Fases */}
       {archivos.length > 0 && (
         <div className="space-y-10 mt-10 border-t border-gray-100 mt-10 pt-10">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <h3 className="text-xl font-black text-gray-900 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-accent" />
@@ -215,11 +236,43 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
               <p className="text-sm text-gray-500 font-medium">Historial gráfico de transformación dental.</p>
             </div>
             
-            <button className="hidden md:flex items-center gap-2 bg-gradient-to-r from-[#24a09c] to-[#31b8b3] text-white px-5 py-2.5 rounded-full text-xs font-bold shadow-lg shadow-accent/20 hover:scale-105 transition-all">
-              <Sparkles className="w-4 h-4" />
-              Comparar Evolución con IA
+            <button 
+              onClick={() => {
+                if (agrupados.antes.length > 0 && agrupados.evolucion.length > 0) {
+                  // Agarra la foto más reciente de "antes" (que es la última de la DB si es order by Date pero están revertidos)
+                  // Como la query es `order('fecha_subida', { ascending: false })`, el índice 0 es el MÁS RECIENTE.
+                  // Así que agrupados.antes[0] es la última foto inicial subida. Para el "antes" queremos la más antigua idealmente, o la que elija.
+                  // Para simplificar, aggarremos 1 de antes y 1 de evolución
+                  handleIAAnalysis(
+                    [agrupados.antes[agrupados.antes.length - 1], agrupados.evolucion[0]], 
+                    "Por favor compara el estado de la primera foto (Antes) con el de la segunda (Evolución actual). Detecta mejorías o puntos de alerta."
+                  );
+                } else {
+                  alert("Necesitas al menos 1 foto en 'Antes' y 1 en 'Evolución' para hacer la comparación automática.");
+                }
+              }}
+              disabled={isAnalyzing}
+              className="flex items-center gap-2 bg-gradient-to-r from-[#24a09c] to-[#31b8b3] text-white px-5 py-2.5 rounded-full text-xs font-bold shadow-lg shadow-accent/20 hover:scale-105 transition-all disabled:opacity-50"
+            >
+              {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : <BrainCircuit className="w-4 h-4" />}
+              {isAnalyzing ? "Analizando..." : "Comparar Antes/Evolución con IA"}
             </button>
           </div>
+
+          {/* AI Output Window */}
+          {aiAnalysisResult && (
+            <div className="bg-gray-900 text-white p-6 rounded-3xl shadow-xl relative animate-in slide-in-from-top-4 duration-500">
+               <button onClick={() => setAiAnalysisResult(null)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
+                 <X className="w-5 h-5" />
+               </button>
+               <h4 className="flex items-center gap-2 font-bold text-accent mb-4">
+                 <Sparkles className="w-5 h-5" /> Análisis Diagnóstico de OdontólogoIA
+               </h4>
+               <p className="text-sm leading-relaxed text-gray-300 font-medium whitespace-pre-wrap">
+                 {aiAnalysisResult}
+               </p>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* Antes */}
@@ -229,7 +282,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
                 <h4 className="font-bold text-gray-700">1. Estado Inicial</h4>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {agrupados.antes.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} />)}
+                {agrupados.antes.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} onAI={(d) => handleIAAnalysis([d], "Analiza esta radiografía/imagen dental. Destaca hallazgos relevantes (anomalías, caries, hueso alveolar).")} />)}
                 {agrupados.antes.length === 0 && <p className="text-xs text-gray-400 col-span-2 py-4 italic">No hay fotos iniciales.</p>}
               </div>
             </div>
@@ -241,7 +294,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
                 <h4 className="font-bold text-gray-700">2. Evoluciones</h4>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {agrupados.evolucion.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} />)}
+                {agrupados.evolucion.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} onAI={(d) => handleIAAnalysis([d], "Analiza esta imagen radiográfica o fotográfica en etapa de evolución ortodóntica/clínica.")} />)}
                 {agrupados.evolucion.length === 0 && <p className="text-xs text-gray-400 col-span-2 py-4 italic">No hay progreso registrado.</p>}
               </div>
             </div>
@@ -253,7 +306,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
                 <h4 className="font-bold text-gray-900">3. Tratamiento Final</h4>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {agrupados.final.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} />)}
+                {agrupados.final.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} onAI={(d) => handleIAAnalysis([d], "Analiza este resultado clínico final.")} />)}
                 {agrupados.final.length === 0 && <p className="text-xs text-gray-400 col-span-2 py-4 italic">El tratamiento sigue en curso.</p>}
               </div>
             </div>
@@ -264,7 +317,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
             <div className="space-y-4 mt-8">
               <h4 className="font-bold text-gray-500 text-sm">Otros Documentos</h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                 {agrupados.ninguna.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} />)}
+                 {agrupados.ninguna.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} onAI={(d) => handleIAAnalysis([d], "Dime qué observas en esta imagen.")} />)}
               </div>
             </div>
           )}
@@ -285,7 +338,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
   );
 }
 
-function GaleriaThumbnail({ doc, onViewer, onDelete, onMove }: { doc: DocumentoPaciente; onViewer: (url: string) => void; onDelete: (id: string, path: string) => void; onMove: (id: string, fase: string) => void }) {
+function GaleriaThumbnail({ doc, onViewer, onDelete, onMove, onAI }: { doc: DocumentoPaciente; onViewer: (url: string) => void; onDelete: (id: string, path: string) => void; onMove: (id: string, fase: string) => void; onAI?: (doc: DocumentoPaciente) => void }) {
   const isImage = doc.tipo_archivo === 'fotografia' || (doc.signedUrl && doc.signedUrl.match(/\.(jpeg|jpg|gif|png|webp)/i));
   const phases = ["antes", "evolucion", "final"];
   const currentPhaseIndex = phases.indexOf(doc.fase_clinica);
@@ -314,6 +367,16 @@ function GaleriaThumbnail({ doc, onViewer, onDelete, onMove }: { doc: DocumentoP
        >
          <Trash2 className="w-3.5 h-3.5" />
        </button>
+
+       {isImage && onAI && (
+         <button 
+           onClick={(e) => { e.stopPropagation(); onAI(doc); }}
+           className="absolute bottom-2 right-2 z-10 p-1.5 bg-gray-900 text-accent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black shadow-sm"
+           title="Analizar Radiografía con IA"
+         >
+           <BrainCircuit className="w-3.5 h-3.5" />
+         </button>
+       )}
 
        {nextPhase && (
          <button 
