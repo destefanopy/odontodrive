@@ -2,7 +2,7 @@
 
 import { Save, AlertCircle, User, Phone, MapPin, Briefcase, Heart, Droplet, Hash, Calendar } from "lucide-react";
 import { useState, useTransition } from "react";
-import { actualizarPacienteAction } from "@/app/pacientes/actions";
+import { actualizarPacienteAction } from "@/app/(dashboard)/pacientes/actions";
 import { Paciente } from "@/core/api";
 
 interface DatosProps {

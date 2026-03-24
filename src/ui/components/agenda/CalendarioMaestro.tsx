@@ -8,7 +8,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import { Cita, Paciente } from "@/core/api";
 import NuevaCitaModal from "./NuevaCitaModal";
-import { borrarCitaAction } from "@/app/pacientes/actions";
+import { borrarCitaAction } from "@/app/(dashboard)/pacientes/actions";
 
 interface CalendarioProps {
   initialCitas: Cita[];

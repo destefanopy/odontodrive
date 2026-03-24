@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { X, Calendar, Clock, User, FileText } from "lucide-react";
 import { Paciente } from "@/core/api";
-import { crearCitaAction } from "@/app/pacientes/actions";
+import { crearCitaAction } from "@/app/(dashboard)/pacientes/actions";
 
 interface NuevaCitaModalProps {
   pacientes: Paciente[];

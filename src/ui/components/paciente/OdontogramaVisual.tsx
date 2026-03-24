@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Save, AlertCircle } from "lucide-react";
-import { guardarOdontogramaAction } from "@/app/pacientes/actions";
+import { guardarOdontogramaAction } from "@/app/(dashboard)/pacientes/actions";
 
 export type SurfaceState = "healthy" | "caries" | "treated" | "absent";
 

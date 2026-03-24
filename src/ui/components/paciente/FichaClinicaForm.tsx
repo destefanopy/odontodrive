@@ -2,7 +2,7 @@
 
 import { Activity, Pill, Stethoscope, FileText, Save, AlertCircle, HeartCrack, Syringe, ClipboardList } from "lucide-react";
 import { useState, useTransition } from "react";
-import { guardarFichaAction } from "@/app/pacientes/actions";
+import { guardarFichaAction } from "@/app/(dashboard)/pacientes/actions";
 import { AntecedentesMedicos } from "@/core/api";
 
 interface FichaProps {
