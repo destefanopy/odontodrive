@@ -5,6 +5,7 @@ import PatientTabs from "@/ui/components/PatientTabs";
 import { ArrowLeft, Phone, Calendar, Loader2 } from "lucide-react";
 import Link from "next/link";
 import AgendarCitaBoton from "@/ui/components/paciente/AgendarCitaBoton";
+import EliminarPacienteBoton from "@/ui/components/paciente/EliminarPacienteBoton";
 import { useRouter } from "next/navigation";
 
 interface PageProps {
@@ -81,7 +82,8 @@ export default function PacientePerfilPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-        <div className="flex gap-3 mt-4 md:mt-0">
+        <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0 w-full md:w-auto">
+          <EliminarPacienteBoton pacienteId={paciente.id} nombrePaciente={paciente.nombres_apellidos} />
           <AgendarCitaBoton paciente={paciente} />
         </div>
       </div>

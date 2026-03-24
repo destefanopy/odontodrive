@@ -255,3 +255,15 @@ export async function deleteCita(id: string) {
     throw new Error("No se pudo borrar la cita en la base de datos.");
   }
 };
+
+export async function deletePaciente(pacienteId: string) {
+  const { error } = await supabase.rpc('eliminar_paciente_cascade', {
+    target_paciente_id: pacienteId
+  });
+
+  if (error) {
+    console.error("Error eliminando paciente:", error.message);
+    throw new Error(error.message);
+  }
+  return true;
+}
