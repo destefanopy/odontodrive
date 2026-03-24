@@ -367,3 +367,13 @@ export async function deletePacienteFile(id: string, storagePath: string) {
   if (error) throw new Error(error.message);
   return true;
 }
+
+export async function updatePacienteFileFase(id: string, fase: string) {
+  const { error } = await supabase
+    .from('documentos_paciente')
+    .update({ fase_clinica: fase })
+    .eq('id', id);
+
+  if (error) throw new Error(error.message);
+  return true;
+}

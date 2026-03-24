@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { UploadCloud, Image as ImageIcon, FileText, Sparkles, Loader2, Trash2, X } from "lucide-react";
-import { DocumentoPaciente, uploadPacienteFile, getPacienteFiles, deletePacienteFile } from "@/core/api";
+import { UploadCloud, Image as ImageIcon, FileText, Sparkles, Loader2, Trash2, X, MoveRight } from "lucide-react";
+import { DocumentoPaciente, uploadPacienteFile, getPacienteFiles, deletePacienteFile, updatePacienteFileFase } from "@/core/api";
 import { cn } from "@/lib/utils";
 
 interface ArchivosIAProps {
@@ -89,6 +89,15 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
       await cargarArchivos();
     } catch (err: any) {
       alert("Error: " + err.message);
+    }
+  };
+
+  const handleUpdateFase = async (id: string, nuevaFase: string) => {
+    try {
+      await updatePacienteFileFase(id, nuevaFase);
+      await cargarArchivos();
+    } catch (err: any) {
+      alert("Error moviendo foto: " + err.message);
     }
   };
 
@@ -220,7 +229,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
                 <h4 className="font-bold text-gray-700">1. Estado Inicial</h4>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {agrupados.antes.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} />)}
+                {agrupados.antes.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} />)}
                 {agrupados.antes.length === 0 && <p className="text-xs text-gray-400 col-span-2 py-4 italic">No hay fotos iniciales.</p>}
               </div>
             </div>
@@ -232,7 +241,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
                 <h4 className="font-bold text-gray-700">2. Evoluciones</h4>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {agrupados.evolucion.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} />)}
+                {agrupados.evolucion.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} />)}
                 {agrupados.evolucion.length === 0 && <p className="text-xs text-gray-400 col-span-2 py-4 italic">No hay progreso registrado.</p>}
               </div>
             </div>
@@ -244,7 +253,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
                 <h4 className="font-bold text-gray-900">3. Tratamiento Final</h4>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {agrupados.final.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} />)}
+                {agrupados.final.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} />)}
                 {agrupados.final.length === 0 && <p className="text-xs text-gray-400 col-span-2 py-4 italic">El tratamiento sigue en curso.</p>}
               </div>
             </div>
@@ -255,7 +264,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
             <div className="space-y-4 mt-8">
               <h4 className="font-bold text-gray-500 text-sm">Otros Documentos</h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                 {agrupados.ninguna.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} />)}
+                 {agrupados.ninguna.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} />)}
               </div>
             </div>
           )}
@@ -276,8 +285,11 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
   );
 }
 
-function GaleriaThumbnail({ doc, onViewer, onDelete }: { doc: DocumentoPaciente; onViewer: (url: string) => void; onDelete: (id: string, path: string) => void }) {
+function GaleriaThumbnail({ doc, onViewer, onDelete, onMove }: { doc: DocumentoPaciente; onViewer: (url: string) => void; onDelete: (id: string, path: string) => void; onMove: (id: string, fase: string) => void }) {
   const isImage = doc.tipo_archivo === 'fotografia' || (doc.signedUrl && doc.signedUrl.match(/\.(jpeg|jpg|gif|png|webp)/i));
+  const phases = ["antes", "evolucion", "final"];
+  const currentPhaseIndex = phases.indexOf(doc.fase_clinica);
+  const nextPhase = phases[currentPhaseIndex + 1];
 
   return (
     <div className="group relative aspect-square rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
@@ -298,9 +310,20 @@ function GaleriaThumbnail({ doc, onViewer, onDelete }: { doc: DocumentoPaciente;
        <button 
          onClick={(e) => { e.stopPropagation(); onDelete(doc.id, doc.url_archivo); }}
          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-sm"
+         title="Eliminar"
        >
          <Trash2 className="w-3.5 h-3.5" />
        </button>
+
+       {nextPhase && (
+         <button 
+           onClick={(e) => { e.stopPropagation(); onMove(doc.id, nextPhase); }}
+           className="absolute top-2 left-2 p-1.5 bg-white/80 backdrop-blur-md text-gray-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm font-bold text-[10px] flex items-center gap-1"
+           title={`Mover a ${nextPhase}`}
+         >
+           Mover <MoveRight className="w-3 h-3 text-accent" />
+         </button>
+       )}
        
        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
          <p className="text-[10px] text-white font-bold truncate">{doc.url_archivo.split('/').pop()}</p>
