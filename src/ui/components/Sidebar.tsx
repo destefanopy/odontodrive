@@ -20,9 +20,8 @@ export default function Sidebar() {
   }, []);
 
   const navItems = [
-    { name: "Dashboard", href: "/", icon: Home },
-    { name: "Pacientes", href: "/pacientes", icon: Users },
     { name: "Calendario", href: "/agenda", icon: Calendar },
+    { name: "Pacientes", href: "/pacientes", icon: Users },
     ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Shield }] : [])
   ];
 

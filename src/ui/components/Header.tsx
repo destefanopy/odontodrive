@@ -8,9 +8,8 @@ import { authService } from "@/core/auth";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { name: "Dashboard", href: "/", icon: Home },
-  { name: "Pacientes", href: "/pacientes", icon: Users },
-  { name: "Calendario", href: "/agenda", icon: Calendar }
+  { name: "Calendario", href: "/agenda", icon: Calendar },
+  { name: "Pacientes", href: "/pacientes", icon: Users }
 ];
 
 export default function Header() {
