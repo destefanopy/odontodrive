@@ -81,11 +81,13 @@ export const updatePacienteData = async (pacienteId: string, datos: Partial<Paci
  * Respeta la separación de responsabilidades (SoC).
  */
 export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'>): Promise<Paciente | null> => {
-  // Use ISO string without milliseconds or local time formats depending on DB format
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
   const fechaIngreso = new Date().toISOString(); 
   const { data: newPaciente, error } = await supabase
     .from('pacientes')
-    .insert([{ ...data, fecha_ingreso: fechaIngreso }])
+    .insert([{ ...data, fecha_ingreso: fechaIngreso, user_id: authData.user.id }])
     .select('*')
     .single();
 
@@ -134,10 +136,14 @@ export const saveOdontograma = async (pacienteId: string, registros: Record<numb
     throw new Error(deleteError.message);
   }
 
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
   const arrParaInsertar = Object.entries(registros).map(([pieza, estado]) => ({
     paciente_id: pacienteId,
     pieza_dental: parseInt(pieza, 10),
-    estado: estado
+    estado: estado,
+    user_id: authData.user.id
   }));
 
   if (arrParaInsertar.length > 0) {
@@ -200,9 +206,11 @@ export const saveAntecedentes = async (pacienteId: string, datos: Omit<Anteceden
     return data as AntecedentesMedicos;
   } else {
     // Insert
+    const { data: authData } = await supabase.auth.getUser();
+    
     const { data, error } = await supabase
       .from('antecedentes_medicos')
-      .insert([{ paciente_id: pacienteId, ...datos }])
+      .insert([{ paciente_id: pacienteId, user_id: authData.user?.id, ...datos }])
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -230,7 +238,8 @@ export const getCitas = async (): Promise<Cita[]> => {
 };
 
 export async function createCita(cita: Omit<Cita, "id" | "created_at">) {
-  const { error } = await supabase.from("citas").insert(cita);
+  const { data: authData } = await supabase.auth.getUser();
+  const { error } = await supabase.from("citas").insert({ ...cita, user_id: authData.user?.id });
   
   if (error) {
     console.error("Error al agendar cita:", error.message);
