@@ -1,18 +1,30 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Calendar } from "lucide-react";
+import { Home, Users, Calendar, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { name: "Dashboard", href: "/", icon: Home },
-  { name: "Pacientes", href: "/pacientes", icon: Users },
-  { name: "Calendario", href: "/agenda", icon: Calendar },
-];
+import { supabase } from "@/infrastructure/supabase";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user?.email === 'destefanopy@gmail.com') {
+        setIsAdmin(true);
+      }
+    });
+  }, []);
+
+  const navItems = [
+    { name: "Dashboard", href: "/", icon: Home },
+    { name: "Pacientes", href: "/pacientes", icon: Users },
+    { name: "Calendario", href: "/agenda", icon: Calendar },
+    ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Shield }] : [])
+  ];
 
   return (
     <aside className="hidden lg:flex w-64 bg-sidebar text-gray-900 h-screen flex-col items-start p-4 border-r border-[#31b8b3] shadow-lg z-20">
