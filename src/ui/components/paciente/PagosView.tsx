@@ -105,7 +105,7 @@ export default function PagosView({ paciente }: PagosViewProps) {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-extrabold text-gray-900">Estado de Cuentas</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-700">
             Administra los cargos por tratamientos y los pagos recibidos.
           </p>
         </div>
@@ -138,13 +138,13 @@ export default function PagosView({ paciente }: PagosViewProps) {
             <div className="flex border border-gray-200 rounded-lg overflow-hidden font-bold text-sm">
                <button 
                  onClick={() => setModoRegistro("Deuda")}
-                 className={`flex-1 py-3 text-center transition-all ${modoRegistro === 'Deuda' ? 'bg-red-50 text-red-700 border-b-2 border-red-500' : 'bg-white text-gray-500'}`}
+                 className={`flex-1 py-3 text-center transition-all ${modoRegistro === 'Deuda' ? 'bg-red-50 text-red-700 border-b-2 border-red-500' : 'bg-white text-gray-700'}`}
                >
                  + Cargar Tratamiento (Deuda)
                </button>
                <button 
                  onClick={() => setModoRegistro("Abono")}
-                 className={`flex-1 py-3 text-center transition-all ${modoRegistro === 'Abono' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500' : 'bg-white text-gray-500'}`}
+                 className={`flex-1 py-3 text-center transition-all ${modoRegistro === 'Abono' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-500' : 'bg-white text-gray-700'}`}
                >
                  + Recibir Dinero (Abono)
                </button>
@@ -177,7 +177,7 @@ export default function PagosView({ paciente }: PagosViewProps) {
                     <button
                       key={met}
                       onClick={() => setFormulario({...formulario, metodo: met})}
-                      className={`py-2 text-xs font-bold rounded-lg border transition-all ${formulario.metodo === met ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-gray-200 text-gray-500'}`}
+                      className={`py-2 text-xs font-bold rounded-lg border transition-all ${formulario.metodo === met ? 'bg-blue-50 border-blue-500 text-blue-700' : 'bg-white border-gray-200 text-gray-700'}`}
                     >
                       {met}
                     </button>
@@ -198,14 +198,14 @@ export default function PagosView({ paciente }: PagosViewProps) {
 
           <div className="space-y-4">
              <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-              <ArrowDownCircle className="w-4 h-4 text-gray-500" /> Historial Combinado
+              <ArrowDownCircle className="w-4 h-4 text-gray-700" /> Historial Combinado
             </h3>
 
             {loading ? (
               <div className="py-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-gray-300" /></div>
             ) : deudas.length === 0 && pagos.length === 0 ? (
               <div className="py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                <p className="text-sm text-gray-500 font-medium">Historial vacío.</p>
+                <p className="text-sm text-gray-700 font-medium">Historial vacío.</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-[380px] overflow-y-auto pr-2 scrollbar-thin">
@@ -226,9 +226,9 @@ export default function PagosView({ paciente }: PagosViewProps) {
                           </div>
                           <span className="text-[11px] text-gray-700 font-bold mt-1 line-clamp-2 leading-tight">
                             {tx.concepto} 
-                            {tx._tipo === 'Abono' && <span className="font-normal text-gray-500"> ({tx.metodo_pago})</span>}
+                            {tx._tipo === 'Abono' && <span className="font-normal text-gray-700"> ({tx.metodo_pago})</span>}
                           </span>
-                          <span className="text-[10px] text-gray-400 mt-0.5">{tx._fecha.toLocaleDateString()}</span>
+                          <span className="text-[10px] text-gray-800 mt-0.5">{tx._fecha.toLocaleDateString()}</span>
                        </div>
                        <button 
                          onClick={() => deleteItem(tx.id, tx._tipo)}

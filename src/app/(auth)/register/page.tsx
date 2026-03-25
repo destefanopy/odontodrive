@@ -44,7 +44,7 @@ export default function RegisterPage() {
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">¡Registro Exitoso!</h2>
-          <p className="mt-2 text-sm text-gray-500 font-medium">
+          <p className="mt-2 text-sm text-gray-700 font-medium">
             Hemos enviado un correo a <span className="font-bold text-gray-900">{email}</span>. 
             Por favor, revisa tu bandeja de entrada y haz clic en el enlace para verificar tu cuenta.
           </p>
@@ -65,7 +65,7 @@ export default function RegisterPage() {
         <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-sidebar to-accent">
           Crea tu cuenta
         </h2>
-        <p className="mt-2 text-sm text-gray-500 font-medium">
+        <p className="mt-2 text-sm text-gray-700 font-medium">
           Empieza a gestionar tu clínica de forma inteligente.
         </p>
       </div>
@@ -80,7 +80,7 @@ export default function RegisterPage() {
         <div className="space-y-1">
           <label className="text-sm font-semibold text-gray-700">Nombre Completo</label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-accent transition-colors">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-800 group-focus-within:text-accent transition-colors">
               <User className="w-5 h-5" />
             </div>
             <input
@@ -98,7 +98,7 @@ export default function RegisterPage() {
         <div className="space-y-1">
           <label className="text-sm font-semibold text-gray-700">Correo Electrónico</label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-accent transition-colors">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-800 group-focus-within:text-accent transition-colors">
               <Mail className="w-5 h-5" />
             </div>
             <input
@@ -116,7 +116,7 @@ export default function RegisterPage() {
         <div className="space-y-1">
           <label className="text-sm font-semibold text-gray-700">Contraseña</label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-accent transition-colors">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-800 group-focus-within:text-accent transition-colors">
               <Lock className="w-5 h-5" />
             </div>
             <input
@@ -135,7 +135,7 @@ export default function RegisterPage() {
         <div className="space-y-1">
           <label className="text-sm font-semibold text-gray-700">Confirmar Contraseña</label>
           <div className="relative group">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 group-focus-within:text-accent transition-colors">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-800 group-focus-within:text-accent transition-colors">
               <Lock className="w-5 h-5" />
             </div>
             <input
@@ -167,7 +167,7 @@ export default function RegisterPage() {
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-600 font-medium">
+      <p className="text-center text-sm text-gray-800 font-medium">
         ¿Ya tienes una cuenta?{" "}
         <Link href="/login" className="text-sidebar hover:text-accent font-bold transition-colors">
           Inicia Sesión

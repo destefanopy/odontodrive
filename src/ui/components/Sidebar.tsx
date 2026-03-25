@@ -51,7 +51,7 @@ export default function Sidebar() {
                   : "text-gray-700 hover:bg-white/50 hover:text-gray-900"
               )}
             >
-              <item.icon className={cn("w-5 h-5", isActive ? "text-gray-900" : "text-gray-600")} />
+              <item.icon className={cn("w-5 h-5", isActive ? "text-gray-900" : "text-gray-800")} />
               {item.name}
               {item.name === "Dashboard" && (
                 <span className="ml-auto bg-gray-900 text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold shadow-sm">

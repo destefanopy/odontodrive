@@ -21,7 +21,7 @@ export default function AgendaPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
-        <p className="text-gray-500 font-medium animate-pulse">Sincronizando agenda clínica...</p>
+        <p className="text-gray-700 font-medium animate-pulse">Sincronizando agenda clínica...</p>
       </div>
     );
   }
@@ -31,7 +31,7 @@ export default function AgendaPage() {
       <div className="mb-4 flex justify-between items-center shrink-0">
         <div>
           <h1 className="text-2xl font-black text-gray-900 tracking-tight">Agenda Maestra</h1>
-          <p className="text-sm text-gray-500 font-medium">
+          <p className="text-sm text-gray-700 font-medium">
             Atención diaria, semanal y administración de turnos de la clínica.
           </p>
         </div>

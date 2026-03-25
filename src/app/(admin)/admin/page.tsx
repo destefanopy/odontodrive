@@ -77,7 +77,7 @@ export default function AdminConsole() {
             <Shield className="w-8 h-8 text-accent" />
             Consola Administrativa
           </h1>
-          <p className="text-sm text-gray-500 font-medium mt-1">
+          <p className="text-sm text-gray-700 font-medium mt-1">
             Gestión de Odontólogos, Suscripciones y Seguridad.
           </p>
         </div>
@@ -100,23 +100,23 @@ export default function AdminConsole() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 tracking-wider uppercase">Usuario</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 tracking-wider uppercase">Plan</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 tracking-wider uppercase">Estado</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 tracking-wider uppercase">Rol</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-500 tracking-wider uppercase text-right">Acciones</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Usuario</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Plan</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Estado</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Rol</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {isLoading && users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                    <td colSpan={5} className="px-6 py-12 text-center text-gray-800">
                       Cargando profesionales...
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
+                    <td colSpan={5} className="px-6 py-12 text-center text-gray-800">
                       No hay profesionales registrados aún.
                     </td>
                   </tr>
@@ -126,7 +126,7 @@ export default function AdminConsole() {
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="font-bold text-gray-900 text-sm">{u.nombre || "Sin Nombre"}</span>
-                          <span className="text-xs text-gray-500">{u.email}</span>
+                          <span className="text-xs text-gray-700">{u.email}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -136,7 +136,7 @@ export default function AdminConsole() {
                             Premium
                           </span>
                         ) : (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-800">
                             Básico
                           </span>
                         )}

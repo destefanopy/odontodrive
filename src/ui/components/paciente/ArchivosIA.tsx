@@ -162,11 +162,11 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
         {!selectedFile ? (
           <div className="flex flex-col items-center justify-center space-y-4">
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-              <UploadCloud className="w-8 h-8 text-gray-500" />
+              <UploadCloud className="w-8 h-8 text-gray-700" />
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900">Arrastra radiografías o fotos clínicas aquí</p>
-              <p className="text-xs text-gray-500 mt-1">Soporta JPG, PNG, y PDF hasta 50MB.</p>
+              <p className="text-xs text-gray-700 mt-1">Soporta JPG, PNG, y PDF hasta 50MB.</p>
             </div>
             <button 
               onClick={() => fileInputRef.current?.click()}
@@ -179,13 +179,13 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
           <div className="flex flex-col items-center justify-center space-y-5 animate-in zoom-in-95 duration-200">
             <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 w-full max-w-sm">
               <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
-                {selectedFile.type.startsWith("image/") ? <ImageIcon className="w-6 h-6 text-accent" /> : <FileText className="w-6 h-6 text-gray-500" />}
+                {selectedFile.type.startsWith("image/") ? <ImageIcon className="w-6 h-6 text-accent" /> : <FileText className="w-6 h-6 text-gray-700" />}
               </div>
               <div className="flex-1 text-left overflow-hidden">
                 <p className="text-sm font-bold text-gray-900 truncate">{selectedFile.name}</p>
-                <p className="text-xs text-gray-500">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-gray-700">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
               </div>
-              <button onClick={() => setSelectedFile(null)} className="p-2 text-gray-400 hover:text-red-500">
+              <button onClick={() => setSelectedFile(null)} className="p-2 text-gray-800 hover:text-red-500">
                  <X className="w-5 h-5" />
               </button>
             </div>
@@ -203,7 +203,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
                       "py-2 px-1 text-xs font-bold rounded-lg border transition-all capitalize",
                       faseClinica === fase 
                         ? "bg-accent/10 border-accent text-accent" 
-                        : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"
+                        : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
                     )}
                   >
                     {fase}
@@ -233,7 +233,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
                 <Sparkles className="w-5 h-5 text-accent" />
                 Evolución Clínica
               </h3>
-              <p className="text-sm text-gray-500 font-medium">Historial gráfico de transformación dental.</p>
+              <p className="text-sm text-gray-700 font-medium">Historial gráfico de transformación dental.</p>
             </div>
             
             <button 
@@ -262,7 +262,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
           {/* AI Output Window */}
           {aiAnalysisResult && (
             <div className="bg-gray-900 text-white p-6 rounded-3xl shadow-xl relative animate-in slide-in-from-top-4 duration-500">
-               <button onClick={() => setAiAnalysisResult(null)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
+               <button onClick={() => setAiAnalysisResult(null)} className="absolute top-4 right-4 text-gray-800 hover:text-white">
                  <X className="w-5 h-5" />
                </button>
                <h4 className="flex items-center gap-2 font-bold text-accent mb-4">
@@ -283,7 +283,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {agrupados.antes.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} onAI={(d) => handleIAAnalysis([d], "Analiza esta radiografía/imagen dental. Destaca hallazgos relevantes (anomalías, caries, hueso alveolar).")} />)}
-                {agrupados.antes.length === 0 && <p className="text-xs text-gray-400 col-span-2 py-4 italic">No hay fotos iniciales.</p>}
+                {agrupados.antes.length === 0 && <p className="text-xs text-gray-800 col-span-2 py-4 italic">No hay fotos iniciales.</p>}
               </div>
             </div>
 
@@ -295,7 +295,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {agrupados.evolucion.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} onAI={(d) => handleIAAnalysis([d], "Analiza esta imagen radiográfica o fotográfica en etapa de evolución ortodóntica/clínica.")} />)}
-                {agrupados.evolucion.length === 0 && <p className="text-xs text-gray-400 col-span-2 py-4 italic">No hay progreso registrado.</p>}
+                {agrupados.evolucion.length === 0 && <p className="text-xs text-gray-800 col-span-2 py-4 italic">No hay progreso registrado.</p>}
               </div>
             </div>
 
@@ -307,7 +307,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {agrupados.final.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} onAI={(d) => handleIAAnalysis([d], "Analiza este resultado clínico final.")} />)}
-                {agrupados.final.length === 0 && <p className="text-xs text-gray-400 col-span-2 py-4 italic">El tratamiento sigue en curso.</p>}
+                {agrupados.final.length === 0 && <p className="text-xs text-gray-800 col-span-2 py-4 italic">El tratamiento sigue en curso.</p>}
               </div>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
           {/* Docs Sin Categoría */}
           {agrupados.ninguna.length > 0 && (
             <div className="space-y-4 mt-8">
-              <h4 className="font-bold text-gray-500 text-sm">Otros Documentos</h4>
+              <h4 className="font-bold text-gray-700 text-sm">Otros Documentos</h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
                  {agrupados.ninguna.map(a => <GaleriaThumbnail key={a.id} doc={a} onViewer={setViewerUrl} onDelete={handleDelete} onMove={handleUpdateFase} onAI={(d) => handleIAAnalysis([d], "Dime qué observas en esta imagen.")} />)}
               </div>
@@ -356,7 +356,7 @@ function GaleriaThumbnail({ doc, onViewer, onDelete, onMove, onAI }: { doc: Docu
           />
        ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-50" onClick={() => window.open(doc.signedUrl, '_blank')}>
-            <FileText className="w-8 h-8 text-gray-400" />
+            <FileText className="w-8 h-8 text-gray-800" />
           </div>
        )}
        

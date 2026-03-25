@@ -14,7 +14,28 @@ export interface Paciente {
   lugar_residencia?: string | null;
   profesion?: string | null;
   contacto_urgencia?: string | null;
+  foto_url?: string | null;
 }
+
+export const uploadProfilePicture = async (pacienteId: string, file: File): Promise<string> => {
+  const fileExt = file.name.split('.').pop();
+  const filePath = `perfiles/${pacienteId}-${Date.now()}.${fileExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('pacientes_archivos')
+    .upload(filePath, file, { upsert: true });
+
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data, error: signError } = await supabase.storage
+    .from('pacientes_archivos')
+    .createSignedUrl(filePath, 31536000); // 1 año de validez para caché si es posible
+    
+  if (signError || !data?.signedUrl) throw new Error("No se pudo obtener la URL de la foto");
+
+  await updatePacienteData(pacienteId, { foto_url: data.signedUrl });
+  return data.signedUrl;
+};
 
 export interface Cita {
   id?: string;
@@ -103,11 +124,12 @@ export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'
  * API DEL ODONTOGRAMA
  */
 
-export const getOdontograma = async (pacienteId: string): Promise<Record<number, any>> => {
+export const getOdontograma = async (pacienteId: string, tipo: 'inicial' | 'final' = 'inicial'): Promise<Record<number, any>> => {
   const { data, error } = await supabase
     .from('odontograma_registros')
     .select('pieza_dental, estado')
-    .eq('paciente_id', pacienteId);
+    .eq('paciente_id', pacienteId)
+    .eq('tipo_registro', tipo);
 
   if (error) {
     console.error('Error obteniendo odontograma:', error.message);
@@ -124,12 +146,13 @@ export const getOdontograma = async (pacienteId: string): Promise<Record<number,
   return result;
 };
 
-export const saveOdontograma = async (pacienteId: string, registros: Record<number, any>): Promise<boolean> => {
+export const saveOdontograma = async (pacienteId: string, registros: Record<number, any>, tipo: 'inicial' | 'final' = 'inicial'): Promise<boolean> => {
   // Estrategia Vibe Atómico: Descartamos el estado anterior y persistimos el nuevo completo para evitar comprobaciones complejas de deltas.
   const { error: deleteError } = await supabase
     .from('odontograma_registros')
     .delete()
-    .eq('paciente_id', pacienteId);
+    .eq('paciente_id', pacienteId)
+    .eq('tipo_registro', tipo);
 
   if (deleteError) {
     console.error('Error limpiando odontograma anterior:', deleteError.message);
@@ -143,6 +166,7 @@ export const saveOdontograma = async (pacienteId: string, registros: Record<numb
     paciente_id: pacienteId,
     pieza_dental: parseInt(pieza, 10),
     estado: estado,
+    tipo_registro: tipo,
     user_id: authData.user.id
   }));
 
@@ -174,6 +198,10 @@ export interface AntecedentesMedicos {
   antecedentes_familiares?: string | null;
   medicacion_actual?: string | null;
   observaciones?: string | null;
+  ultima_consulta_odontologica?: string | null;
+  ultima_consulta_medica?: string | null;
+  complicaciones_hemorragias?: string | null;
+  habitos_viciosos?: string | null;
 }
 
 export const getAntecedentes = async (pacienteId: string): Promise<AntecedentesMedicos | null> => {

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar, LogOut, Wallet } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar, LogOut, Wallet, Camera, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { authService } from "@/core/auth";
@@ -15,7 +15,10 @@ const navItems = [
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userData, setUserData] = useState<{name: string, email: string} | null>(null);
+  const [userData, setUserData] = useState<{name: string, email: string, avatarUrl: string | null} | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const pathname = usePathname();
   const router = useRouter();
 
@@ -23,12 +26,29 @@ export default function Header() {
     authService.getUser().then(({ data: { user } }) => {
       if (user) {
         setUserData({
-          name: user.user_metadata?.full_name || user.email?.split('@')[0] || "Odontólogo",
-          email: user.email || ""
+          name: "Dra. Jana Santander", // Requerido por el usuario temporalmente hasta que se editen datos
+          email: user.email || "",
+          avatarUrl: user.user_metadata?.avatar_url || null
         });
       }
     });
   }, []);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setIsUploading(true);
+    try {
+      const newUrl = await authService.updateProfile(file);
+      setUserData(prev => prev ? { ...prev, avatarUrl: newUrl } : null);
+    } catch (err: any) {
+      alert("Error subiendo imagen: " + err.message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const handleLogout = async () => {
     await authService.signOut();
@@ -53,15 +73,32 @@ export default function Header() {
         </div>
 
         {/* Profile Info (hidden on strict mobile, shown on md and lg) */}
-        <div className="hidden md:flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity">
-          <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm">
+        <div className="hidden md:flex items-center gap-4">
+          <div 
+            className="relative group w-10 h-10 rounded-full overflow-hidden shadow-sm cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+            title="Cambiar Foto de Perfil"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={`https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`}
+              src={userData?.avatarUrl || `https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`}
               alt="Avatar"
               className="w-full h-full object-cover p-1 bg-white"
             />
+            <div className={cn(
+              "absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity",
+              isUploading && "opacity-100 bg-black/60"
+            )}>
+              {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+            </div>
           </div>
+          <input 
+            type="file" 
+            accept="image/*" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            className="hidden" 
+          />
           <div className="flex flex-col">
             <div className="flex items-center gap-1">
               <span className="text-sm font-bold text-gray-900">
@@ -75,7 +112,7 @@ export default function Header() {
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
-            <span className="text-xs text-gray-500 font-medium">
+            <span className="text-xs text-gray-700 font-medium">
               {userData ? userData.email : ""}
             </span>
           </div>
@@ -84,7 +121,7 @@ export default function Header() {
         <div className="flex items-center gap-3 lg:gap-6">
           {/* Desktop Search */}
           <div className="relative group hidden lg:block">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-accent transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-accent transition-colors" />
             <input
               type="text"
               placeholder="Buscar paciente..."
@@ -93,12 +130,12 @@ export default function Header() {
           </div>
           
           {/* Mobile Search Button */}
-          <button className="lg:hidden p-2 rounded-full bg-white text-gray-600 shadow-sm">
+          <button className="lg:hidden p-2 rounded-full bg-white text-gray-800 shadow-sm">
              <Search className="w-5 h-5" />
           </button>
 
           <button className="relative w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-50 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] transition-all hover:scale-105 active:scale-95">
-            <Bell className="w-5 h-5 text-gray-600" />
+            <Bell className="w-5 h-5 text-gray-800" />
             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full border-2 border-white box-content shadow-sm"></span>
           </button>
         </div>
@@ -142,10 +179,10 @@ export default function Header() {
                       "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 text-sm font-bold",
                       isActive
                         ? "bg-white text-gray-900 shadow-sm"
-                        : "text-gray-700 hover:bg-white/50 hover:text-gray-900"
+                        : "text-gray-900 hover:bg-white/50 hover:text-gray-900"
                     )}
                   >
-                    <item.icon className={cn("w-5 h-5", isActive ? "text-gray-900" : "text-gray-600")} />
+                    <item.icon className={cn("w-5 h-5", isActive ? "text-gray-900" : "text-gray-800")} />
                     {item.name}
                   </Link>
                 );
@@ -156,15 +193,15 @@ export default function Header() {
               <div className="flex items-center gap-3 p-3 bg-white/40 rounded-xl">
                 <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`} alt="Profile" className="w-full h-full object-cover p-1 bg-white" />
+                  <img src={userData?.avatarUrl || `https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`} alt="Profile" className="w-full h-full object-cover p-1 bg-white" />
                 </div>
                 <div className="flex-1">
                   <p className="text-xs font-bold text-gray-900 truncate pr-1">{userData ? userData.name : "Cargando..."}</p>
-                  <p className="text-[10px] text-gray-700">Ver Perfil</p>
+                  <p className="text-[10px] text-gray-900">Ver Perfil</p>
                 </div>
                 <button 
                   onClick={handleLogout} 
-                  className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shadow-sm"
+                  className="p-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shadow-sm"
                   title="Cerrar sesión"
                 >
                   <LogOut className="w-5 h-5" />

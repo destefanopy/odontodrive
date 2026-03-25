@@ -7,7 +7,7 @@ export default function NuevoPacientePage() {
         <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
           Nuevo Paciente
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-700">
           Ingresa los datos básicos para abrir una nueva ficha clínica.
         </p>
       </div>

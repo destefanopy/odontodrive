@@ -51,7 +51,7 @@ export default function FinanzasPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        <Loader2 className="w-8 h-8 animate-spin text-gray-800" />
       </div>
     );
   }
@@ -62,7 +62,7 @@ export default function FinanzasPage() {
         <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
           <Wallet className="w-8 h-8 text-emerald-500" /> Cierre de Caja
         </h1>
-        <p className="text-gray-500 font-medium mt-1">
+        <p className="text-gray-700 font-medium mt-1">
           Monitor de ingresos clínicos, abonos y rentabilidad.
         </p>
       </div>
@@ -86,9 +86,9 @@ export default function FinanzasPage() {
             <Calendar className="w-24 h-24 text-gray-900" />
           </div>
           <div className="relative">
-            <h3 className="text-gray-500 font-bold text-xs tracking-wide uppercase">Ingresos Mes</h3>
+            <h3 className="text-gray-700 font-bold text-xs tracking-wide uppercase">Ingresos Mes</h3>
             <p className="text-3xl font-black text-gray-900 mt-2">{formatGs(ingresosMes)}</p>
-            <p className="text-[10px] text-gray-400 mt-2 font-black uppercase tracking-widest">
+            <p className="text-[10px] text-gray-800 mt-2 font-black uppercase tracking-widest">
               PERIODO ACTUAL
             </p>
           </div>
@@ -129,14 +129,14 @@ export default function FinanzasPage() {
         {deudas.length === 0 && pagos.length === 0 ? (
           <div className="p-12 text-center flex flex-col items-center">
             <Wallet className="w-12 h-12 text-gray-200 mb-3" />
-            <h3 className="text-gray-400 font-bold">Sin transacciones</h3>
-            <p className="text-sm text-gray-400 mt-1">Aún no has registrado pagos ni deudas.</p>
+            <h3 className="text-gray-800 font-bold">Sin transacciones</h3>
+            <p className="text-sm text-gray-800 mt-1">Aún no has registrado pagos ni deudas.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-400 uppercase tracking-widest font-bold">
+                <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-800 uppercase tracking-widest font-bold">
                   <th className="px-6 py-4">Fecha</th>
                   <th className="px-6 py-4">Paciente</th>
                   <th className="px-6 py-4">Concepto</th>
@@ -155,15 +155,15 @@ export default function FinanzasPage() {
                       <div className="text-sm font-bold text-gray-900">
                         {tx._fecha.toLocaleDateString()}
                       </div>
-                      <div className="text-xs text-gray-400">
+                      <div className="text-xs text-gray-800">
                         {tx._fecha.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm font-bold text-gray-700">
                       {tx.pacientes?.nombres_apellidos || "Desconocido"}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 font-medium">
-                      {tx.concepto} {tx._tipo === 'Abono' && <span className="text-gray-400 text-[10px] ml-1">({(tx as any).metodo_pago})</span>}
+                    <td className="px-6 py-4 text-sm text-gray-800 font-medium">
+                      {tx.concepto} {tx._tipo === 'Abono' && <span className="text-gray-800 text-[10px] ml-1">({(tx as any).metodo_pago})</span>}
                     </td>
                     <td className="px-6 py-4">
                       {tx._tipo === 'Abono' ? (

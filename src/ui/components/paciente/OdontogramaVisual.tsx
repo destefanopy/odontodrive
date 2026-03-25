@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Save, AlertCircle } from "lucide-react";
 import { saveOdontograma } from "@/core/api";
 
-export type SurfaceState = "healthy" | "caries" | "treated" | "absent";
+export type SurfaceState = "healthy" | "caries" | "treated" | "extracted" | "to_extract";
 
 export interface ToothSurfaces {
   top: SurfaceState;
@@ -27,11 +27,12 @@ const DEFAULT_TOOTH: ToothSurfaces = {
 interface OdontogramaVisualProps {
   pacienteId: string;
   initialOdontograma: Record<number, any>;
+  tipo?: 'inicial' | 'final';
 }
 
-type ToolType = "healthy" | "caries" | "treated" | "absent";
+type ToolType = "healthy" | "caries" | "treated" | "extracted" | "to_extract";
 
-export default function OdontogramaVisual({ pacienteId, initialOdontograma }: OdontogramaVisualProps) {
+export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo = 'inicial' }: OdontogramaVisualProps) {
   // Manejo de migración desde el formato antiguo (string) al nuevo formato (ToothSurfaces)
   const migrateInitial = (data: Record<number, any>) => {
     const migrated: Record<number, ToothSurfaces> = {};
@@ -59,14 +60,12 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
       const currentTooth = prev[toothId] || { ...DEFAULT_TOOTH };
       const newActiveTool = activeTool;
       
-      // Si la herramienta es absente (x), a menudo se marca todo el diente.
-      if (activeTool === "absent" && surface !== "root") {
-        // En un odontograma clásico, marcar absent pinta un aspa en toda la corona.
-        // Lo simularemos aplicando a todo el diente.
+      // Si la herramienta es extraccion, marcamos todo el diente.
+      if ((activeTool === "extracted" || activeTool === "to_extract") && surface !== "root") {
         return {
           ...prev,
           [toothId]: {
-            top: "absent", bottom: "absent", left: "absent", right: "absent", center: "absent", root: "absent"
+            top: activeTool, bottom: activeTool, left: activeTool, right: activeTool, center: activeTool, root: activeTool
           }
         };
       }
@@ -85,7 +84,8 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
     switch (state) {
       case "caries": return "#ef4444"; // red-500
       case "treated": return "#3b82f6"; // blue-500
-      case "absent": return "#d1d5db"; // gris (marcaremos la X por encima)
+      case "extracted": return "#d1d5db"; // gris claro
+      case "to_extract": return "#fee2e2"; // rojizo claro
       default: return "#ffffff";
     }
   };
@@ -107,7 +107,9 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
   // Componente interno para dibujar UN diente SVGs interactivo
   const InteractiveTooth = ({ id, isUpper }: { id: number, isUpper: boolean }) => {
     const data = teethData[id] || { ...DEFAULT_TOOTH };
-    const isAbsent = data.center === "absent" && data.top === "absent"; // heuristica de ausente
+    const isExtracted = data.center === "extracted" && data.top === "extracted";
+    const isToExtract = data.center === "to_extract" && data.top === "to_extract";
+    const isAbsent = isExtracted || isToExtract;
 
     // Geometria Matematica de la Corona (50x50px)
     // Coordenadas relativas
@@ -144,7 +146,7 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
 
     return (
       <div className="flex flex-col items-center group relative w-12 cursor-pointer touch-manipulation">
-        <span className="text-xs font-bold text-gray-500 mb-1 leading-none">{id}</span>
+        <span className="text-xs font-bold text-gray-700 mb-1 leading-none">{id}</span>
         
         {/* Renderizado de Raiz Maxilar Superior */}
         {isUpper && (
@@ -167,8 +169,8 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
            {/* Marca de Extraccion Completa X */}
            {isAbsent && (
              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 50 50">
-                <line x1="0" y1="0" x2="50" y2="50" stroke="#000" strokeWidth="4" />
-                <line x1="50" y1="0" x2="0" y2="50" stroke="#000" strokeWidth="4" />
+                <line x1="0" y1="0" x2="50" y2="50" stroke={isExtracted ? "#2563eb" : "#dc2626"} strokeWidth="4" />
+                <line x1="50" y1="0" x2="0" y2="50" stroke={isExtracted ? "#2563eb" : "#dc2626"} strokeWidth="4" />
              </svg>
            )}
         </div>
@@ -188,7 +190,7 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
   const handleSave = async () => {
     setIsPending(true);
     try {
-      await saveOdontograma(pacienteId, teethData);
+      await saveOdontograma(pacienteId, teethData, tipo);
       alert("¡Odontograma guardado con éxito!");
     } catch (error: any) {
       alert("Error: " + (error.message || "No se pudo guardar el odontograma"));
@@ -202,10 +204,11 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
       {/* Selector de Herramientas UI */}
       <div className="flex flex-col sm:flex-row items-center justify-between bg-white border border-gray-100 p-4 rounded-3xl shadow-sm gap-4">
         <div className="flex bg-gray-100 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto gap-2 preserve-3d">
-          <ToolButton name="Caries (Rojo)" tool="caries" current={activeTool} setTool={setActiveTool} colorClass="bg-red-500" />
-          <ToolButton name="Restaurado (Azul)" tool="treated" current={activeTool} setTool={setActiveTool} colorClass="bg-blue-500" />
+          <ToolButton name="Caries" tool="caries" current={activeTool} setTool={setActiveTool} colorClass="bg-red-500" />
+          <ToolButton name="Restaurado" tool="treated" current={activeTool} setTool={setActiveTool} colorClass="bg-blue-500" />
           <ToolButton name="Sano" tool="healthy" current={activeTool} setTool={setActiveTool} colorClass="bg-white border border-gray-300" />
-          <ToolButton name="Ausente (X)" tool="absent" current={activeTool} setTool={setActiveTool} colorClass="bg-gray-800" />
+          <ToolButton name="Extraído (X Azul)" tool="extracted" current={activeTool} setTool={setActiveTool} colorClass="bg-blue-600" />
+          <ToolButton name="A Extraer (X Roja)" tool="to_extract" current={activeTool} setTool={setActiveTool} colorClass="bg-red-600" />
         </div>
 
         <button
@@ -258,7 +261,7 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma }: Od
         </div>
       </div>
       
-      <div className="flex items-center gap-2 text-gray-400 text-sm justify-center">
+      <div className="flex items-center gap-2 text-gray-800 text-sm justify-center">
         <AlertCircle className="w-4 h-4" />
         <p>Selecciona una herramienta y dibuja sobre corona o raíz de la pieza dental.</p>
       </div>
@@ -274,7 +277,7 @@ function ToolButton({ name, tool, current, setTool, colorClass }: any) {
       className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
         active 
           ? "bg-white text-gray-900 shadow-md ring-1 ring-gray-200 translate-y-[-2px]" 
-          : "text-gray-500 hover:text-gray-700 hover:bg-gray-200 opacity-80 hover:opacity-100"
+          : "text-gray-700 hover:text-gray-700 hover:bg-gray-200 opacity-80 hover:opacity-100"
       }`}
     >
       <div className={`w-4 h-4 rounded-full shadow-inner ${colorClass}`}></div>

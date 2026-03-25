@@ -19,7 +19,7 @@ export default function PacientesPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
         <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
-        <p className="text-gray-500 font-medium animate-pulse">Cargando pacientes de la nube...</p>
+        <p className="text-gray-700 font-medium animate-pulse">Cargando pacientes de la nube...</p>
       </div>
     );
   }
@@ -31,7 +31,7 @@ export default function PacientesPage() {
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
             Pacientes
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-700">
             Listado general y registro de nuevos ingresos.
           </p>
         </div>
@@ -43,7 +43,7 @@ export default function PacientesPage() {
 
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         {pacientes.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
+          <div className="p-12 text-center text-gray-700">
             <Users className="w-12 h-12 mx-auto mb-4 text-gray-300" />
             <p className="text-lg font-bold text-gray-900">No hay pacientes aún</p>
             <p className="text-sm mt-1">Has clic en &quot;Nuevo Paciente&quot; para crear su ficha.</p>
@@ -64,12 +64,17 @@ export default function PacientesPage() {
                       <h3 className="text-sm font-bold text-gray-900 group-hover:text-teal-700 transition-colors">
                         {p.nombres_apellidos}
                       </h3>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-700 mt-1">
                         Ingresado: {new Date(p.fecha_ingreso).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-teal-600 transition-colors" />
+                  <div className="flex items-center gap-2">
+                    <span className="hidden sm:inline-block text-xs font-semibold text-teal-600 opacity-0 group-hover:opacity-100 transition-opacity bg-teal-50 px-3 py-1.5 rounded-full">
+                      Abrir Ficha
+                    </span>
+                    <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-teal-600 transition-colors" />
+                  </div>
                 </Link>
               </li>
             ))}

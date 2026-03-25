@@ -28,6 +28,47 @@ export const authService = {
     return supabase.auth.signOut();
   },
 
+  async resetPassword(email: string) {
+    return supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/actualizar-password`,
+    });
+  },
+
+  async updatePassword(newPassword: string) {
+    return supabase.auth.updateUser({
+      password: newPassword
+    });
+  },
+
+  async updateProfile(avatarFile: File) {
+    const { data: authData } = await supabase.auth.getUser();
+    if (!authData.user) throw new Error("No autenticado");
+    
+    const fileExt = avatarFile.name.split('.').pop();
+    const filePath = `profesionales/${authData.user.id}-${Date.now()}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('pacientes_archivos')
+      .upload(filePath, avatarFile, { upsert: true });
+
+    if (uploadError) throw new Error(uploadError.message);
+
+    const { data } = await supabase.storage
+      .from('pacientes_archivos')
+      .createSignedUrl(filePath, 31536000); // 1 año
+      
+    if (!data?.signedUrl) throw new Error("Error obteniendo URL.");
+
+    // Update metadata
+    const { error: updateError } = await supabase.auth.updateUser({
+      data: { avatar_url: data.signedUrl }
+    });
+
+    if (updateError) throw new Error(updateError.message);
+    
+    return data.signedUrl;
+  },
+
   // --- ADMIN RPC FUNCIONES ---
   async adminGetAllUsers() {
     return supabase.rpc('admin_get_all_users');

@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 
 interface DatosProps {
   paciente: Paciente;
+  onUpdate?: () => void;
 }
 
-export default function DatosPersonalesForm({ paciente }: DatosProps) {
+export default function DatosPersonalesForm({ paciente, onUpdate }: DatosProps) {
   const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
@@ -43,7 +44,11 @@ export default function DatosPersonalesForm({ paciente }: DatosProps) {
       }
 
       await updatePacienteData(paciente.id, datos);
-      router.refresh();
+      if (onUpdate) {
+        onUpdate();
+      } else {
+        router.refresh();
+      }
     } catch (error: any) {
       setErrorMsg(error.message || "Error guardando los datos personales.");
     } finally {
@@ -56,7 +61,7 @@ export default function DatosPersonalesForm({ paciente }: DatosProps) {
       <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-xl font-extrabold text-gray-900">Datos Personales</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-700">
             Información sociodemográfica básica del paciente.
           </p>
         </div>
@@ -87,7 +92,7 @@ export default function DatosPersonalesForm({ paciente }: DatosProps) {
 
         <div className="space-y-2">
           <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-            <Hash className="w-4 h-4 text-gray-500" />
+            <Hash className="w-4 h-4 text-gray-700" />
             Documento de Identidad
           </label>
           <input
@@ -155,13 +160,16 @@ export default function DatosPersonalesForm({ paciente }: DatosProps) {
             <Heart className="w-4 h-4 text-pink-500" />
             Estado Civil
           </label>
-          <input
-            type="text"
+          <select
             name="estado_civil"
             defaultValue={paciente.estado_civil || ""}
-            placeholder="Ej. Soltero, Casado..."
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-sm outline-none"
-          />
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all text-sm outline-none appearance-none"
+          >
+            <option value="">Seleccionar...</option>
+            <option value="Soltero/a">Soltero/a</option>
+            <option value="Casado/a">Casado/a</option>
+            <option value="Viudo/a">Viudo/a</option>
+          </select>
         </div>
 
         <div className="space-y-2">

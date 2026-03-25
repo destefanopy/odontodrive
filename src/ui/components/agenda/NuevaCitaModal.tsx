@@ -69,7 +69,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
       <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
           <h2 className="text-xl font-bold text-gray-900">Agendar Nueva Cita</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 bg-white shadow-sm p-2 rounded-full transition-all">
+          <button onClick={onClose} className="text-gray-800 hover:text-gray-800 bg-white shadow-sm p-2 rounded-full transition-all">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -170,7 +170,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 transition-all"
+              className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-800 hover:bg-gray-100 transition-all"
             >
               Cancelar
             </button>

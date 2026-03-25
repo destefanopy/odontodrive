@@ -73,7 +73,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-extrabold text-gray-900">Cotizador Interactivo</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-700">
             Arma el presupuesto de caja, aplica descuentos y genera el documento PDF.
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
 
       <div className="bg-gray-50 border border-gray-100 rounded-3xl p-6 overflow-hidden">
         <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm text-sm font-bold text-gray-400 uppercase tracking-wider">
+          <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-white border border-gray-100 rounded-2xl shadow-sm text-sm font-bold text-gray-800 uppercase tracking-wider">
             <div className="col-span-8 md:col-span-9">Tratamiento / Descripción</div>
             <div className="col-span-3 md:col-span-2 text-right">Costo (Gs)</div>
             <div className="col-span-1 text-center"></div>
@@ -133,7 +133,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
                 <button 
                   onClick={() => removeItem(item.id)}
                   disabled={items.length === 1}
-                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                  className="p-2 text-gray-800 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-800"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -153,7 +153,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
         {/* Totales y Descuentos */}
         <div className="mt-8 border-t border-gray-200 pt-6 flex flex-col md:flex-row justify-between items-end gap-6">
           <div className="w-full md:w-1/3 space-y-2">
-            <label className="text-sm font-bold text-gray-600">Descuento Global (Gs) en Dinero</label>
+            <label className="text-sm font-bold text-gray-800">Descuento Global (Gs) en Dinero</label>
             <input
               type="number"
               value={descuento || ""}
@@ -164,7 +164,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
           </div>
 
           <div className="w-full md:w-1/3 bg-white border border-emerald-100 rounded-2xl p-5 shadow-sm space-y-3">
-            <div className="flex justify-between text-gray-500 font-medium">
+            <div className="flex justify-between text-gray-700 font-medium">
               <span>Subtotal:</span>
               <span>{formatGs(subtotal)}</span>
             </div>

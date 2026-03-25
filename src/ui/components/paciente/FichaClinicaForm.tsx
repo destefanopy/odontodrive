@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, Pill, Stethoscope, FileText, Save, AlertCircle, HeartCrack, Syringe, ClipboardList } from "lucide-react";
+import { Activity, Pill, Stethoscope, FileText, Save, AlertCircle, HeartCrack, Syringe, ClipboardList, Calendar, Coffee, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { saveAntecedentes, AntecedentesMedicos } from "@/core/api";
 import { useRouter } from "next/navigation";
@@ -30,6 +30,10 @@ export default function FichaClinicaForm({ pacienteId, initialData }: FichaProps
         antecedentes_familiares: formData.get("antecedentes_familiares")?.toString() || null,
         medicacion_actual: formData.get("medicacion_actual")?.toString() || null,
         observaciones: formData.get("observaciones")?.toString() || null,
+        ultima_consulta_odontologica: formData.get("ultima_consulta_odontologica")?.toString() || null,
+        ultima_consulta_medica: formData.get("ultima_consulta_medica")?.toString() || null,
+        complicaciones_hemorragias: formData.get("complicaciones_hemorragias")?.toString() || null,
+        habitos_viciosos: formData.get("habitos_viciosos")?.toString() || null,
       };
       await saveAntecedentes(pacienteId, datos);
       router.refresh();
@@ -45,7 +49,7 @@ export default function FichaClinicaForm({ pacienteId, initialData }: FichaProps
       <div className="flex items-center justify-between mb-2">
         <div>
           <h2 className="text-xl font-extrabold text-gray-900">Ficha Médica Base</h2>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-700">
             Registra los antecedentes de salud generales antes de proceder al tratamiento dental.
           </p>
         </div>
@@ -138,9 +142,61 @@ export default function FichaClinicaForm({ pacienteId, initialData }: FichaProps
           ></textarea>
         </div>
 
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-teal-600" />
+            Última Consulta Odontológica
+          </label>
+          <textarea
+            name="ultima_consulta_odontologica"
+            defaultValue={initialData?.ultima_consulta_odontologica || ""}
+            placeholder="Ej. Hace 6 meses por limpieza..."
+            className="w-full h-24 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all text-sm outline-none resize-none"
+          ></textarea>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-cyan-500" />
+            Última Consulta Médica
+          </label>
+          <textarea
+            name="ultima_consulta_medica"
+            defaultValue={initialData?.ultima_consulta_medica || ""}
+            placeholder="Ej. Chequeo general en 2024..."
+            className="w-full h-24 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all text-sm outline-none resize-none"
+          ></textarea>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-rose-600" />
+            Complicaciones o Hemorragias
+          </label>
+          <textarea
+            name="complicaciones_hemorragias"
+            defaultValue={initialData?.complicaciones_hemorragias || ""}
+            placeholder="Ej. Sangrado excesivo en extracción..."
+            className="w-full h-24 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all text-sm outline-none resize-none"
+          ></textarea>
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+            <Coffee className="w-4 h-4 text-amber-700" />
+            Hábitos (Fumar, Alcohol, etc.)
+          </label>
+          <textarea
+            name="habitos_viciosos"
+            defaultValue={initialData?.habitos_viciosos || ""}
+            placeholder="Ej. Fuma 5 cigarrillos/día, alcohol ocasional..."
+            className="w-full h-24 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all text-sm outline-none resize-none"
+          ></textarea>
+        </div>
+
         <div className="space-y-2 md:col-span-2">
           <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-gray-500" />
+            <FileText className="w-4 h-4 text-gray-700" />
             Observaciones Adicionales
           </label>
           <textarea
