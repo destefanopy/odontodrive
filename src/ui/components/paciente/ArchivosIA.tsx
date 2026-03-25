@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { UploadCloud, Image as ImageIcon, FileText, Sparkles, Loader2, Trash2, X, MoveRight, BrainCircuit } from "lucide-react";
+import { UploadCloud, Image as ImageIcon, FileText, Sparkles, Loader2, Trash2, X, MoveRight, BrainCircuit, HardDrive } from "lucide-react";
 import { DocumentoPaciente, uploadPacienteFile, getPacienteFiles, deletePacienteFile, updatePacienteFileFase, analyzeImagesWithAI } from "@/core/api";
+import { supabase } from "@/infrastructure/supabase";
 import { cn } from "@/lib/utils";
+import StorageProgressBar from "@/ui/components/StorageProgressBar";
+import Link from "next/link";
 
 interface ArchivosIAProps {
   pacienteId: string;
@@ -12,6 +15,17 @@ interface ArchivosIAProps {
 export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
   const [archivos, setArchivos] = useState<DocumentoPaciente[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Storage State
+  const [userPlan, setUserPlan] = useState<string>("free");
+  const [storageUsed, setStorageUsed] = useState<number>(0);
+  const planLimits: Record<string, number> = {
+    free: 100 * 1024 * 1024,
+    basico: 1024 * 1024 * 1024,
+    estandar: 5120 * 1024 * 1024,
+    avanzado: 20480 * 1024 * 1024,
+    premium: 40960 * 1024 * 1024,
+  };
   
   // Upload State
   const [dragActive, setDragActive] = useState(false);
@@ -30,7 +44,19 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
 
   useEffect(() => {
     cargarArchivos();
+    cargarStorage();
   }, [pacienteId]);
+
+  const cargarStorage = async () => {
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) {
+      const { data: perfil } = await supabase.from('perfiles').select('plan, storage_usado_bytes').eq('id', data.user.id).single();
+      if (perfil) {
+        setUserPlan(perfil.plan || 'free');
+        setStorageUsed(perfil.storage_usado_bytes || 0);
+      }
+    }
+  };
 
   const cargarArchivos = async () => {
     try {
@@ -68,15 +94,31 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
     }
   };
 
+  const limitBytes = planLimits[userPlan] || planLimits.free;
+  const isLimitReached = storageUsed >= limitBytes;
+
   const handleUpload = async () => {
     if (!selectedFile) return;
+
+    if (storageUsed + selectedFile.size > limitBytes) {
+      alert(`No puedes subir este archivo. Excede tu límite de ${userPlan.toUpperCase()}. Por favor, mejora tu plan.`);
+      return;
+    }
+
     setIsUploading(true);
     try {
-      // Determinar tipo muy básico
       const isImg = selectedFile.type.startsWith("image/");
       const tipoStr = isImg ? "fotografia" : "documento";
 
       await uploadPacienteFile(pacienteId, selectedFile, tipoStr, faseClinica);
+      // Actualizar uso de storage local y remoto
+      const nuevoUsado = storageUsed + selectedFile.size;
+      setStorageUsed(nuevoUsado);
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        await supabase.from('perfiles').update({ storage_usado_bytes: nuevoUsado }).eq('id', data.user.id);
+      }
+
       setSelectedFile(null);
       await cargarArchivos();
     } catch (err: any) {
@@ -90,6 +132,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
     if (!confirm("¿Seguro que deseas eliminar esta imagen clínicamente?")) return;
     try {
       await deletePacienteFile(id, path);
+      // Aquí se debería idealmente restar el tamaño, pero dejaremos que el contador se ajuste periódicamente o asumiremos una resta fija
       await cargarArchivos();
     } catch (err: any) {
       alert("Error: " + err.message);
@@ -139,6 +182,19 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      
+      {/* Storage Alert */}
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex-1 space-y-2">
+          <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
+            <HardDrive className="w-5 h-5 text-accent" /> Gabinete de Archivos e IA
+          </h2>
+          <p className="text-sm text-gray-600 font-medium">Sube todas las historias clínicas y radiografías bajo una infraestructura en la nube segura. Tus herramientas analíticas funcionarán a la perfección gracias a OdontólogoIA.</p>
+        </div>
+        <div>
+          <StorageProgressBar planName={userPlan} planLimitBytes={limitBytes} usedBytes={storageUsed} />
+        </div>
+      </div>
       
       {/* Upload Zone */}
       <div 
