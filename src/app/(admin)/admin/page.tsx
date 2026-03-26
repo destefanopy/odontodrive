@@ -39,10 +39,14 @@ export default function AdminConsole() {
     fetchUsers();
   }, []);
 
-  const handleUpgradePlan = async (userId: string) => {
-    if (!confirm("¿Deseas ascender a este odontólogo al plan Premium?")) return;
+  const handleUpgradePlan = async (userId: string, nuevoPlan: string) => {
+    if (!confirm(`¿Deseas cambiar a este odontólogo al plan ${nuevoPlan.toUpperCase()}?`)) {
+      // Revertir el select visualmente recargando
+      fetchUsers();
+      return;
+    }
     try {
-      const { error } = await authService.adminUpgradePlan(userId, "premium");
+      const { error } = await authService.adminUpgradePlan(userId, nuevoPlan);
       if (error) throw error;
       // Refrescar
       fetchUsers();
@@ -130,16 +134,16 @@ export default function AdminConsole() {
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {u.plan === 'premium' ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-accent/15 text-[#24a09c]">
-                            <Star className="w-3 h-3 fill-current" />
-                            Premium
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-800">
-                            Básico
-                          </span>
-                        )}
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                           u.plan === 'premium' ? 'bg-amber-100 text-amber-700' :
+                           u.plan === 'avanzado' ? 'bg-purple-100 text-purple-700' :
+                           u.plan === 'estandar' ? 'bg-accent/15 text-accent' :
+                           u.plan === 'basico' ? 'bg-blue-100 text-blue-700' :
+                           'bg-gray-100 text-gray-800'
+                        }`}>
+                          {u.plan === 'premium' && <Star className="w-3 h-3 fill-current" />}
+                          {u.plan ? u.plan.charAt(0).toUpperCase() + u.plan.slice(1) : 'Free'}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         {u.activo ? (
@@ -159,22 +163,25 @@ export default function AdminConsole() {
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         {!u.es_admin && (
-                          <>
-                            {u.plan !== 'premium' && (
-                              <button 
-                                onClick={() => handleUpgradePlan(u.id)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 text-[#24a09c] text-xs font-bold rounded-lg transition-colors border border-accent/20"
-                              >
-                                Dar Premium
-                              </button>
-                            )}
+                          <div className="flex items-center justify-end gap-2">
+                            <select
+                              value={u.plan || 'free'}
+                              onChange={(e) => handleUpgradePlan(u.id, e.target.value)}
+                              className="px-2 py-1.5 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg focus:ring-2 focus:ring-accent outline-none cursor-pointer"
+                            >
+                              <option value="free">Free</option>
+                              <option value="basico">Básico</option>
+                              <option value="estandar">Estándar</option>
+                              <option value="avanzado">Avanzado</option>
+                              <option value="premium">Premium</option>
+                            </select>
                             <button 
                               onClick={() => handleBanUser(u.id)}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-lg transition-colors border border-red-200"
                             >
                               Eliminar Permanente
                             </button>
-                          </>
+                          </div>
                         )}
                       </td>
                     </tr>
