@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         }
       ],
       // Importante: Pasamos el user.id como payload escondido en la URL de retorno o en metadata para el webhook
-      return_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://' + (process.env.VERCEL_URL || 'localhost:3000')}/suscripcion?success=true`
+      return_url: "https://odontodrive.com/suscripcion?success=true"
     });
 
     return NextResponse.json({ url: session.checkout_url });
