@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import React, { useState, Suspense, useEffect } from "react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/infrastructure/supabase";
 
@@ -13,33 +13,36 @@ function SuscripcionContent() {
   const isSuccess = searchParams.get("success") === "true";
   const [isVerifying, setIsVerifying] = useState(false);
   const [verifyStatus, setVerifyStatus] = useState<"pending" | "success" | "error">("pending");
+  const [verifyErrorMsg, setVerifyErrorMsg] = useState("");
 
-  import("react").then((React) => {
-    React.useEffect(() => {
-      if (isSuccess && searchParams.get("subscription_id") && searchParams.get("email")) {
-        setIsVerifying(true);
-        fetch("/api/checkout/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            subscription_id: searchParams.get("subscription_id"),
-            email: searchParams.get("email")
-          })
+  useEffect(() => {
+    if (isSuccess && searchParams.get("subscription_id") && searchParams.get("email")) {
+      setIsVerifying(true);
+      fetch("/api/checkout/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscription_id: searchParams.get("subscription_id"),
+          email: searchParams.get("email")
         })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setVerifyStatus("success");
-          } else {
-            console.error("Verification failed:", data.error);
-            setVerifyStatus("error");
-          }
-        })
-        .catch(() => setVerifyStatus("error"))
-        .finally(() => setIsVerifying(false));
-      }
-    }, [isSuccess, searchParams]);
-  });
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setVerifyStatus("success");
+        } else {
+          console.error("Verification failed:", data.error);
+          setVerifyErrorMsg(data.error || "Error desconocido");
+          setVerifyStatus("error");
+        }
+      })
+      .catch((err) => {
+        setVerifyErrorMsg(err.message || "Error de red");
+        setVerifyStatus("error");
+      })
+      .finally(() => setIsVerifying(false));
+    }
+  }, [isSuccess, searchParams]);
 
   const handleCheckout = async (planId: string) => {
     try {
@@ -103,11 +106,20 @@ function SuscripcionContent() {
         ) : (
           <>
             <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-8 ring-amber-50">
-              <CheckCircle2 className="w-12 h-12 text-amber-600" />
+              <AlertCircle className="w-12 h-12 text-amber-600" />
             </div>
             <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-4">¡Pago Recibido!</h1>
-            <p className="text-xl text-gray-600 font-medium mb-8">
-              Hemos recibido tu pago, pero la verificación instantánea está en proceso. Tus beneficios se activarán en un máximo de 5 minutos vía Webhook.
+            <p className="text-xl text-gray-600 font-medium mb-4">
+              Hemos recibido tu pago, pero la verificación instantánea está en proceso.
+            </p>
+            {verifyErrorMsg && (
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-sm font-medium mb-8 max-w-lg mx-auto">
+                <p className="font-bold mb-1">Detalle del estado:</p>
+                <code>{verifyErrorMsg}</code>
+              </div>
+            )}
+            <p className="text-gray-500 font-medium mb-8 max-w-lg mx-auto">
+              Tus beneficios se activarán automáticamente vía Webhook o contacta a soporte si persiste el estado Free.
             </p>
           </>
         )}
