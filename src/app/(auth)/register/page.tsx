@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { authService } from "@/core/auth";
+import { useRouter } from "next/navigation";
 import { User, Mail, Lock, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 
 export default function RegisterPage() {
@@ -13,6 +14,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,9 +30,9 @@ export default function RegisterPage() {
       const { data, error } = await authService.signUp(email, password, name);
       if (error) throw error;
       
-      // Si el odontólogo desactivó la confirmación de email en Supabase, data.session existirá de inmediato
+      // Transición SPA para no interrumpir el flujo del token de Supabase en LocalStorage
       if (data?.session) {
-        window.location.href = "/agenda";
+        router.push("/agenda");
       } else {
         setIsSuccess(true);
       }

@@ -9,10 +9,16 @@ export default function PacientesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getUltimosPacientes().then(data => {
-      setPacientes(data);
-      setLoading(false);
-    });
+    getUltimosPacientes()
+      .then(data => {
+        setPacientes(data);
+      })
+      .catch(err => {
+        console.error("Error catastrofico cargando pacientes:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {

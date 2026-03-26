@@ -10,11 +10,17 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getCitas(), getUltimosPacientes()]).then(([c, p]) => {
-      setCitas(c);
-      setPacientes(p);
-      setLoading(false);
-    });
+    Promise.all([getCitas(), getUltimosPacientes()])
+      .then(([c, p]) => {
+        setCitas(c);
+        setPacientes(p);
+      })
+      .catch((err) => {
+        console.error("Error catastrofico cargando agenda:", err);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   if (loading) {
