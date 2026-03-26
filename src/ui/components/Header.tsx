@@ -26,7 +26,7 @@ export default function Header() {
     authService.getUser().then(({ data: { user } }) => {
       if (user) {
         setUserData({
-          name: "Dra. Jana Santander", // Requerido por el usuario temporalmente hasta que se editen datos
+          name: user.user_metadata?.full_name || "Odontólogo(a)",
           email: user.email || "",
           avatarUrl: user.user_metadata?.avatar_url || null
         });

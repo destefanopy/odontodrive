@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useTransition } from "react";
+import { useState, useRef, useTransition, useEffect } from "react";
 import { Plus, Trash2, Printer, Save } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import PresupuestoPDFTemplate from "./PresupuestoPDFTemplate";
 import { Paciente } from "@/core/api";
+import { authService } from "@/core/auth";
 
 interface PresupuestoItem {
   id: string;
@@ -22,6 +23,13 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   ]);
   const [descuento, setDescuento] = useState<number>(0);
   const [isPending, startTransition] = useTransition();
+  const [doctorName, setDoctorName] = useState("Odontólogo(a)");
+
+  useEffect(() => {
+    authService.getUser().then(({ data: { user } }) => {
+      if (user) setDoctorName(user.user_metadata?.full_name || "Odontólogo(a)");
+    });
+  }, []);
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -189,6 +197,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
           subtotal={subtotal}
           descuento={descuento}
           total={total}
+          doctorName={doctorName}
         />
       </div>
     </div>

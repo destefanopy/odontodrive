@@ -13,10 +13,11 @@ interface PDFProps {
   subtotal: number;
   descuento: number;
   total: number;
+  doctorName?: string;
 }
 
 const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
-  ({ paciente, items, subtotal, descuento, total }, ref) => {
+  ({ paciente, items, subtotal, descuento, total, doctorName = "Odontólogo(a)" }, ref) => {
     
     const formatGs = (num: number) => new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG", maximumFractionDigits: 0 }).format(num);
     const dateStr = new Date().toLocaleDateString("es-PY", { year: 'numeric', month: 'long', day: 'numeric' });
@@ -32,7 +33,7 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
             </div>
             <div>
               <h1 className="text-3xl font-black text-gray-900 tracking-tight">OdontoDrive</h1>
-              <p className="text-emerald-700 font-medium">Dra. Jana Santander</p>
+              <p className="text-emerald-700 font-medium">{doctorName}</p>
               <p className="text-gray-700 text-sm mt-1">Reg. Prof. 123456</p>
             </div>
           </div>
@@ -106,7 +107,7 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
           </div>
           
           <div className="flex flex-col items-center mt-12 w-64 border-t border-gray-400 pt-2">
-            <span className="font-bold text-gray-800">Dra. Jana Santander</span>
+            <span className="font-bold text-gray-800">{doctorName}</span>
             <span className="text-gray-700 text-sm">Odontología Integral</span>
           </div>
         </div>
