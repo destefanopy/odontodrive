@@ -41,6 +41,10 @@ function SuscripcionContent() {
         .then(data => {
           if (data.success) {
             setVerifyStatus("success");
+            // Disparar evento para que el Sidebar se entere inmediatamente del cambio de plan
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new Event('planUpdated'));
+            }
           } else {
             console.error("Verification failed:", data.error);
             setVerifyErrorMsg(data.error || "Error desconocido");

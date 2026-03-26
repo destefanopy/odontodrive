@@ -22,19 +22,32 @@ export default function Sidebar() {
   };
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user) {
-        if (data.user.email === 'destefanopy@gmail.com') setIsAdmin(true);
-        // Fetch perfil
-        supabase.from('perfiles').select('plan, storage_usado_bytes').eq('id', data.user.id).single()
-          .then(({ data: perfil }) => {
-            if (perfil) {
-              setUserPlan(perfil.plan || 'free');
-              setStorageUsed(perfil.storage_usado_bytes || 0);
-            }
-          });
-      }
-    });
+    let isMounted = true;
+    
+    const loadProfile = () => {
+      supabase.auth.getUser().then(({ data }) => {
+        if (data?.user && isMounted) {
+          if (data.user.email === 'destefanopy@gmail.com') setIsAdmin(true);
+          supabase.from('perfiles').select('plan, storage_usado_bytes').eq('id', data.user.id).single()
+            .then(({ data: perfil }) => {
+              if (perfil && isMounted) {
+                setUserPlan(perfil.plan || 'free');
+                setStorageUsed(perfil.storage_usado_bytes || 0);
+              }
+            });
+        }
+      });
+    };
+
+    loadProfile();
+
+    const handlePlanUpdate = () => loadProfile();
+    window.addEventListener('planUpdated', handlePlanUpdate);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('planUpdated', handlePlanUpdate);
+    };
   }, []);
 
   const navItems = [
