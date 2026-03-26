@@ -44,15 +44,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Plan inválido" }, { status: 400 });
     }
 
-    // Crear Link de Pago en Dodo
-    const payment = await dodoClient.payments.create({
-      billing: {
-        city: "",
-        country: "US",     
-        state: "",
-        street: "",
-        zipcode: ""
-      },
+    // Crear Link de Pago en Dodo usando checkoutSessions para soporte de Suscripciones (Productos Recurrentes)
+    const session = await dodoClient.checkoutSessions.create({
       customer: {
         email: user.email || "odontologo@ejemplo.com",
         name: user.user_metadata?.full_name || "Doctor " + user.id.substring(0,5)
@@ -68,7 +61,7 @@ export async function POST(req: Request) {
       tax_id: ""
     });
 
-    return NextResponse.json({ url: payment.payment_link });
+    return NextResponse.json({ url: session.checkout_url });
 
   } catch (error: any) {
     console.error("Error creando Checkout Dodo:", error);
