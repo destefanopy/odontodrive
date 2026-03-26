@@ -16,10 +16,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Faltan datos del plan" }, { status: 400 });
     }
 
-    // Obtener usuario autenticado real desde Supabase (protección de backend)
-    const { data: authData, error: authErr } = await supabase.auth.getUser();
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Falta token de autenticación" }, { status: 401 });
+    }
+    const token = authHeader.split(" ")[1];
+
+    // Obtener usuario autenticado real desde Supabase enviando el token
+    const { data: authData, error: authErr } = await supabase.auth.getUser(token);
+    
     if (authErr || !authData.user) {
-      return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+      console.error("Error Auth Checkout:", authErr);
+      return NextResponse.json({ error: "Token inválido o expirado" }, { status: 401 });
     }
     const user = authData.user;
 

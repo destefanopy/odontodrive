@@ -3,6 +3,7 @@
 import React, { useState, Suspense } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { supabase } from "@/infrastructure/supabase";
 
 function SuscripcionContent() {
   const [isLoadingPlan, setIsLoadingPlan] = useState<string | null>(null);
@@ -14,9 +15,17 @@ function SuscripcionContent() {
       if (planId === "free") return; 
       setIsLoadingPlan(planId);
       
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+
+      if (!token) throw new Error("Debes iniciar sesión primero.");
+      
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           planId: planId.toLowerCase()
         }),
