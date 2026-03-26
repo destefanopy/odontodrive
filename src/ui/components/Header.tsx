@@ -101,9 +101,9 @@ export default function Header() {
           />
           <div className="flex flex-col">
             <div className="flex items-center gap-1">
-              <span className="text-sm font-bold text-gray-900">
+              <Link href="/cuenta" className="text-sm font-bold text-gray-900 hover:text-accent transition-colors hover:underline">
                 {userData ? userData.name : "Cargando..."}
-              </span>
+              </Link>
               <button 
                 onClick={handleLogout} 
                 className="ml-2 p-1 rounded-md text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors" 
@@ -112,9 +112,9 @@ export default function Header() {
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
-            <span className="text-xs text-gray-700 font-medium">
+            <Link href="/cuenta" className="text-xs text-gray-700 font-medium hover:text-accent transition-colors">
               {userData ? userData.email : ""}
-            </span>
+            </Link>
           </div>
         </div>
 
@@ -196,8 +196,10 @@ export default function Header() {
                   <img src={userData?.avatarUrl || `https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`} alt="Profile" className="w-full h-full object-cover p-1 bg-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-bold text-gray-900 truncate pr-1">{userData ? userData.name : "Cargando..."}</p>
-                  <p className="text-[10px] text-gray-900">Ver Perfil</p>
+                  <Link href="/cuenta" onClick={() => setIsMobileMenuOpen(false)} className="block">
+                    <p className="text-xs font-bold text-gray-900 truncate pr-1 hover:text-accent transition-colors">{userData ? userData.name : "Cargando..."}</p>
+                    <p className="text-[10px] text-gray-900 hover:text-accent transition-colors">Ver Perfil</p>
+                  </Link>
                 </div>
                 <button 
                   onClick={handleLogout} 

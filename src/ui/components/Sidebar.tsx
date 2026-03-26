@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Calendar, Shield, Wallet, Crown, HardDrive } from "lucide-react";
+import { Home, Users, Calendar, Shield, Wallet, Crown, HardDrive, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/infrastructure/supabase";
 
@@ -42,6 +42,7 @@ export default function Sidebar() {
     { name: "Pacientes", href: "/pacientes", icon: Users },
     { name: "Finanzas", href: "/finanzas", icon: Wallet },
     { name: "Suscripción", href: "/suscripcion", icon: Crown },
+    { name: "Mi Cuenta", href: "/cuenta", icon: User },
     ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Shield }] : [])
   ];
 

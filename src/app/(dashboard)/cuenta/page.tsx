@@ -1,0 +1,188 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Lock, Phone, Mail, HelpCircle, AlertCircle, CheckCircle2, Crown } from "lucide-react";
+import { supabase } from "@/infrastructure/supabase";
+
+export default function MiCuentaPage() {
+  const [userPlan, setUserPlan] = useState<string>("Cargando...");
+  const [email, setEmail] = useState<string>("");
+  const [telefono, setTelefono] = useState<string>("");
+  const [newPassword, setNewPassword] = useState<string>("");
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        setEmail(user.email || "");
+        setTelefono(user.user_metadata?.phone || "");
+        
+        supabase.from('perfiles').select('plan')
+          .eq('id', user.id).single()
+          .then(({ data }) => {
+            if (data) setUserPlan(data.plan || "free");
+          });
+      }
+    });
+  }, []);
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setMessage(null);
+
+    try {
+      const updates: any = {};
+      
+      // Si escribió nueva contraseña, la incluimos
+      if (newPassword.trim() !== "") {
+        if (newPassword.length < 6) {
+          throw new Error("La contraseña debe tener al menos 6 caracteres");
+        }
+        updates.password = newPassword;
+      }
+
+      // Si cambió el teléfono, lo actualizamos en user_metadata
+      updates.data = { phone: telefono };
+
+      const { error } = await supabase.auth.updateUser(updates);
+
+      if (error) throw error;
+
+      setMessage({ text: "¡Tus datos han sido actualizados exitosamente!", type: "success" });
+      setNewPassword(""); // Limpiamos el campo de clave por seguridad
+    } catch (error: any) {
+      setMessage({ text: error.message || "Hubo un error al actualizar los datos", type: "error" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in-95 duration-500">
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight">Mi Cuenta</h1>
+        <p className="text-gray-500 mt-1">Gestiona tu plan, seguridad y datos de contacto.</p>
+      </div>
+
+      {message && (
+        <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 shadow-sm ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+          {message.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+          <p className="font-medium text-sm">{message.text}</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* Columna Izquierda: Plan  */}
+        <div className="md:col-span-1 space-y-6">
+          <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(6,81,237,0.1)] border border-gray-100 p-6 flex flex-col items-center text-center">
+            <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-4 text-accent">
+              <Crown className="w-8 h-8" />
+            </div>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-1">Plan Actual</h2>
+            <p className="text-2xl font-black text-gray-900 capitalize">{userPlan}</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl shadow-lg border border-gray-800 p-6 text-white relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <HelpCircle className="w-24 h-24" />
+            </div>
+            <div className="relative z-10">
+              <h2 className="text-lg font-bold mb-2 flex items-center gap-2">
+                Soporte Técnico
+              </h2>
+              <p className="text-sm text-gray-400 mb-6 leading-relaxed">
+                Ante cualquier inconveniente con facturación o acceso, no dudes en escribirnos directamente.
+              </p>
+              
+              <div className="space-y-4">
+                <a href="https://wa.me/595962122644" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-medium hover:text-accent transition-colors bg-white/10 p-3 rounded-xl">
+                  <Phone className="w-5 h-5 text-accent" />
+                  +595 962 122644
+                </a>
+                <a href="mailto:destefanopy@gmail.com" className="flex items-center gap-3 text-sm font-medium hover:text-accent transition-colors bg-white/10 p-3 rounded-xl overflow-hidden">
+                  <Mail className="w-5 h-5 text-accent flex-shrink-0" />
+                  <span className="truncate">destefanopy@gmail.com</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Columna Derecha: Formulario */}
+        <div className="md:col-span-2">
+          <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(6,81,237,0.1)] border border-gray-100 overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="text-lg font-bold text-gray-900">Seguridad y Perfil</h3>
+            </div>
+            <form onSubmit={handleUpdate} className="p-6 space-y-6">
+              
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Correo Electrónico</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Mail className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="email"
+                    value={email}
+                    disabled
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl bg-gray-50 text-gray-500 sm:text-sm font-medium focus:outline-none"
+                    placeholder="tucorreo@ejemplo.com"
+                  />
+                </div>
+                <p className="mt-2 text-xs text-gray-500">El correo de acceso no puede ser modificado desde este panel.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Número de Teléfono</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Phone className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={telefono}
+                    onChange={(e) => setTelefono(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
+                    placeholder="+595 900 000000"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Nueva Contraseña</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <p className="mt-2 text-xs text-gray-500">Déjalo en blanco si no deseas cambiar tu contraseña actual.</p>
+              </div>
+
+              <div className="pt-4 border-t border-gray-100 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  {isLoading ? 'Actualizando...' : 'Guardar Cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
