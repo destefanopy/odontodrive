@@ -4,8 +4,8 @@ import DodoPayments from 'dodopayments';
 
 // Inicializar el SDK de Dodo. Se debe agregar DODO_API_KEY al .env
 const dodoClient = new DodoPayments({
-  bearerToken: process.env.DODO_API_KEY || "sk_test_dodo_placeholder", 
-  environment: process.env.NODE_ENV === 'production' ? 'live_mode' : 'test_mode'
+  bearerToken: (process.env.DODO_API_KEY || "sk_test_dodo_placeholder").trim(), 
+  environment: (process.env.DODO_ENV as any) || (process.env.NODE_ENV === 'production' ? 'live_mode' : 'test_mode')
 });
 
 export async function POST(req: Request) {
@@ -32,12 +32,11 @@ export async function POST(req: Request) {
     const user = authData.user;
 
     // Mapeo de IDs de planes a Product IDs reales de Dodo Payments.
-    // El doctor debe crear los 4 productos en su dashboard de Dodo y pegar aquí los IDs (empiezan con prdt_...)
     const dodoProductIds: Record<string, string> = {
-      basico: process.env.DODO_PRDT_BASICO || "prdt_basico_placeholder",
-      estandar: process.env.DODO_PRDT_ESTANDAR || "prdt_estandar_placeholder",
-      avanzado: process.env.DODO_PRDT_AVANZADO || "prdt_avanzado_placeholder",
-      premium: process.env.DODO_PRDT_PREMIUM || "prdt_premium_placeholder"
+      basico: (process.env.DODO_PRDT_BASICO || "prdt_basico_placeholder").trim(),
+      estandar: (process.env.DODO_PRDT_ESTANDAR || "prdt_estandar_placeholder").trim(),
+      avanzado: (process.env.DODO_PRDT_AVANZADO || "prdt_avanzado_placeholder").trim(),
+      premium: (process.env.DODO_PRDT_PREMIUM || "prdt_premium_placeholder").trim()
     };
 
     const productId = dodoProductIds[planId];
