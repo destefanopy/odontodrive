@@ -39,8 +39,14 @@ export async function POST(req: Request) {
     }
     const userId = authData.user.id;
 
+    // Log tracking inicio
+    await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_start", user: userId, sub: subscription_id } }]);
+
     // 1. Verificar la suscripción directamente contra Dodo Payments API
     const dodoData: any = await dodoClient.subscriptions.retrieve(subscription_id);
+
+    // Log tracking dodo response
+    await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_dodo_ok", payload: dodoData } }]);
 
     if (dodoData.status !== 'active' && dodoData.status !== 'trialing') {
        return NextResponse.json({ error: `La suscripción aún no está activa (estado: ${dodoData.status}).` }, { status: 400 });
@@ -58,7 +64,7 @@ export async function POST(req: Request) {
     const nuevoPlan = dodoProductIds[purchasedProductId] || "estandar";
 
     // 2. Actualizar la base de datos
-    await supabaseAdmin
+    const { error: dbError } = await supabaseAdmin
       .from('perfiles')
       .update({ 
         plan: nuevoPlan,
@@ -66,15 +72,26 @@ export async function POST(req: Request) {
       })
       .eq('id', userId);
 
-    await supabaseAdmin.rpc('admin_mejorar_plan', {
+    if (dbError) {
+      await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_db_error", dbError } }]);
+    }
+
+    const { error: rpcError } = await supabaseAdmin.rpc('admin_mejorar_plan', {
       user_id: userId,
       nuevo_plan: nuevoPlan
     });
+
+    if (rpcError) {
+      await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_rpc_error", rpcError } }]);
+    }
+
+    await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_success", nuevoPlan } }]);
 
     return NextResponse.json({ success: true, plan: nuevoPlan });
 
   } catch (error: any) {
     console.error("Error validando checkout:", error);
+    await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_catch_error", msg: error.message, stack: error.stack } }]);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
