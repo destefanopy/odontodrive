@@ -25,10 +25,15 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      const { error } = await authService.signUp(email, password, name);
+      const { data, error } = await authService.signUp(email, password, name);
       if (error) throw error;
       
-      setIsSuccess(true);
+      // Si el odontólogo desactivó la confirmación de email en Supabase, data.session existirá de inmediato
+      if (data?.session) {
+        window.location.href = "/agenda";
+      } else {
+        setIsSuccess(true);
+      }
     } catch (err: any) {
       setError(err.message || "Ocurrió un error al registrar la cuenta.");
     } finally {
