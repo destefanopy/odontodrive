@@ -6,6 +6,7 @@ import { supabase } from "@/infrastructure/supabase";
 
 export default function MiCuentaPage() {
   const [userPlan, setUserPlan] = useState<string>("Cargando...");
+  const [createdAt, setCreatedAt] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [telefono, setTelefono] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -13,20 +14,51 @@ export default function MiCuentaPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelText, setCancelText] = useState("");
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setEmail(user.email || "");
         setTelefono(user.user_metadata?.phone || "");
         
-        supabase.from('perfiles').select('plan')
+        supabase.from('perfiles').select('plan, created_at')
           .eq('id', user.id).single()
           .then(({ data }) => {
-            if (data) setUserPlan(data.plan || "free");
+            if (data) {
+              setUserPlan(data.plan || "free");
+              if (data.created_at) {
+                const date = new Date(data.created_at);
+                setCreatedAt(date.toLocaleDateString("es-ES", { year: 'numeric', month: 'long', day: 'numeric' }));
+              }
+            }
           });
       }
     });
   }, []);
+
+  const handleCancelPlan = async () => {
+    if (cancelText.toLowerCase() !== "cancelar") return;
+    setIsLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No autenticado");
+      
+      const { error } = await supabase.from('perfiles').update({ plan: 'free' }).eq('id', user.id);
+      if (error) throw error;
+      
+      // Intentar forzar la eliminación remota si hay webhooks, pero cortamos el plan ya
+      setUserPlan("free");
+      setShowCancelConfirm(false);
+      setCancelText("");
+      setMessage({ text: "Suscripción cancelada exitosamente. Tu plan ahora es Free.", type: "success" });
+    } catch (err: any) {
+      setMessage({ text: err.message || "Error al cancelar", type: "error" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,23 +68,18 @@ export default function MiCuentaPage() {
     try {
       const updates: any = {};
       
-      // Si escribió nueva contraseña, la incluimos
       if (newPassword.trim() !== "") {
-        if (newPassword.length < 6) {
-          throw new Error("La contraseña debe tener al menos 6 caracteres");
-        }
+        if (newPassword.length < 6) throw new Error("La contraseña debe tener al menos 6 caracteres");
         updates.password = newPassword;
       }
 
-      // Si cambió el teléfono, lo actualizamos en user_metadata
       updates.data = { phone: telefono };
 
       const { error } = await supabase.auth.updateUser(updates);
-
       if (error) throw error;
 
       setMessage({ text: "¡Tus datos han sido actualizados exitosamente!", type: "success" });
-      setNewPassword(""); // Limpiamos el campo de clave por seguridad
+      setNewPassword(""); 
     } catch (error: any) {
       setMessage({ text: error.message || "Hubo un error al actualizar los datos", type: "error" });
     } finally {
@@ -78,12 +105,55 @@ export default function MiCuentaPage() {
         
         {/* Columna Izquierda: Plan  */}
         <div className="md:col-span-1 space-y-6">
-          <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(6,81,237,0.1)] border border-gray-100 p-6 flex flex-col items-center text-center">
+          <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(6,81,237,0.1)] border border-gray-100 p-6 flex flex-col items-center text-center transition-all duration-300">
             <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-4 text-accent">
               <Crown className="w-8 h-8" />
             </div>
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-1">Plan Actual</h2>
-            <p className="text-2xl font-black text-gray-900 capitalize">{userPlan}</p>
+            <p className="text-2xl font-black text-gray-900 capitalize mb-1">{userPlan}</p>
+            {createdAt && <p className="text-xs text-gray-500 font-medium bg-gray-50 px-3 py-1 rounded-full">Miembro desde: {createdAt}</p>}
+            
+            {userPlan !== 'free' && (
+              <div className="mt-6 w-full pt-4 border-t border-gray-100">
+                {!showCancelConfirm ? (
+                  <button 
+                    onClick={() => setShowCancelConfirm(true)}
+                    className="text-sm font-bold text-red-500 hover:text-red-700 w-full text-center transition-colors px-2 py-1 rounded-lg hover:bg-red-50"
+                  >
+                    Cancelar Suscripción
+                  </button>
+                ) : (
+                  <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200 bg-red-50/50 p-3 rounded-xl border border-red-100">
+                    <div className="space-y-1">
+                      <p className="text-xs text-red-600 font-bold leading-tight">¿Estás seguro?</p>
+                      <p className="text-[10px] text-gray-600 leading-tight">Escribe <span className="font-black text-red-600">cancelar</span> para confirmar.<br/><span className="italic mt-1 block">También debes cancelar desde el link en el correo de Dodo Payments.</span></p>
+                    </div>
+                    <input 
+                      type="text" 
+                      value={cancelText}
+                      onChange={(e) => setCancelText(e.target.value)}
+                      placeholder="escribe cancelar"
+                      className="w-full px-3 py-2 text-sm border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 outline-none text-center font-bold text-red-600 uppercase"
+                    />
+                    <div className="flex gap-2">
+                       <button 
+                         onClick={() => { setShowCancelConfirm(false); setCancelText(""); }}
+                         className="flex-1 py-2 bg-white border border-gray-200 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-50 transition-colors"
+                       >
+                         Atrás
+                       </button>
+                       <button 
+                         onClick={handleCancelPlan}
+                         disabled={cancelText.toLowerCase() !== "cancelar" || isLoading}
+                         className="flex-1 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                       >
+                         Confirmar
+                       </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="bg-gradient-to-br from-gray-900 to-black rounded-2xl shadow-lg border border-gray-800 p-6 text-white relative overflow-hidden group">

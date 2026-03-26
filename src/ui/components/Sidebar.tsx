@@ -41,7 +41,6 @@ export default function Sidebar() {
     { name: "Calendario", href: "/agenda", icon: Calendar },
     { name: "Pacientes", href: "/pacientes", icon: Users },
     { name: "Finanzas", href: "/finanzas", icon: Wallet },
-    { name: "Suscripción", href: "/suscripcion", icon: Crown },
     { name: "Mi Cuenta", href: "/cuenta", icon: User },
     ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Shield }] : [])
   ];
