@@ -64,10 +64,15 @@ export async function POST(req: Request) {
       const purchasedProductId = items[0]?.product_id || paymentData.product_id;
       const nuevoPlan = dodoProductIds[purchasedProductId] || "estandar"; // Fallback por defecto
 
-      // Actualizar el plan usando supabaseAdmin
+      const dodoSubId = paymentData.subscription_id || event.data?.subscription_id || paymentData.id || null;
+
+      // Actualizar el plan usando supabaseAdmin y guardar ID de suscripcion si existe
       const { error: updatePublicErr } = await supabaseAdmin
         .from('perfiles')
-        .update({ plan: nuevoPlan })
+        .update({ 
+          plan: nuevoPlan,
+          dodo_subscription_id: dodoSubId
+        })
         .eq('id', userId);
 
       // Usar la función RPC para actualizar el 'plan_actual' en auth.users si es necesario

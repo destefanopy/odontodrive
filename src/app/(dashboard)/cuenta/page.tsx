@@ -42,17 +42,25 @@ export default function MiCuentaPage() {
     if (cancelText.toLowerCase() !== "cancelar") return;
     setIsLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No autenticado");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("No autenticado");
       
-      const { error } = await supabase.from('perfiles').update({ plan: 'free' }).eq('id', user.id);
-      if (error) throw error;
+      const res = await fetch("/api/cancel-subscription", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${session.access_token}` }
+      });
+      const result = await res.json();
       
-      // Intentar forzar la eliminación remota si hay webhooks, pero cortamos el plan ya
-      setUserPlan("free");
+      if (!res.ok) throw new Error(result.error || "Error al procesar la cancelación remota.");
+      
+      // La API nos baja a 'free' sólo si no encuentra el ID de Dodo (suscripciones antiguas)
+      // Si existía Dodo, la API lo cancela en remoto y mantiene tus privilegios hasta fin de mes.
+      const { data: pData } = await supabase.from('perfiles').select('plan').eq('id', session.user.id).single();
+      if (pData) setUserPlan(pData.plan || "free");
+
       setShowCancelConfirm(false);
       setCancelText("");
-      setMessage({ text: "Suscripción cancelada exitosamente. Tu plan ahora es Free.", type: "success" });
+      setMessage({ text: result.message || result.warning || "Suscripción cancelada", type: "success" });
     } catch (err: any) {
       setMessage({ text: err.message || "Error al cancelar", type: "error" });
     } finally {
