@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/infrastructure/supabase';
+import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+
+// Necesitamos la Service Role Key para hacer bypass al RLS porque es un entorno de servidor sin token de usuario
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "", 
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
 
 export async function POST(req: Request) {
   try {
@@ -34,7 +41,7 @@ export async function POST(req: Request) {
       }
 
       // Buscar al usuario por email en nuestra tabla de perfiles 'public.perfiles'
-      const { data: perfiles, error: searchError } = await supabase
+      const { data: perfiles, error: searchError } = await supabaseAdmin
         .from('perfiles')
         .select('id, email')
         .eq('email', customerEmail);
@@ -47,24 +54,24 @@ export async function POST(req: Request) {
 
       // Determinar qué plan compró basándonos en el Product ID
       const dodoProductIds: Record<string, string> = {
-        [process.env.DODO_PRDT_BASICO || "prdt_basico"]: "basico",
-        [process.env.DODO_PRDT_ESTANDAR || "prdt_estandar"]: "estandar",
-        [process.env.DODO_PRDT_AVANZADO || "prdt_avanzado"]: "avanzado",
-        [process.env.DODO_PRDT_PREMIUM || "prdt_premium"]: "premium"
+        [(process.env.DODO_PRDT_BASICO || "").trim()]: "basico",
+        [(process.env.DODO_PRDT_ESTANDAR || "").trim()]: "estandar",
+        [(process.env.DODO_PRDT_AVANZADO || "").trim()]: "avanzado",
+        [(process.env.DODO_PRDT_PREMIUM || "").trim()]: "premium"
       };
 
       const items = paymentData.product_cart || [];
-      const purchasedProductId = items[0]?.product_id;
+      const purchasedProductId = items[0]?.product_id || paymentData.product_id;
       const nuevoPlan = dodoProductIds[purchasedProductId] || "estandar"; // Fallback por defecto
 
-      // Actualizar el plan en el perfil público
-      const { error: updatePublicErr } = await supabase
+      // Actualizar el plan usando supabaseAdmin
+      const { error: updatePublicErr } = await supabaseAdmin
         .from('perfiles')
         .update({ plan: nuevoPlan })
         .eq('id', userId);
 
       // Usar la función RPC para actualizar el 'plan_actual' en auth.users si es necesario
-      await supabase.rpc('admin_mejorar_plan', {
+      await supabaseAdmin.rpc('admin_mejorar_plan', {
         user_id: userId,
         nuevo_plan: nuevoPlan
       });
