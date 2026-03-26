@@ -12,6 +12,19 @@ const supabaseAdmin = createClient(
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
+    
+    // Logear INMEDIATAMENTE cualquier cosa que toque este endpoint, sin importar firmas ni JSON válido
+    let parsedBody = {};
+    try { parsedBody = JSON.parse(rawBody); } catch(e) {}
+    
+    await supabaseAdmin.from('dodo_logs').insert([{ 
+      log_data: { 
+        headers: Object.fromEntries(req.headers.entries()),
+        body: parsedBody,
+        raw: rawBody
+      } 
+    }]);
+
     const signature = req.headers.get('dodo-signature');
 
     if (!signature) {

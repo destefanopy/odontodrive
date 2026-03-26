@@ -11,6 +11,35 @@ function SuscripcionContent() {
 
   const searchParams = useSearchParams();
   const isSuccess = searchParams.get("success") === "true";
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyStatus, setVerifyStatus] = useState<"pending" | "success" | "error">("pending");
+
+  import("react").then((React) => {
+    React.useEffect(() => {
+      if (isSuccess && searchParams.get("subscription_id") && searchParams.get("email")) {
+        setIsVerifying(true);
+        fetch("/api/checkout/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subscription_id: searchParams.get("subscription_id"),
+            email: searchParams.get("email")
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setVerifyStatus("success");
+          } else {
+            console.error("Verification failed:", data.error);
+            setVerifyStatus("error");
+          }
+        })
+        .catch(() => setVerifyStatus("error"))
+        .finally(() => setIsVerifying(false));
+      }
+    }, [isSuccess, searchParams]);
+  });
 
   const handleCheckout = async (planId: string) => {
     try {
@@ -55,26 +84,39 @@ function SuscripcionContent() {
   if (isSuccess) {
     return (
       <div className="max-w-3xl mx-auto py-20 px-4 sm:px-6 lg:px-8 text-center animate-in fade-in zoom-in-95 duration-700">
-        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-8 ring-green-50">
-          <CheckCircle2 className="w-12 h-12 text-green-600" />
-        </div>
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-4">¡Pago Realizado con Éxito!</h1>
-        <p className="text-xl text-gray-600 font-medium mb-8">
-          Tu plan en Odontodrive se está actualizando. Dependiendo del banco, puede demorar entre unos segundos a un minuto.
-        </p>
-
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-4 max-w-lg mx-auto mb-8">
-          <p className="text-gray-500 font-medium text-sm">¿Tu plan aún dice Free?</p>
-          <p className="text-gray-900 font-bold text-sm bg-gray-50 p-4 rounded-xl border border-gray-100 italic">
-            No te preocupes. Hemos recibido la orden de tu banco. Si en breve no se actualiza tu panel, vuelve a iniciar sesión o presiona {`"Ir a Mi Cuenta"`} en unos instantes.
-          </p>
-        </div>
+        
+        {isVerifying || verifyStatus === "pending" ? (
+          <div className="flex flex-col items-center justify-center space-y-4 mb-8">
+            <Loader2 className="w-16 h-16 animate-spin text-accent" />
+            <p className="text-xl text-gray-600 font-medium">Validando pago seguro con el banco...</p>
+          </div>
+        ) : verifyStatus === "success" ? (
+          <>
+            <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-8 ring-green-50">
+              <CheckCircle2 className="w-12 h-12 text-green-600" />
+            </div>
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-4">¡Pago Validado y Actualizado!</h1>
+            <p className="text-xl text-gray-600 font-medium mb-8">
+              Tu cuenta ahora posee todos los beneficios del nuevo plan.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-8 ring-amber-50">
+              <CheckCircle2 className="w-12 h-12 text-amber-600" />
+            </div>
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-4">¡Pago Recibido!</h1>
+            <p className="text-xl text-gray-600 font-medium mb-8">
+              Hemos recibido tu pago, pero la verificación instantánea está en proceso. Tus beneficios se activarán en un máximo de 5 minutos vía Webhook.
+            </p>
+          </>
+        )}
 
         <a 
           href="/cuenta" 
-          className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-black transition-all hover:-translate-y-1 hover:shadow-xl"
+          className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-black transition-all hover:-translate-y-1 hover:shadow-xl mt-4"
         >
-          Ir a Mi Cuenta
+          {isVerifying ? 'Cargando...' : 'Ir a Mi Cuenta'}
         </a>
       </div>
     );
