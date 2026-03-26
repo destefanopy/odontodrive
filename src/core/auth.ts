@@ -3,7 +3,7 @@ import { supabase } from '@/infrastructure/supabase';
 export const authService = {
   async signIn(email: string, password: string) {
     return supabase.auth.signInWithPassword({
-      email,
+      email: email.trim().toLowerCase(),
       password,
     });
   },
@@ -13,7 +13,7 @@ export const authService = {
 
   async signUp(email: string, password: string, name: string) {
     return supabase.auth.signUp({
-      email,
+      email: email.trim().toLowerCase(),
       password,
       options: {
         data: {
@@ -29,7 +29,7 @@ export const authService = {
   },
 
   async resetPassword(email: string) {
-    return supabase.auth.resetPasswordForEmail(email, {
+    return supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
       redirectTo: `${window.location.origin}/actualizar-password`,
     });
   },
