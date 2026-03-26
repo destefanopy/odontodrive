@@ -16,31 +16,43 @@ function SuscripcionContent() {
   const [verifyErrorMsg, setVerifyErrorMsg] = useState("");
 
   useEffect(() => {
-    if (isSuccess && searchParams.get("subscription_id") && searchParams.get("email")) {
+    const subId = searchParams.get("subscription_id");
+    if (isSuccess && subId) {
       setIsVerifying(true);
-      fetch("/api/checkout/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          subscription_id: searchParams.get("subscription_id"),
-          email: searchParams.get("email")
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setVerifyStatus("success");
-        } else {
-          console.error("Verification failed:", data.error);
-          setVerifyErrorMsg(data.error || "Error desconocido");
+      
+      supabase.auth.getSession().then(({ data: sessionData }) => {
+        const token = sessionData?.session?.access_token;
+        if (!token) {
+          setVerifyErrorMsg("No hay sesión activa para procesar el pago.");
           setVerifyStatus("error");
+          setIsVerifying(false);
+          return;
         }
-      })
-      .catch((err) => {
-        setVerifyErrorMsg(err.message || "Error de red");
-        setVerifyStatus("error");
-      })
-      .finally(() => setIsVerifying(false));
+
+        fetch("/api/checkout/verify", {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ subscription_id: subId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            setVerifyStatus("success");
+          } else {
+            console.error("Verification failed:", data.error);
+            setVerifyErrorMsg(data.error || "Error desconocido");
+            setVerifyStatus("error");
+          }
+        })
+        .catch((err) => {
+          setVerifyErrorMsg(err.message || "Error de red");
+          setVerifyStatus("error");
+        })
+        .finally(() => setIsVerifying(false));
+      });
     }
   }, [isSuccess, searchParams]);
 

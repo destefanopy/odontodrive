@@ -8,20 +8,38 @@ const supabaseAdmin = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
+const supabaseAnon = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+  { auth: { autoRefreshToken: false, persistSession: false } }
+);
+
 const dodoClient = new DodoPayments({
   bearerToken: process.env.DODO_API_KEY || ''
 });
 
 export async function POST(req: Request) {
   try {
-    const { subscription_id, email } = await req.json();
+    const { subscription_id } = await req.json();
 
-    if (!subscription_id || !email) {
-      return NextResponse.json({ error: "Faltan parámetros" }, { status: 400 });
+    if (!subscription_id) {
+      return NextResponse.json({ error: "Falta subscription_id" }, { status: 400 });
     }
 
+    // Identificar usuario desde el Token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "No autorizado. Token faltante." }, { status: 401 });
+    }
+    const token = authHeader.split(" ")[1];
+    
+    const { data: authData, error: authError } = await supabaseAnon.auth.getUser(token);
+    if (authError || !authData.user) {
+      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+    }
+    const userId = authData.user.id;
+
     // 1. Verificar la suscripción directamente contra Dodo Payments API
-    // Usaremos any hasta que conozcamos bien los tipos del retrieve()
     const dodoData: any = await dodoClient.subscriptions.retrieve(subscription_id);
 
     if (dodoData.status !== 'active' && dodoData.status !== 'trialing') {
@@ -37,21 +55,9 @@ export async function POST(req: Request) {
     };
 
     const purchasedProductId = dodoData.product_id || (dodoData.items && dodoData.items[0]?.product_id) || (dodoData.product_cart && dodoData.product_cart[0]?.product_id);
-    const nuevoPlan = dodoProductIds[purchasedProductId] || "estandar"; // Fallback por defecto
+    const nuevoPlan = dodoProductIds[purchasedProductId] || "estandar";
 
-    // 2. Buscar al usuario por email
-    const { data: perfiles, error: searchError } = await supabaseAdmin
-      .from('perfiles')
-      .select('id, email, plan')
-      .eq('email', email);
-
-    if (searchError || !perfiles || perfiles.length === 0) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 });
-    }
-
-    const userId = perfiles[0].id;
-
-    // 3. Actualizar la base de datos
+    // 2. Actualizar la base de datos
     await supabaseAdmin
       .from('perfiles')
       .update({ 
