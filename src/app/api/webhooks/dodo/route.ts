@@ -82,19 +82,11 @@ export async function POST(req: Request) {
 
       const dodoSubId = paymentData.subscription_id || event.data?.subscription_id || paymentData.id || null;
 
-      // Actualizar el plan usando supabaseAdmin y guardar ID de suscripcion si existe
-      const { error: updatePublicErr } = await supabaseAdmin
-        .from('perfiles')
-        .update({ 
-          plan: nuevoPlan,
-          dodo_subscription_id: dodoSubId
-        })
-        .eq('id', userId);
-
-      // Usar la función RPC para actualizar el 'plan_actual' en auth.users si es necesario
+      // Usar la función RPC para actualizar 'perfiles' y 'plan_actual' en auth.users TODO A LA VEZ en modo Security Definer
       await supabaseAdmin.rpc('admin_mejorar_plan', {
         user_id: userId,
-        nuevo_plan: nuevoPlan
+        nuevo_plan: nuevoPlan,
+        var_dodo_id: dodoSubId
       });
 
       console.log(`✅ Suscripción Dodo exitosa: ${customerEmail} mejorado a ${nuevoPlan}`);

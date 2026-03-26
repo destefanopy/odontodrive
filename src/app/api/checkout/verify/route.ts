@@ -63,26 +63,16 @@ export async function POST(req: Request) {
     const purchasedProductId = dodoData.product_id || (dodoData.items && dodoData.items[0]?.product_id) || (dodoData.product_cart && dodoData.product_cart[0]?.product_id);
     const nuevoPlan = dodoProductIds[purchasedProductId] || "estandar";
 
-    // 2. Actualizar la base de datos
-    const { error: dbError } = await supabaseAdmin
-      .from('perfiles')
-      .update({ 
-        plan: nuevoPlan,
-        dodo_subscription_id: subscription_id
-      })
-      .eq('id', userId);
-
-    if (dbError) {
-      await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_db_error", dbError } }]);
-    }
-
+    // 2. Delegar TODA la actualización a la función con privilegios máximos (SECURITY DEFINER) de Postgres
     const { error: rpcError } = await supabaseAdmin.rpc('admin_mejorar_plan', {
       user_id: userId,
-      nuevo_plan: nuevoPlan
+      nuevo_plan: nuevoPlan,
+      var_dodo_id: subscription_id
     });
 
     if (rpcError) {
       await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_rpc_error", rpcError } }]);
+      throw new Error("No se pudo aplicar la mejora de cuenta en la base de datos.");
     }
 
     await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_success", nuevoPlan } }]);
