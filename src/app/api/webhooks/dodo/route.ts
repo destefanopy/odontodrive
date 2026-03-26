@@ -31,6 +31,9 @@ export async function POST(req: Request) {
 
     const event = JSON.parse(rawBody);
 
+    // Guardar TODO el payload para poder depurarlo en vivo
+    await supabaseAdmin.from('dodo_logs').insert([{ log_data: event }]);
+
     // Eventos enviados por DodoPayments
     if (event.type === 'payment.succeeded' || event.type === 'subscription.active') {
       const paymentData = event.data;

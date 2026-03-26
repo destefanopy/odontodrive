@@ -51,6 +51,36 @@ function SuscripcionContent() {
     }
   };
 
+  // ======== PANTALLA DE ÉXITO ========
+  if (isSuccess) {
+    return (
+      <div className="max-w-3xl mx-auto py-20 px-4 sm:px-6 lg:px-8 text-center animate-in fade-in zoom-in-95 duration-700">
+        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner ring-8 ring-green-50">
+          <CheckCircle2 className="w-12 h-12 text-green-600" />
+        </div>
+        <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-4">¡Pago Realizado con Éxito!</h1>
+        <p className="text-xl text-gray-600 font-medium mb-8">
+          Tu plan en Odontodrive se está actualizando. Dependiendo del banco, puede demorar entre unos segundos a un minuto.
+        </p>
+
+        <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 space-y-4 max-w-lg mx-auto mb-8">
+          <p className="text-gray-500 font-medium text-sm">¿Tu plan aún dice Free?</p>
+          <p className="text-gray-900 font-bold text-sm bg-gray-50 p-4 rounded-xl border border-gray-100 italic">
+            No te preocupes. Hemos recibido la orden de tu banco. Si en breve no se actualiza tu panel, vuelve a iniciar sesión o presiona {`"Ir a Mi Cuenta"`} en unos instantes.
+          </p>
+        </div>
+
+        <a 
+          href="/cuenta" 
+          className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-black transition-all hover:-translate-y-1 hover:shadow-xl"
+        >
+          Ir a Mi Cuenta
+        </a>
+      </div>
+    );
+  }
+
+  // ======== PLANES NORMALES ========
   return (
     <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in-95 duration-500">
       
@@ -62,16 +92,6 @@ function SuscripcionContent() {
           </div>
           <p className="text-red-400 font-bold">{errorLog.error}</p>
           <pre>{JSON.stringify(errorLog.devLog || errorLog, null, 2)}</pre>
-        </div>
-      )}
-
-      {isSuccess && (
-        <div className="mb-8 bg-green-50 border border-green-200 text-green-800 p-4 rounded-2xl flex items-center justify-center gap-3 shadow-sm animate-in slide-in-from-top flex-col sm:flex-row text-center sm:text-left">
-          <CheckCircle2 className="w-8 h-8 text-green-600 flex-shrink-0" />
-          <div>
-            <h3 className="font-black text-lg">¡Pago exitoso y Plan Actualizado!</h3>
-            <p className="text-sm font-medium opacity-90">Tu nueva capacidad de almacenamiento ha sido activada en tu cuenta.</p>
-          </div>
         </div>
       )}
 
