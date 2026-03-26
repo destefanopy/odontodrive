@@ -7,11 +7,14 @@ import { supabase } from "@/infrastructure/supabase";
 
 function SuscripcionContent() {
   const [isLoadingPlan, setIsLoadingPlan] = useState<string | null>(null);
+  const [errorLog, setErrorLog] = useState<any>(null);
+
   const searchParams = useSearchParams();
   const isSuccess = searchParams.get("success") === "true";
 
   const handleCheckout = async (planId: string) => {
     try {
+      setErrorLog(null);
       if (planId === "free") return; 
       setIsLoadingPlan(planId);
       
@@ -32,13 +35,17 @@ function SuscripcionContent() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) {
+        // Guardamos todo el objeto de error para que el Odontólogo vea el Dev Log
+        setErrorLog(data);
+        throw new Error(data.error || "Fallo en Checkout");
+      }
 
       if (data.url) {
         window.location.href = data.url;
       }
     } catch (err: any) {
-      alert("Error procesando pago: " + err.message);
+      if (!errorLog) setErrorLog({ error: err.message });
     } finally {
       setIsLoadingPlan(null);
     }
@@ -47,6 +54,17 @@ function SuscripcionContent() {
   return (
     <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in-95 duration-500">
       
+      {errorLog && (
+        <div className="mb-8 bg-black border border-gray-800 text-green-400 p-4 rounded-2xl flex flex-col gap-3 shadow-lg animate-in slide-in-from-top text-left font-mono text-xs overflow-x-auto w-full">
+          <div className="flex justify-between items-center w-full">
+            <h3 className="font-bold text-white">Console Log / Debug Dodo Payments</h3>
+            <button onClick={() => setErrorLog(null)} className="text-gray-400 hover:text-white">Cerrar</button>
+          </div>
+          <p className="text-red-400 font-bold">{errorLog.error}</p>
+          <pre>{JSON.stringify(errorLog.devLog || errorLog, null, 2)}</pre>
+        </div>
+      )}
+
       {isSuccess && (
         <div className="mb-8 bg-green-50 border border-green-200 text-green-800 p-4 rounded-2xl flex items-center justify-center gap-3 shadow-sm animate-in slide-in-from-top flex-col sm:flex-row text-center sm:text-left">
           <CheckCircle2 className="w-8 h-8 text-green-600 flex-shrink-0" />

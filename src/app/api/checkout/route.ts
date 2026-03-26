@@ -73,6 +73,17 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error("Error creando Checkout Dodo:", error);
-    return NextResponse.json({ error: error.message || "Error procesando pago" }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || "Error procesando pago",
+      devLog: {
+        keysUsed: {
+          basico: process.env.DODO_PRDT_BASICO,
+          env: process.env.NODE_ENV,
+          hasApiKey: !!process.env.DODO_API_KEY
+        },
+        dodoResponse: error.response?.data || error.data || null,
+        stack: error.stack
+      }
+    }, { status: 500 });
   }
 }
