@@ -21,7 +21,6 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
   const [currentNombre, setCurrentNombre] = useState("");
   const [currentIndicaciones, setCurrentIndicaciones] = useState("");
-  const [diagnostico, setDiagnostico] = useState("");
   const [loadingConfig, setLoadingConfig] = useState(true);
 
   // Clinic profile
@@ -131,16 +130,6 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
         <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col gap-6">
           <form onSubmit={handleAdd} className="space-y-4">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Diagnóstico (Opcional)</label>
-              <input
-                type="text"
-                value={diagnostico}
-                onChange={(e) => setDiagnostico(e.target.value)}
-                placeholder="Ej. Infección periapical..."
-                className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm font-medium"
-              />
-            </div>
-            <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Medicamento o Tratamiento</label>
               <input
                 type="text"
@@ -243,7 +232,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
           style={{ width: '297mm', minHeight: '210mm' }} /* Formato A4 Landscape */
         >
           {/* === MITAD IZQUIERDA: RP/ (RECETA) === */}
-          <div className="w-1/2 h-full flex flex-col p-10 pr-12 relative border-r border-dashed border-gray-400/30">
+          <div className="w-1/2 h-full flex flex-col p-10 px-12 relative border-r border-dashed border-gray-400/30">
             
             {/* Logo de Agua de Fondo */}
             {clinicLogoUrl && (
@@ -253,15 +242,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
               </div>
             )}
 
-            {/* Texto Lateral en borde izquierdo */}
-            <div className="absolute left-6 top-0 bottom-0 flex flex-col items-center justify-center">
-              <div className="transform -rotate-90 origin-center text-[10px] text-gray-700 flex gap-6 whitespace-nowrap font-medium">
-                <span className="flex items-center gap-1">📍 {clinicAddress}</span>
-                <span className="flex items-center gap-1">📞 {clinicPhone}</span>
-              </div>
-            </div>
-
-            <div className="pl-8 flex flex-col h-full relative z-10">
+            <div className="flex flex-col h-full relative z-10">
               {/* Membrete Derecha Abajo del Logo */}
               <div className="flex items-start justify-end gap-4 pb-4 border-b-2 border-orange-500 mb-6">
                 <div className="text-right mt-2">
@@ -289,10 +270,6 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
                     <p className="text-xs font-bold text-gray-600 uppercase w-12">Edad:</p>
                     <p className="text-sm font-bold flex-1 border-b border-dotted border-gray-400 text-center">{edad || "___"}</p>
                   </div>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <p className="text-xs font-bold text-gray-600 uppercase w-20">Diagnóstico:</p>
-                  <p className="text-sm font-bold flex-1 border-b border-dotted border-gray-400">{diagnostico || "____________________________________"}</p>
                 </div>
               </div>
 
@@ -325,12 +302,18 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
                   <p className="text-[10px] mt-1 font-bold text-gray-500">Firma y Sello</p>
                 </div>
               </div>
+
+              {/* Pie de página con teléfono y dirección */}
+              <div className="mt-auto pt-4 border-t border-gray-100 flex justify-center gap-6 text-[10px] text-gray-500 font-medium">
+                <span className="flex items-center gap-1">📍 {clinicAddress}</span>
+                <span className="flex items-center gap-1">📞 {clinicPhone}</span>
+              </div>
             </div>
           </div>
 
 
           {/* === MITAD DERECHA: INDICACIONES === */}
-          <div className="w-1/2 h-full flex flex-col p-10 pl-12 relative">
+          <div className="w-1/2 h-full flex flex-col p-10 px-12 relative">
             
             {/* Logo de Agua de Fondo */}
             {clinicLogoUrl && (
@@ -340,15 +323,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
               </div>
             )}
 
-            {/* Texto Lateral en borde izquierdo */}
-            <div className="absolute left-6 top-0 bottom-0 flex flex-col items-center justify-center">
-              <div className="transform -rotate-90 origin-center text-[10px] text-gray-700 flex gap-6 whitespace-nowrap font-medium">
-                <span className="flex items-center gap-1">📍 {clinicAddress}</span>
-                <span className="flex items-center gap-1">📞 {clinicPhone}</span>
-              </div>
-            </div>
-
-            <div className="pl-8 flex flex-col h-full relative z-10">
+            <div className="flex flex-col h-full relative z-10">
               {/* Membrete Derecha Abajo del Logo */}
               <div className="flex items-start justify-end gap-4 pb-4 border-b-2 border-orange-500 mb-6">
                 <div className="text-right mt-2">
@@ -397,6 +372,12 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
                   <div className="border-b border-gray-900 h-10 w-full"></div>
                   <p className="text-[10px] mt-1 font-bold text-gray-500">Firma y Sello</p>
                 </div>
+              </div>
+
+              {/* Pie de página con teléfono y dirección */}
+              <div className="mt-auto pt-4 border-t border-gray-100 flex justify-center gap-6 text-[10px] text-gray-500 font-medium">
+                <span className="flex items-center gap-1">📍 {clinicAddress}</span>
+                <span className="flex items-center gap-1">📞 {clinicPhone}</span>
               </div>
             </div>
           </div>
