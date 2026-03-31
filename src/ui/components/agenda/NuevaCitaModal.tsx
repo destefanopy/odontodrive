@@ -9,10 +9,11 @@ interface NuevaCitaModalProps {
   pacientes: Paciente[];
   initialDate: Date | null;
   existingCita?: Cita | null;
+  onSaveSuccess?: () => void;
   onClose: () => void;
 }
 
-export default function NuevaCitaModal({ pacientes, initialDate, existingCita, onClose }: NuevaCitaModalProps) {
+export default function NuevaCitaModal({ pacientes, initialDate, existingCita, onSaveSuccess, onClose }: NuevaCitaModalProps) {
   const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
@@ -66,7 +67,8 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
         });
       }
 
-      router.refresh();
+      if (onSaveSuccess) onSaveSuccess();
+      router.refresh(); // Fallback for layouts relying on route fresh data
       onClose();
     } catch (err: any) {
       setErrorMsg(err.message || "Error al procesar la cita.");

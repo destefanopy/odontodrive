@@ -6,7 +6,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
-import { Cita, Paciente, deleteCita, updateCita } from "@/core/api";
+import { Cita, Paciente, deleteCita, updateCita, getCitas } from "@/core/api";
 import NuevaCitaModal from "./NuevaCitaModal";
 import { useRouter } from "next/navigation";
 
@@ -16,16 +16,24 @@ interface CalendarioProps {
 }
 
 export default function CalendarioMaestro({ initialCitas, pacientes }: CalendarioProps) {
-  const [citas] = useState<Cita[]>(initialCitas);
+  const [citas, setCitas] = useState<Cita[]>(initialCitas);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editCitaInfo, setEditCitaInfo] = useState<Cita | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const router = useRouter();
 
-  const events = initialCitas.map((cita) => ({
+  const fetchUpdatedCitas = async () => {
+    try {
+      const data = await getCitas();
+      setCitas(data);
+    } catch (error) {
+      console.error("Error al actualizar citas", error);
+    }
+  };
+
+  const events = citas.map((cita) => ({
     id: cita.id,
     title: cita.nombre_paciente,
     extendedProps: { motivo: cita.motivo, paciente_id: cita.paciente_id, realCita: cita },
@@ -60,7 +68,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
       await deleteCita(selectedEvent.id);
       setIsEventModalOpen(false);
       setSelectedEvent(null);
-      router.refresh();
+      await fetchUpdatedCitas();
     } catch (error: any) {
       alert("Error: " + (error.message || "Error al borrar la cita."));
     } finally {
@@ -74,7 +82,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
         fecha_inicio: changeInfo.event.start.toISOString(),
         fecha_fin: changeInfo.event.end ? changeInfo.event.end.toISOString() : changeInfo.event.start.toISOString(),
       });
-      router.refresh();
+      await fetchUpdatedCitas();
     } catch (error) {
       alert("Error al mover la cita.");
       changeInfo.revert();
@@ -109,8 +117,8 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           height="100%"
           eventContent={(eventInfo) => (
             <div className="p-0.5 overflow-hidden flex flex-col h-full rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] relative pl-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#31b8b3] bg-[#e6f7fa] text-[#1e7e7a]">
-              <div className="font-extrabold text-[10px] sm:text-[11px] leading-tight truncate px-0.5">{eventInfo.event.title}</div>
-              <div className="text-[9px] opacity-80 font-medium truncate px-0.5 hidden sm:block">{eventInfo.timeText}</div>
+              <div className="font-extrabold text-[9px] sm:text-[10px] leading-tight truncate px-0.5">{eventInfo.event.title}</div>
+              <div className="text-[8px] sm:text-[9px] opacity-80 font-medium truncate px-0.5 hidden sm:block">{eventInfo.timeText}</div>
             </div>
           )}
           eventClassNames="!bg-transparent !border-none"
@@ -190,6 +198,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           pacientes={pacientes}
           initialDate={selectedDate}
           existingCita={editCitaInfo}
+          onSaveSuccess={fetchUpdatedCitas}
           onClose={() => {
             setIsModalOpen(false);
             setEditCitaInfo(null);
