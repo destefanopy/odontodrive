@@ -131,7 +131,8 @@ export default function MiCuentaPage() {
       });
       if (updateError) throw new Error("Se subió la imagen pero falló al guardar en tu perfil.");
 
-      setMessage({ text: "Logo subido y guardado correctamente.", type: "success" });
+      setMessage({ text: "Logo subido y guardado correctamente. Recargando...", type: "success" });
+      setTimeout(() => window.location.reload(), 800);
     } catch (err: any) {
       setMessage({ text: err.message || "Hubo un error al subir el logo", type: "error" });
     } finally {
@@ -166,8 +167,9 @@ export default function MiCuentaPage() {
       const { error } = await supabase.auth.updateUser(updates);
       if (error) throw error;
 
-      setMessage({ text: "¡Tus datos han sido actualizados exitosamente!", type: "success" });
+      setMessage({ text: "¡Tus datos han sido actualizados exitosamente! Recargando...", type: "success" });
       setNewPassword(""); 
+      setTimeout(() => window.location.reload(), 800);
     } catch (error: any) {
       setMessage({ text: error.message || "Hubo un error al actualizar los datos", type: "error" });
     } finally {
