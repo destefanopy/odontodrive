@@ -6,7 +6,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
-import { Cita, Paciente, deleteCita } from "@/core/api";
+import { Cita, Paciente, deleteCita, updateCita } from "@/core/api";
 import NuevaCitaModal from "./NuevaCitaModal";
 import { useRouter } from "next/navigation";
 
@@ -26,7 +26,8 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
 
   const events = initialCitas.map((cita) => ({
     id: cita.id,
-    title: `${cita.nombre_paciente} - ${cita.motivo}`,
+    title: cita.nombre_paciente,
+    extendedProps: { motivo: cita.motivo },
     start: cita.fecha_inicio,
     end: cita.fecha_fin,
     backgroundColor: "#10b981", 
@@ -64,6 +65,19 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
     }
   };
 
+  const handleEventChange = async (changeInfo: any) => {
+    try {
+      await updateCita(changeInfo.event.id, {
+        fecha_inicio: changeInfo.event.start.toISOString(),
+        fecha_fin: changeInfo.event.end ? changeInfo.event.end.toISOString() : changeInfo.event.start.toISOString(),
+      });
+      router.refresh();
+    } catch (error) {
+      alert("Error al mover la cita.");
+      changeInfo.revert();
+    }
+  };
+
   return (
     <>
       <div className="h-full w-full calendarmacro">
@@ -85,11 +99,16 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           selectable={true}
           select={handleSelect}
           eventClick={handleEventClick}
+          editable={true}
+          eventDurationEditable={true}
+          eventDrop={handleEventChange}
+          eventResize={handleEventChange}
+          slotDuration="00:15:00"
           height="100%"
           eventContent={(eventInfo) => (
-            <div className="p-1.5 overflow-hidden flex flex-col h-full rounded shadow-sm relative pl-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#31b8b3] bg-[#e6f7fa] text-[#1e7e7a]">
-              <div className="font-extrabold text-[11px] leading-tight truncate">{eventInfo.event.title}</div>
-              <div className="text-[10px] opacity-90 font-medium truncate">{eventInfo.timeText}</div>
+            <div className="p-0.5 overflow-hidden flex flex-col h-full rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] relative pl-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#31b8b3] bg-[#e6f7fa] text-[#1e7e7a]">
+              <div className="font-extrabold text-[10px] sm:text-[11px] leading-tight truncate px-0.5">{eventInfo.event.title}</div>
+              <div className="text-[9px] opacity-80 font-medium truncate px-0.5 hidden sm:block">{eventInfo.timeText}</div>
             </div>
           )}
           eventClassNames="!bg-transparent !border-none"
@@ -180,11 +199,11 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
             <div className="space-y-4 mb-6 text-sm text-gray-700">
               <div>
                 <span className="font-bold text-gray-900 uppercase text-[10px]">Paciente:</span>
-                <p className="font-medium">{selectedEvent.title.split(' - ')[0]}</p>
+                <p className="font-medium">{selectedEvent.title}</p>
               </div>
               <div>
                 <span className="font-bold text-gray-900 uppercase text-[10px]">Motivo:</span>
-                <p>{selectedEvent.title.split(' - ')[1] || "Sin Motivo"}</p>
+                <p>{selectedEvent.extendedProps?.motivo || "Sin Motivo"}</p>
               </div>
               <div>
                 <span className="font-bold text-gray-900 uppercase text-[10px]">Horario:</span>

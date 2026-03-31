@@ -294,7 +294,15 @@ export async function deleteCita(id: string) {
     console.error("Error al borrar cita:", error.message);
     throw new Error("No se pudo borrar la cita en la base de datos.");
   }
-};
+}
+
+export async function updateCita(id: string, updates: Partial<Cita>) {
+  const { error } = await supabase.from("citas").update(updates).eq("id", id);
+  if (error) {
+    console.error("Error al actualizar cita:", error.message);
+    throw new Error("No se pudo actualizar la cita.");
+  }
+}
 
 export async function deletePaciente(pacienteId: string) {
   const { error } = await supabase.rpc('eliminar_paciente_cascade', {
