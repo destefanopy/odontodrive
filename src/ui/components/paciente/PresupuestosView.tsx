@@ -23,11 +23,25 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   ]);
   const [descuento, setDescuento] = useState<number>(0);
   const [isPending, startTransition] = useTransition();
-  const [doctorName, setDoctorName] = useState("Odontólogo(a)");
+  const [doctorName, setDoctorName] = useState("Doctor/a");
+  const [clinicColor, setClinicColor] = useState("#059669");
+  const [clinicLogoUrl, setClinicLogoUrl] = useState("");
+  const [clinicTitle, setClinicTitle] = useState("Odontólogo/a");
+  const [clinicName, setClinicName] = useState("");
+  const [clinicPhone, setClinicPhone] = useState("");
+  const [clinicAddress, setClinicAddress] = useState("");
 
   useEffect(() => {
     authService.getUser().then(({ data: { user } }) => {
-      if (user) setDoctorName(user.user_metadata?.full_name || "Odontólogo(a)");
+      if (user) {
+        setDoctorName(user.user_metadata?.full_name || "Doctor/a");
+        setClinicColor(user.user_metadata?.clinic_color || "#059669");
+        setClinicLogoUrl(user.user_metadata?.clinic_logo_url || "");
+        setClinicTitle(user.user_metadata?.clinic_title || "Odontólogo/a");
+        setClinicName(user.user_metadata?.clinic_name || "");
+        setClinicPhone(user.user_metadata?.clinic_phone || user.user_metadata?.phone || "");
+        setClinicAddress(user.user_metadata?.clinic_address || "");
+      }
     });
   }, []);
 
@@ -198,6 +212,12 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
           descuento={descuento}
           total={total}
           doctorName={doctorName}
+          clinicColor={clinicColor}
+          clinicLogoUrl={clinicLogoUrl}
+          clinicTitle={clinicTitle}
+          clinicName={clinicName}
+          clinicPhone={clinicPhone}
+          clinicAddress={clinicAddress}
         />
       </div>
     </div>

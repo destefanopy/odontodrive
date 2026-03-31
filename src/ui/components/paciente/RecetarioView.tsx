@@ -28,6 +28,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
   const [clinicAddress, setClinicAddress] = useState("");
   const [clinicPhone, setClinicPhone] = useState("");
   const [clinicLogoUrl, setClinicLogoUrl] = useState("");
+  const [clinicTitle, setClinicTitle] = useState("Odontólogo/a");
   const [clinicColor, setClinicColor] = useState("#e8701a");
 
   const printRef = useRef<HTMLDivElement>(null);
@@ -39,6 +40,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
         setClinicAddress(user.user_metadata?.clinic_address || "Dirección no especificada");
         setClinicPhone(user.user_metadata?.clinic_phone || user.user_metadata?.phone || "");
         setClinicLogoUrl(user.user_metadata?.clinic_logo_url || "");
+        setClinicTitle(user.user_metadata?.clinic_title || "Odontólogo/a");
         setClinicColor(user.user_metadata?.clinic_color || "#e8701a");
       }
       setLoadingConfig(false);
@@ -252,7 +254,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
               >
                 <div className="text-right mt-2">
                   <h1 className="text-xl font-serif italic text-gray-900 leading-tight">{doctorName}</h1>
-                  <p className="text-sm font-medium text-gray-600">Odontólogo/a</p>
+                  <p className="text-sm font-medium text-gray-600">{clinicTitle}</p>
                 </div>
                 {clinicLogoUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -341,7 +343,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
               >
                 <div className="text-right mt-2">
                   <h1 className="text-xl font-serif italic text-gray-900 leading-tight">{doctorName}</h1>
-                  <p className="text-sm font-medium text-gray-600">Odontólogo/a</p>
+                  <p className="text-sm font-medium text-gray-600">{clinicTitle}</p>
                 </div>
                 {clinicLogoUrl && (
                   // eslint-disable-next-line @next/next/no-img-element

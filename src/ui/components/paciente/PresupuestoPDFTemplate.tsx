@@ -14,10 +14,29 @@ interface PDFProps {
   descuento: number;
   total: number;
   doctorName?: string;
+  clinicColor?: string;
+  clinicLogoUrl?: string;
+  clinicTitle?: string;
+  clinicName?: string;
+  clinicPhone?: string;
+  clinicAddress?: string;
 }
 
 const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
-  ({ paciente, items, subtotal, descuento, total, doctorName = "Odontólogo(a)" }, ref) => {
+  ({ 
+    paciente, 
+    items, 
+    subtotal, 
+    descuento, 
+    total, 
+    doctorName = "Odontólogo(a)",
+    clinicColor = "#059669",
+    clinicLogoUrl = "",
+    clinicTitle = "Odontólogo(a)",
+    clinicName = "",
+    clinicPhone = "",
+    clinicAddress = ""
+  }, ref) => {
     
     const formatGs = (num: number) => new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG", maximumFractionDigits: 0 }).format(num);
     const dateStr = new Date().toLocaleDateString("es-PY", { year: 'numeric', month: 'long', day: 'numeric' });
@@ -26,15 +45,26 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
       <div ref={ref} className="bg-white p-12 text-gray-900" style={{ width: "210mm", minHeight: "297mm", margin: "0 auto" }}>
         
         {/* Header */}
-        <div className="flex justify-between items-start border-b-2 border-emerald-600 pb-8 mb-8">
+        <div 
+          className="flex justify-between items-start border-b-2 pb-8 mb-8"
+          style={{ borderBottomColor: clinicColor }}
+        >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center font-bold text-3xl">
-              OD
-            </div>
+            {clinicLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={clinicLogoUrl} alt="Logo" className="w-16 h-16 object-contain" />
+            ) : (
+              <div 
+                className="w-16 h-16 text-white rounded-2xl flex items-center justify-center font-bold text-3xl"
+                style={{ backgroundColor: clinicColor }}
+              >
+                OD
+              </div>
+            )}
             <div>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">OdontoDrive</h1>
-              <p className="text-emerald-700 font-medium">{doctorName}</p>
-              <p className="text-gray-700 text-sm mt-1">Reg. Prof. 123456</p>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{clinicName || "OdontoDrive"}</h1>
+              <p className="font-medium" style={{ color: clinicColor }}>{doctorName}</p>
+              <p className="text-gray-700 text-sm mt-1">{clinicTitle} • Reg. Prof. 123456</p>
             </div>
           </div>
           <div className="text-right space-y-1">
@@ -81,18 +111,24 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
 
         {/* Totales */}
         <div className="flex justify-end mb-16">
-          <div className="w-80 bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
+          <div className="w-80 bg-gray-50 rounded-2xl p-6 border border-gray-200 shadow-sm">
             <div className="flex justify-between mb-2 text-gray-800">
               <span className="font-medium">Subtotal</span>
               <span>{formatGs(subtotal)}</span>
             </div>
             {descuento > 0 && (
-              <div className="flex justify-between mb-4 text-emerald-600">
+              <div 
+                className="flex justify-between mb-4 font-bold"
+                style={{ color: clinicColor }}
+              >
                 <span className="font-medium">Descuento</span>
                 <span>-{formatGs(descuento)}</span>
               </div>
             )}
-            <div className="flex justify-between pt-4 border-t-2 border-emerald-200 text-xl text-emerald-900">
+            <div 
+              className="flex justify-between pt-4 border-t-2 text-xl"
+              style={{ borderTopColor: clinicColor, color: clinicColor }}
+            >
               <span className="font-black">Total</span>
               <span className="font-black">{formatGs(total)}</span>
             </div>
@@ -100,15 +136,23 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
         </div>
 
         {/* Firmas y Disclaimer */}
-        <div className="mt-auto border-t border-gray-200 pt-8 flex justify-between items-end">
-          <div className="text-gray-800 text-xs max-w-sm space-y-1">
+        <div className="mt-auto pt-8 flex justify-between items-end relative">
+          <div className="absolute top-0 left-0 right-0 border-t-2 border-gray-100 opacity-60"></div>
+          
+          <div className="text-gray-800 text-xs max-w-sm space-y-1 mt-4">
             <p>* Este presupuesto tiene una validez de 30 días calendario contados a partir de su fecha de emisión.</p>
             <p>* Los costos pueden variar si durante el tratamiento se descubren complicaciones adicionales no detectables clínica o radiográficamente en la primera visita.</p>
           </div>
           
-          <div className="flex flex-col items-center mt-12 w-64 border-t border-gray-400 pt-2">
-            <span className="font-bold text-gray-800">{doctorName}</span>
-            <span className="text-gray-700 text-sm">Odontología Integral</span>
+          <div className="flex flex-col items-center mt-12 w-80 pt-6 relative border-t-2 border-dashed border-gray-300">
+            <span className="font-bold text-gray-800 text-lg">{doctorName}</span>
+            <span className="text-gray-700 font-medium">{clinicTitle}</span>
+            <span className="text-gray-600 text-[11px] mt-2 text-center max-w-[250px] leading-tight">
+              {clinicName && <span className="font-bold block">{clinicName}</span>}
+              {clinicAddress && <span>{clinicAddress}</span>}
+              {clinicAddress && clinicPhone && <span> • </span>}
+              {clinicPhone && <span>Tel: {clinicPhone}</span>}
+            </span>
           </div>
         </div>
 
