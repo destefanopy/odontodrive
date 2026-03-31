@@ -28,6 +28,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
   const [clinicAddress, setClinicAddress] = useState("");
   const [clinicPhone, setClinicPhone] = useState("");
   const [clinicLogoUrl, setClinicLogoUrl] = useState("");
+  const [clinicColor, setClinicColor] = useState("#e8701a");
 
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +39,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
         setClinicAddress(user.user_metadata?.clinic_address || "Dirección no especificada");
         setClinicPhone(user.user_metadata?.clinic_phone || user.user_metadata?.phone || "");
         setClinicLogoUrl(user.user_metadata?.clinic_logo_url || "");
+        setClinicColor(user.user_metadata?.clinic_color || "#e8701a");
       }
       setLoadingConfig(false);
     });
@@ -244,7 +246,10 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
 
             <div className="flex flex-col h-full relative z-10">
               {/* Membrete Derecha Abajo del Logo */}
-              <div className="flex items-start justify-end gap-4 pb-4 border-b-2 border-orange-500 mb-6">
+              <div 
+                className="flex items-start justify-end gap-4 pb-4 border-b-2 mb-6"
+                style={{ borderBottomColor: clinicColor }}
+              >
                 <div className="text-right mt-2">
                   <h1 className="text-xl font-serif italic text-gray-900 leading-tight">{doctorName}</h1>
                   <p className="text-sm font-medium text-gray-600">Odontólogo/a</p>
@@ -275,7 +280,12 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
 
               {/* Etiqueta Rp */}
               <div>
-                <span className="bg-[#e8701a] text-white font-bold px-3 py-1 rounded shadow-sm text-sm inline-block">Rp.)</span>
+                <span 
+                  className="text-white font-bold px-3 py-1 rounded shadow-sm text-sm inline-block"
+                  style={{ backgroundColor: clinicColor }}
+                >
+                  Rp.)
+                </span>
               </div>
 
               {/* Cuerpo RP/ */}
@@ -325,7 +335,10 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
 
             <div className="flex flex-col h-full relative z-10">
               {/* Membrete Derecha Abajo del Logo */}
-              <div className="flex items-start justify-end gap-4 pb-4 border-b-2 border-orange-500 mb-6">
+              <div 
+                className="flex items-start justify-end gap-4 pb-4 border-b-2 mb-6"
+                style={{ borderBottomColor: clinicColor }}
+              >
                 <div className="text-right mt-2">
                   <h1 className="text-xl font-serif italic text-gray-900 leading-tight">{doctorName}</h1>
                   <p className="text-sm font-medium text-gray-600">Odontólogo/a</p>
@@ -343,7 +356,12 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
 
               {/* Etiqueta Indicaciones */}
               <div>
-                <span className="bg-[#e8701a] text-white font-bold px-3 py-1 rounded shadow-sm text-sm inline-block">Indicaciones</span>
+                <span 
+                  className="text-white font-bold px-3 py-1 rounded shadow-sm text-sm inline-block"
+                  style={{ backgroundColor: clinicColor }}
+                >
+                  Indicaciones
+                </span>
               </div>
 
               {/* Cuerpo Indicaciones */}
@@ -357,7 +375,10 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
                         <p className="text-[13px] font-bold text-gray-800 leading-tight">
                           {med.nombre}
                         </p>
-                        <p className="text-[13px] text-gray-900 mt-1 whitespace-pre-line leading-relaxed italic ml-2 border-l-2 border-orange-200 pl-3">
+                        <p 
+                          className="text-[13px] text-gray-900 mt-1 whitespace-pre-line leading-relaxed italic ml-2 border-l-2 pl-3"
+                          style={{ borderLeftColor: clinicColor }}
+                        >
                           {med.indicaciones}
                         </p>
                       </div>

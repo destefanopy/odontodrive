@@ -15,7 +15,17 @@ export default function MiCuentaPage() {
   const [clinicAddress, setClinicAddress] = useState("");
   const [clinicPhone, setClinicPhone] = useState("");
   const [clinicLogoUrl, setClinicLogoUrl] = useState("");
+  const [clinicColor, setClinicColor] = useState("#e8701a");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  const PRESET_COLORS = [
+    { name: 'Naranja', value: '#e8701a' },
+    { name: 'Esmeralda', value: '#059669' },
+    { name: 'Azul', value: '#0284c7' },
+    { name: 'Rosa', value: '#e11d48' },
+    { name: 'Morado', value: '#9333ea' },
+    { name: 'Gris oscuro', value: '#334155' },
+  ];
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -33,6 +43,7 @@ export default function MiCuentaPage() {
         setClinicAddress(user.user_metadata?.clinic_address || "");
         setClinicPhone(user.user_metadata?.clinic_phone || "");
         setClinicLogoUrl(user.user_metadata?.clinic_logo_url || "");
+        setClinicColor(user.user_metadata?.clinic_color || "#e8701a");
         
         supabase.from('perfiles').select('plan, created_at')
           .eq('id', user.id).single()
@@ -143,6 +154,7 @@ export default function MiCuentaPage() {
         clinic_address: clinicAddress,
         clinic_phone: clinicPhone,
         clinic_logo_url: clinicLogoUrl,
+        clinic_color: clinicColor,
       };
 
       const { error } = await supabase.auth.updateUser(updates);
@@ -314,30 +326,45 @@ export default function MiCuentaPage() {
                 <h4 className="text-md font-bold text-gray-900 mb-4">Datos de la Clínica (Recetas e Informes)</h4>
                 
                 <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Logo de la Clínica</label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden shrink-0">
-                        {clinicLogoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={clinicLogoUrl} alt="Logo" className="w-full h-full object-contain" />
-                        ) : (
-                          <ImageIcon className="w-8 h-8 text-gray-400" />
-                        )}
+                  <div className="md:col-span-2 space-y-2">
+                    <label className="text-sm font-bold text-gray-700">Logo de la Clínica</label>
+                    <div className="flex items-center gap-6">
+                      {clinicLogoUrl ? (
+                        <div className="relative group">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={clinicLogoUrl} alt="Logo" className="w-24 h-24 object-contain rounded-xl border-2 border-gray-100 bg-white shadow-sm" />
+                        </div>
+                      ) : (
+                        <div className="w-24 h-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-xs text-center text-gray-400 font-medium px-2">
+                          Sin logo
+                        </div>
+                      )}
+                      <div className="flex-1 space-y-3">
+                        <label className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-sm transition-all shadow-sm">
+                          <UploadCloud className="w-4 h-4" />
+                          {isUploadingLogo ? 'Subiendo...' : 'Subir Logo (PNG/JPG)'}
+                          <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleLogoUpload} disabled={isUploadingLogo} />
+                        </label>
+                        <p className="text-xs text-gray-500">Mínimo 300x300px con fondo transparente recomendado. Se guarda al instante.</p>
                       </div>
-                      <div className="flex-1">
-                        <input type="file" ref={logoInputRef} onChange={handleLogoUpload} accept="image/*" className="hidden" />
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 space-y-3 pt-3">
+                    <label className="text-sm font-bold text-gray-700">Color del Recetario</label>
+                    <div className="flex flex-wrap gap-4">
+                      {PRESET_COLORS.map(color => (
                         <button
+                          key={color.value}
                           type="button"
-                          onClick={() => logoInputRef.current?.click()}
-                          disabled={isUploadingLogo}
-                          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                          onClick={() => setClinicColor(color.value)}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all shadow-sm ${clinicColor === color.value ? 'border-gray-900 scale-110 ring-4 ring-gray-100' : 'border-transparent hover:scale-105'}`}
+                          style={{ backgroundColor: color.value }}
+                          title={color.name}
                         >
-                          {isUploadingLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
-                          {isUploadingLogo ? "Subiendo..." : "Subir Logo"}
+                          {clinicColor === color.value && <span className="text-white drop-shadow-md">✓</span>}
                         </button>
-                        <p className="text-xs text-gray-500 mt-2">Recomendado: formato PNG con fondo transparente.</p>
-                      </div>
+                      ))}
                     </div>
                   </div>
 
