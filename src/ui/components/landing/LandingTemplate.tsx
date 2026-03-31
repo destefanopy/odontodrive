@@ -1,12 +1,20 @@
 import React from 'react';
-import { CheckCircle2, Star, Target, Shield, Heart, MonitorSmartphone, ArrowRight, Activity, Smile, Search } from 'lucide-react';
+import { CheckCircle2, Star, Target, Shield, Heart, MonitorSmartphone, ArrowRight, Activity, Smile, Search, HardDrive } from 'lucide-react';
 import Link from 'next/link';
+
+export interface PricingPlan {
+  name: string;
+  price: string;
+  storage: string;
+  features: string[];
+  isPopular?: boolean;
+}
 
 interface LandingProps {
   countryName?: string;
   currencySymbol: string;
-  price: string;
   priceSuffix?: string;
+  plans: PricingPlan[];
   seoTitle: string;
   seoDescription: string;
 }
@@ -14,8 +22,8 @@ interface LandingProps {
 export default function LandingTemplate({ 
   countryName, 
   currencySymbol, 
-  price, 
   priceSuffix = "/mes",
+  plans,
   seoTitle, 
   seoDescription 
 }: LandingProps) {
@@ -135,41 +143,46 @@ export default function LandingTemplate({
       <section id="precios" className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center flex flex-col items-center">
           <h2 className="text-4xl font-black text-slate-900 mb-4">Inversión Inteligente</h2>
-          <p className="text-slate-600 text-lg mb-12">Cancela en cualquier momento. Sin contratos a largo plazo.</p>
+          <p className="text-slate-600 text-lg mb-12">Escala a medida que tu clínica crece. Sin contratos obligatorios.</p>
           
-          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-8 md:p-12 w-full max-w-lg border-2 border-emerald-500 relative">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md">
-              MÁS POPULAR
-            </div>
-            
-            <h3 className="text-2xl font-black text-slate-900 mb-2">Plan Pro</h3>
-            <p className="text-slate-500 mb-6">Acceso total a todas las funciones vitalicias.</p>
-            
-            <div className="flex items-end justify-center gap-1 mb-8">
-              <span className="text-3xl font-bold text-slate-400">{currencySymbol}</span>
-              <span className="text-6xl font-black text-slate-900 leading-none">{price}</span>
-              <span className="text-slate-500 font-medium mb-2">{priceSuffix}</span>
-            </div>
-            
-            <ul className="space-y-4 mb-8 text-left max-w-sm mx-auto">
-              {[
-                "Atención de pacientes ilimitada.",
-                "Almacenamiento en la nube (2GB).",
-                "Odontogramas Interactivos Múltiples.",
-                "Personalización del Layout de Clínica.",
-                "Comparador Fotográfico con IA.",
-                "Soporte Directo."
-              ].map((b, i) => (
-                <li key={i} className="flex items-start gap-3 text-slate-700 font-medium">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-                  <span>{b}</span>
-                </li>
-              ))}
-            </ul>
-            
-            <Link href="/login" className="block w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-md text-lg">
-              Crear Cuenta y Probar
-            </Link>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
+            {plans.map((plan, index) => (
+              <div 
+                key={index} 
+                className={`bg-white rounded-3xl p-8 relative flex flex-col items-center text-center transition-all ${plan.isPopular ? 'border-2 border-emerald-500 shadow-xl shadow-emerald-500/20 scale-105 z-10' : 'border border-slate-200 shadow-md hover:shadow-xl hover:border-emerald-200'}`}
+              >
+                {plan.isPopular && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500 text-white px-4 py-1.5 rounded-full text-xs font-black shadow-md tracking-wider">
+                    RECOMENDADO
+                  </div>
+                )}
+                
+                <h3 className="text-2xl font-black text-slate-900 mb-2">{plan.name}</h3>
+                <div className="flex items-center justify-center gap-2 mb-6 bg-slate-50 px-4 py-1.5 rounded-full text-sm font-semibold text-slate-600">
+                  <HardDrive className="w-4 h-4 text-emerald-500" />
+                  {plan.storage}
+                </div>
+                
+                <div className="flex items-end justify-center gap-1 mb-8">
+                  <span className="text-xl font-bold text-slate-400 mb-1">{currencySymbol}</span>
+                  <span className="text-5xl font-black text-slate-900 leading-none">{plan.price}</span>
+                  <span className="text-slate-500 font-medium mb-1">{priceSuffix}</span>
+                </div>
+                
+                <ul className="space-y-4 mb-8 text-left w-full mx-auto flex-1">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-start gap-3 text-slate-700 font-medium text-sm leading-snug">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                
+                <Link href="/login" className={`block w-full py-4 font-bold rounded-2xl transition-all shadow-sm text-sm ${plan.isPopular ? 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-lg' : 'bg-slate-900 text-white hover:bg-black'}`}>
+                  Seleccionar {plan.name}
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </section>
