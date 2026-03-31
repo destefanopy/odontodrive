@@ -17,6 +17,7 @@ interface PDFProps {
   clinicColor?: string;
   clinicLogoUrl?: string;
   clinicTitle?: string;
+  clinicRegProf?: string;
   clinicName?: string;
   clinicPhone?: string;
   clinicAddress?: string;
@@ -33,6 +34,7 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
     clinicColor = "#059669",
     clinicLogoUrl = "",
     clinicTitle = "Odontólogo(a)",
+    clinicRegProf = "",
     clinicName = "",
     clinicPhone = "",
     clinicAddress = ""
@@ -64,7 +66,10 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
             <div>
               <h1 className="text-3xl font-black text-gray-900 tracking-tight">{clinicName || "OdontoDrive"}</h1>
               <p className="font-medium" style={{ color: clinicColor }}>{doctorName}</p>
-              <p className="text-gray-700 text-sm mt-1">{clinicTitle} • Reg. Prof. 123456</p>
+              <p className="text-gray-700 text-sm mt-1">
+                {clinicTitle}
+                {clinicRegProf && ` • Reg. Prof. ${clinicRegProf}`}
+              </p>
             </div>
           </div>
           <div className="text-right space-y-1">

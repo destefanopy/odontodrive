@@ -16,6 +16,7 @@ export default function MiCuentaPage() {
   const [clinicPhone, setClinicPhone] = useState("");
   const [clinicLogoUrl, setClinicLogoUrl] = useState("");
   const [clinicTitle, setClinicTitle] = useState("Odontólogo/a");
+  const [clinicRegProf, setClinicRegProf] = useState("");
   const [clinicColor, setClinicColor] = useState("#e8701a");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
@@ -45,6 +46,7 @@ export default function MiCuentaPage() {
         setClinicPhone(user.user_metadata?.clinic_phone || "");
         setClinicLogoUrl(user.user_metadata?.clinic_logo_url || "");
         setClinicTitle(user.user_metadata?.clinic_title || "Odontólogo/a");
+        setClinicRegProf(user.user_metadata?.clinic_reg_prof || "");
         setClinicColor(user.user_metadata?.clinic_color || "#e8701a");
         
         supabase.from('perfiles').select('plan, created_at')
@@ -157,6 +159,7 @@ export default function MiCuentaPage() {
         clinic_phone: clinicPhone,
         clinic_logo_url: clinicLogoUrl,
         clinic_title: clinicTitle,
+        clinic_reg_prof: clinicRegProf,
         clinic_color: clinicColor,
       };
 
@@ -390,6 +393,17 @@ export default function MiCuentaPage() {
                       onChange={(e) => setClinicTitle(e.target.value)}
                       className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
                       placeholder="Ej. Doctora, Licenciada, Odontólogo/a, Especialista"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Registro Profesional</label>
+                    <input
+                      type="text"
+                      value={clinicRegProf}
+                      onChange={(e) => setClinicRegProf(e.target.value)}
+                      className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
+                      placeholder="Ej. 123456"
                     />
                   </div>
                   

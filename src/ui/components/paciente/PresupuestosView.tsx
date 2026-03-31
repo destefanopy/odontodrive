@@ -27,6 +27,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   const [clinicColor, setClinicColor] = useState("#059669");
   const [clinicLogoUrl, setClinicLogoUrl] = useState("");
   const [clinicTitle, setClinicTitle] = useState("Odontólogo/a");
+  const [clinicRegProf, setClinicRegProf] = useState("");
   const [clinicName, setClinicName] = useState("");
   const [clinicPhone, setClinicPhone] = useState("");
   const [clinicAddress, setClinicAddress] = useState("");
@@ -38,6 +39,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
         setClinicColor(user.user_metadata?.clinic_color || "#059669");
         setClinicLogoUrl(user.user_metadata?.clinic_logo_url || "");
         setClinicTitle(user.user_metadata?.clinic_title || "Odontólogo/a");
+        setClinicRegProf(user.user_metadata?.clinic_reg_prof || "");
         setClinicName(user.user_metadata?.clinic_name || "");
         setClinicPhone(user.user_metadata?.clinic_phone || user.user_metadata?.phone || "");
         setClinicAddress(user.user_metadata?.clinic_address || "");
@@ -215,6 +217,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
           clinicColor={clinicColor}
           clinicLogoUrl={clinicLogoUrl}
           clinicTitle={clinicTitle}
+          clinicRegProf={clinicRegProf}
           clinicName={clinicName}
           clinicPhone={clinicPhone}
           clinicAddress={clinicAddress}
