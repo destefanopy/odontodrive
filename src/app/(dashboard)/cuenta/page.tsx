@@ -97,12 +97,26 @@ export default function MiCuentaPage() {
 
       if (uploadError) throw new Error("Error subiendo el logo: " + uploadError.message);
 
-      const { data } = await supabase.storage
+      const { data, error: signError } = await supabase.storage
         .from('pacientes_archivos')
-        .getPublicUrl(filePath);
+        .createSignedUrl(filePath, 315360000); // 10 años de validez
 
-      setClinicLogoUrl(data.publicUrl);
-      setMessage({ text: "Logo subido correctamente. Recuerda guardar los cambios.", type: "success" });
+      if (signError || !data?.signedUrl) throw new Error("No se pudo firmar la URL del logo.");
+
+      const newLogoUrl = data.signedUrl;
+      setClinicLogoUrl(newLogoUrl);
+
+      // Guardar automáticamente en el perfil para no perderlo si el usuario olvida darle a "Guardar Cambios"
+      const currentMetadata = user.user_metadata || {};
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          ...currentMetadata,
+          clinic_logo_url: newLogoUrl
+        }
+      });
+      if (updateError) throw new Error("Se subió la imagen pero falló al guardar en tu perfil.");
+
+      setMessage({ text: "Logo subido y guardado correctamente.", type: "success" });
     } catch (err: any) {
       setMessage({ text: err.message || "Hubo un error al subir el logo", type: "error" });
     } finally {

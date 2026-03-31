@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Paciente } from "@/core/api";
 import { supabase } from "@/infrastructure/supabase";
 import { Plus, Trash2, Printer, ClipboardList, Loader2 } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
 import { cn } from "@/lib/utils";
 
 interface RecetarioViewProps {
@@ -62,9 +63,10 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
     setMedicamentos(medicamentos.filter((m) => m.id !== id));
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Receta_${paciente.nombres_apellidos.replace(/\s+/g, '_')}`,
+  });
 
   if (loadingConfig) {
     return (
@@ -82,33 +84,8 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Estilos para impresión (oculta todo lo que no sea el recetario) */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .receta-print-area, .receta-print-area * {
-            visibility: visible;
-          }
-          .receta-print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100vh; /* Para ocupar toda la página */
-            margin: 0;
-            padding: 2cm; /* Márgenes de impresión */
-            box-sizing: border-box;
-          }
-          .hide-on-print {
-            display: none !important;
-          }
-        }
-      `}} />
-
       {/* Título de la sección */}
-      <div className="flex flex-col md:flex-row gap-6 hide-on-print justify-between">
+      <div className="flex flex-col md:flex-row gap-6 justify-between">
         <div className="space-y-2">
           <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
             <ClipboardList className="w-5 h-5 text-accent" /> Recetario Interactivo
@@ -129,7 +106,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 hide-on-print">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Formulario Izquierda */}
         <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col gap-6">
           <form onSubmit={handleAdd} className="space-y-4">
@@ -184,14 +161,10 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
           </div>
         </div>
 
-        {/* Previsualización Derecha (Este contenido es el que se imprime también) */}
-        <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
-          <span className="absolute top-2 right-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Previsualización</span>
-          
-          <div 
-            ref={printRef} 
-            className="w-full max-w-md bg-white p-8 border border-gray-100 shadow-sm rounded-xl receta-print-area text-black flex flex-col print:border-none print:shadow-none print:max-w-none"
-          >
+        {/* Previsualización Derecha (visible solo en pantalla) */}
+        <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden hidden lg:flex">
+          <span className="absolute top-2 right-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Previsualización (Solo referencia)</span>
+          <div className="w-full max-w-md bg-white p-8 border border-gray-100 shadow-sm rounded-xl text-black flex flex-col opacity-50 select-none pointer-events-none grayscale">
             {/* Membrete Clínica */}
             <div className="flex items-center justify-between pb-6 border-b-2 border-gray-900 mb-6">
               {clinicLogoUrl ? (
@@ -214,44 +187,88 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
               <div>
                 <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Paciente</p>
                 <p className="text-base font-black">{paciente.nombres_apellidos}</p>
-                {paciente.documento_identidad && <p className="text-xs text-gray-700 mt-1">C.I.: {paciente.documento_identidad}</p>}
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-medium text-gray-500">Fecha: {fechaImpresion}</p>
               </div>
             </div>
 
             {/* Cuerpo de la Receta */}
-            <div className="flex-1 min-h-[300px]">
+            <div className="flex-1 min-h-[150px]">
               <h2 className="text-2xl font-black mb-6 italic font-serif">Rp/</h2>
               <div className="space-y-6 pl-4">
                 {medicamentos.length === 0 ? (
-                  <p className="text-gray-300 italic text-sm hide-on-print">El recetario está vacío...</p>
+                  <p className="text-gray-300 italic text-sm">El recetario está vacío...</p>
                 ) : (
-                  medicamentos.map((med, index) => (
-                    <div key={med.id}>
-                      <p className="text-[15px] font-bold leading-tight flex gap-2">
-                        <span>{index + 1}.</span> {med.nombre}
-                      </p>
-                      <p className="text-[13px] font-medium text-gray-700 mt-1 pl-4 whitespace-pre-line leading-relaxed">
-                        {med.indicaciones}
-                      </p>
-                    </div>
-                  ))
+                  <p className="text-gray-500 text-sm font-bold">{medicamentos.length} medicamento(s) agregado(s)...</p>
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Firma (Espacio) */}
-            <div className="mt-16 pt-6 border-t border-dashed border-gray-300 flex justify-center w-full">
-              <div className="text-center w-48">
-                <div className="border-b border-gray-900 mb-2 h-10 w-full relative">
-                 <span className="absolute bottom-1 right-0 text-gray-300 text-[10px] hide-on-print">Firma digital o manual</span>
-                </div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600">Firma y Sello</p>
+      {/* Hidden Component for PDF generation */}
+      <div className="hidden">
+        <div 
+          ref={printRef} 
+          className="w-full bg-white text-black flex flex-col p-12"
+          style={{ width: '210mm', minHeight: '297mm' }} /* Formato A4 */
+        >
+          {/* Membrete Clínica */}
+          <div className="flex items-center justify-between pb-6 border-b-2 border-gray-900 mb-6">
+            {clinicLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={clinicLogoUrl} alt="Logo Clínica" className="h-20 w-auto object-contain max-w-[200px]" />
+            ) : (
+              <div className="h-16 w-16 bg-gray-100 flex items-center justify-center rounded-lg text-gray-400 text-xs text-center font-bold">
+                Sin Logo
               </div>
+            )}
+            <div className="text-right">
+              <h1 className="text-2xl font-black tracking-tight">{clinicName}</h1>
+              <p className="text-sm font-semibold text-gray-600 mt-1">{clinicAddress}</p>
+              <p className="text-sm font-semibold text-gray-600 mt-0.5">{clinicPhone}</p>
             </div>
+          </div>
 
+          {/* Datos Paciente */}
+          <div className="mb-8 space-y-2 flex justify-between items-end border-b border-gray-200 pb-4">
+            <div>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Paciente</p>
+              <p className="text-lg font-black">{paciente.nombres_apellidos}</p>
+              {paciente.documento_identidad && <p className="text-sm text-gray-700 mt-1">C.I.: {paciente.documento_identidad}</p>}
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-500">Fecha: {fechaImpresion}</p>
+            </div>
+          </div>
+
+          {/* Cuerpo de la Receta */}
+          <div className="flex-1 min-h-[300px]">
+            <h2 className="text-3xl font-black mb-8 italic font-serif">Rp/</h2>
+            <div className="space-y-8 pl-4">
+              {medicamentos.length === 0 ? (
+                <p className="text-gray-300 italic text-sm">El recetario está vacío...</p>
+              ) : (
+                medicamentos.map((med, index) => (
+                  <div key={med.id}>
+                    <p className="text-[17px] font-bold leading-tight flex gap-2">
+                      <span>{index + 1}.</span> {med.nombre}
+                    </p>
+                    <p className="text-[15px] font-medium text-gray-700 mt-2 pl-4 whitespace-pre-line leading-relaxed">
+                      {med.indicaciones}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Firma (Espacio) */}
+          <div className="mt-20 pt-8 border-t border-dashed border-gray-300 flex justify-center w-full">
+            <div className="text-center w-64">
+              <div className="border-b border-gray-900 mb-2 h-16 w-full relative">
+              </div>
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-600">Firma y Sello del Profesional</p>
+            </div>
           </div>
         </div>
       </div>
