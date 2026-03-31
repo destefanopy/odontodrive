@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import { X, Calendar, Clock, User, FileText } from "lucide-react";
-import { Paciente, createCita } from "@/core/api";
+import { Paciente, Cita, createCita, updateCita } from "@/core/api";
 import { useRouter } from "next/navigation";
 
 interface NuevaCitaModalProps {
   pacientes: Paciente[];
   initialDate: Date | null;
+  existingCita?: Cita | null;
   onClose: () => void;
 }
 
-export default function NuevaCitaModal({ pacientes, initialDate, onClose }: NuevaCitaModalProps) {
+export default function NuevaCitaModal({ pacientes, initialDate, existingCita, onClose }: NuevaCitaModalProps) {
   const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
@@ -47,28 +48,41 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
       const fechaInicioStr = `${fecha}T${horaInicio}:00-03:00`;
       const fechaFinStr = `${fecha}T${horaFin}:00-03:00`;
 
-      await createCita({
-        paciente_id: pacienteId,
-        nombre_paciente: nombrePaciente || "Paciente",
-        motivo,
-        fecha_inicio: new Date(fechaInicioStr).toISOString(),
-        fecha_fin: new Date(fechaFinStr).toISOString(),
-      });
+      if (existingCita) {
+        await updateCita(existingCita.id!, {
+          paciente_id: pacienteId,
+          nombre_paciente: nombrePaciente || existingCita.nombre_paciente,
+          motivo,
+          fecha_inicio: new Date(fechaInicioStr).toISOString(),
+          fecha_fin: new Date(fechaFinStr).toISOString(),
+        });
+      } else {
+        await createCita({
+          paciente_id: pacienteId,
+          nombre_paciente: nombrePaciente || "Paciente",
+          motivo,
+          fecha_inicio: new Date(fechaInicioStr).toISOString(),
+          fecha_fin: new Date(fechaFinStr).toISOString(),
+        });
+      }
 
       router.refresh();
       onClose();
     } catch (err: any) {
-      setErrorMsg(err.message || "Error al borrar la cita.");
+      setErrorMsg(err.message || "Error al procesar la cita.");
     } finally {
       setIsPending(false);
     }
   };
 
+  const initDate = existingCita ? new Date(existingCita.fecha_inicio) : initialDate;
+  const initEndDate = existingCita ? new Date(existingCita.fecha_fin) : (initialDate ? new Date(initialDate.getTime() + 60 * 60000) : null);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-xl font-bold text-gray-900">Agendar Nueva Cita</h2>
+          <h2 className="text-xl font-bold text-gray-900">{existingCita ? "Editar Cita" : "Agendar Nueva Cita"}</h2>
           <button onClick={onClose} className="text-gray-800 hover:text-gray-800 bg-white shadow-sm p-2 rounded-full transition-all">
             <X className="w-5 h-5" />
           </button>
@@ -89,6 +103,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
             <select
               name="paciente_id"
               required
+              defaultValue={existingCita?.paciente_id || ""}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
             >
               <option value="">Seleccione un paciente...</option>
@@ -110,7 +125,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
               <input
                 type="date"
                 name="fecha"
-                defaultValue={formatDateForInput(initialDate)}
+                defaultValue={formatDateForInput(initDate)}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
               />
@@ -124,7 +139,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
               <input
                 type="time"
                 name="hora_inicio"
-                defaultValue={formatTimeForInput(initialDate) || "09:00"}
+                defaultValue={formatTimeForInput(initDate) || "09:00"}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
               />
@@ -141,11 +156,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
               <input
                 type="time"
                 name="hora_fin"
-                defaultValue={
-                  initialDate
-                    ? formatTimeForInput(new Date(initialDate.getTime() + 60 * 60000))
-                    : "10:00"
-                }
+                defaultValue={formatTimeForInput(initEndDate) || "10:00"}
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
               />
@@ -161,6 +172,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
               type="text"
               name="motivo"
               placeholder="Ej. Diagnóstico, Limpieza..."
+              defaultValue={existingCita?.motivo || ""}
               required
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
             />
@@ -187,7 +199,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, onClose }: Nuev
                 }
               }}
             >
-              {isPending ? "Agendando..." : "Confirmar Cita"}
+              {isPending ? "Procesando..." : existingCita ? "Guardar Cambios" : "Confirmar Cita"}
             </button>
           </div>
         </form>

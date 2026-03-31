@@ -21,13 +21,14 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [editCitaInfo, setEditCitaInfo] = useState<Cita | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
   const events = initialCitas.map((cita) => ({
     id: cita.id,
     title: cita.nombre_paciente,
-    extendedProps: { motivo: cita.motivo },
+    extendedProps: { motivo: cita.motivo, paciente_id: cita.paciente_id, realCita: cita },
     start: cita.fecha_inicio,
     end: cita.fecha_fin,
     backgroundColor: "#10b981", 
@@ -35,11 +36,13 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
   }));
 
   const handleDateClick = (arg: { date: Date }) => {
+    setEditCitaInfo(null);
     setSelectedDate(arg.date);
     setIsModalOpen(true);
   };
 
   const handleSelect = (info: any) => {
+    setEditCitaInfo(null);
     setSelectedDate(info.start);
     setIsModalOpen(true);
   };
@@ -103,7 +106,6 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           eventDurationEditable={true}
           eventDrop={handleEventChange}
           eventResize={handleEventChange}
-          slotDuration="00:15:00"
           height="100%"
           eventContent={(eventInfo) => (
             <div className="p-0.5 overflow-hidden flex flex-col h-full rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] relative pl-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#31b8b3] bg-[#e6f7fa] text-[#1e7e7a]">
@@ -187,7 +189,11 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
         <NuevaCitaModal
           pacientes={pacientes}
           initialDate={selectedDate}
-          onClose={() => setIsModalOpen(false)}
+          existingCita={editCitaInfo}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditCitaInfo(null);
+          }}
         />
       )}
 
@@ -211,19 +217,30 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
               </div>
             </div>
             
-            <div className="flex justify-between gap-3">
+            <div className="flex justify-between gap-2 sm:gap-3">
               <button
                 onClick={() => setIsEventModalOpen(false)}
-                className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200"
+                className="flex-1 py-3 px-2 sm:px-4 bg-gray-100 text-gray-700 text-xs sm:text-sm font-bold rounded-xl hover:bg-gray-200"
               >
                 Cerrar
               </button>
               <button
+                onClick={() => {
+                  setIsEventModalOpen(false);
+                  setEditCitaInfo(selectedEvent.extendedProps.realCita);
+                  setSelectedDate(selectedEvent.start);
+                  setIsModalOpen(true);
+                }}
+                className="flex-1 py-3 px-2 sm:px-4 bg-[#e6f7fa] text-[#1e7e7a] border border-[#31b8b3]/30 text-xs sm:text-sm font-bold rounded-xl hover:bg-[#d0f0f4]"
+              >
+                Editar
+              </button>
+              <button
                 onClick={handleDeleteCita}
                 disabled={isDeleting}
-                className="flex-1 py-3 px-4 bg-red-50 text-red-600 border border-red-200 font-bold rounded-xl hover:bg-red-100 hover:border-red-300 disabled:opacity-50"
+                className="flex-1 py-3 px-2 sm:px-4 bg-red-50 text-red-600 border border-red-200 text-xs sm:text-sm font-bold rounded-xl hover:bg-red-100 hover:border-red-300 disabled:opacity-50"
               >
-                {isDeleting ? "Cancelando..." : "Cancelar Cita"}
+                {isDeleting ? "Cancelando" : "Cancelar Cita"}
               </button>
             </div>
           </div>
