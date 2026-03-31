@@ -3,6 +3,7 @@ import CalendarioMaestro from "@/ui/components/agenda/CalendarioMaestro";
 import { useEffect, useState } from "react";
 import { getCitas, getUltimosPacientes, Cita, Paciente } from "@/core/api";
 import { Loader2 } from "lucide-react";
+import RecordatoriosMananaBoton from "@/ui/components/agenda/RecordatoriosMananaBoton";
 
 export default function AgendaPage() {
   const [citas, setCitas] = useState<Cita[]>([]);
@@ -40,6 +41,9 @@ export default function AgendaPage() {
           <p className="text-sm text-gray-700 font-medium">
             Atención diaria, semanal y administración de turnos de la clínica.
           </p>
+        </div>
+        <div>
+          <RecordatoriosMananaBoton citas={citas} pacientes={pacientes} />
         </div>
       </div>
       

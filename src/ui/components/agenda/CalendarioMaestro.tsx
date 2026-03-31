@@ -6,6 +6,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
+import { MessageCircle } from "lucide-react";
 import { Cita, Paciente, deleteCita, updateCita, getCitas } from "@/core/api";
 import NuevaCitaModal from "./NuevaCitaModal";
 import { useRouter } from "next/navigation";
@@ -225,6 +226,29 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
                 <p>{selectedEvent.start.toLocaleString()} - {selectedEvent.end.toLocaleString()}</p>
               </div>
             </div>
+
+            {(() => {
+              const pacienteData = pacientes.find(p => p.id === selectedEvent.extendedProps.paciente_id);
+              if (pacienteData && pacienteData.telefono_celular) {
+                const phone = pacienteData.telefono_celular.replace(/\D/g, "");
+                const isTomorrow = new Date(selectedEvent.start).getDate() === new Date().getDate() + 1;
+                const timeStr = selectedEvent.start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const fechaStr = selectedEvent.start.toLocaleDateString();
+                const text = `Hola ${pacienteData.nombres_apellidos}, te recordamos tu turno de odontología para el ${isTomorrow ? 'día de mañana' : fechaStr} a las ${timeStr} hs. ¡Te esperamos!`;
+                return (
+                  <a 
+                    href={`https://wa.me/${phone}?text=${encodeURIComponent(text)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-[#25D366] text-white py-3 rounded-xl mb-3 flex items-center justify-center gap-2 font-bold hover:bg-[#20bd5a] transition-colors shadow-sm"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    Enviar Recordatorio (WhatsApp)
+                  </a>
+                );
+              }
+              return null;
+            })()}
             
             <div className="flex justify-between gap-2 sm:gap-3">
               <button
