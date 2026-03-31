@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Save, AlertCircle } from "lucide-react";
 import { saveOdontograma } from "@/core/api";
 
-export type SurfaceState = "healthy" | "caries" | "treated" | "extracted" | "to_extract";
+export type SurfaceState = "healthy" | "caries" | "treated" | "extracted" | "to_extract" | "absent";
 
 export interface ToothSurfaces {
   top: SurfaceState;
@@ -28,11 +28,12 @@ interface OdontogramaVisualProps {
   pacienteId: string;
   initialOdontograma: Record<number, any>;
   tipo?: 'inicial' | 'final';
+  onUpdate?: () => void;
 }
 
-type ToolType = "healthy" | "caries" | "treated" | "extracted" | "to_extract";
+type ToolType = "healthy" | "caries" | "treated" | "extracted" | "to_extract" | "absent";
 
-export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo = 'inicial' }: OdontogramaVisualProps) {
+export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo = 'inicial', onUpdate }: OdontogramaVisualProps) {
   // Manejo de migración desde el formato antiguo (string) al nuevo formato (ToothSurfaces)
   const migrateInitial = (data: Record<number, any>) => {
     const migrated: Record<number, ToothSurfaces> = {};
@@ -60,8 +61,8 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
       const currentTooth = prev[toothId] || { ...DEFAULT_TOOTH };
       const newActiveTool = activeTool;
       
-      // Si la herramienta es extraccion, marcamos todo el diente.
-      if ((activeTool === "extracted" || activeTool === "to_extract") && surface !== "root") {
+      // Si la herramienta es extraccion o ausente, marcamos todo el diente.
+      if ((activeTool === "extracted" || activeTool === "to_extract" || activeTool === "absent") && surface !== "root") {
         return {
           ...prev,
           [toothId]: {
@@ -86,6 +87,7 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
       case "treated": return "#3b82f6"; // blue-500
       case "extracted": return "#d1d5db"; // gris claro
       case "to_extract": return "#fee2e2"; // rojizo claro
+      case "absent": return "#f3f4f6"; // gris muy claro
       default: return "#ffffff";
     }
   };
@@ -109,7 +111,8 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
     const data = teethData[id] || { ...DEFAULT_TOOTH };
     const isExtracted = data.center === "extracted" && data.top === "extracted";
     const isToExtract = data.center === "to_extract" && data.top === "to_extract";
-    const isAbsent = isExtracted || isToExtract;
+    const isAbsentMarked = data.center === "absent" && data.top === "absent";
+    const isAbsentOrExtracted = isExtracted || isToExtract || isAbsentMarked;
 
     // Geometria Matematica de la Corona (50x50px)
     // Coordenadas relativas
@@ -145,12 +148,12 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
     }
 
     return (
-      <div className="flex flex-col items-center group relative w-12 cursor-pointer touch-manipulation">
-        <span className="text-xs font-bold text-gray-700 mb-1 leading-none">{id}</span>
+      <div className="flex flex-col items-center group relative w-7 sm:w-8 md:w-10 lg:w-12 cursor-pointer touch-manipulation">
+        <span className="text-[10px] sm:text-xs font-bold text-gray-700 mb-1 leading-none">{id}</span>
         
         {/* Renderizado de Raiz Maxilar Superior */}
         {isUpper && (
-          <div className="w-full h-8 mb-1" onClick={() => handleSurfaceClick(id, "root")}>
+          <div className="w-full h-5 sm:h-6 md:h-8 mb-0.5" onClick={() => handleSurfaceClick(id, "root")}>
             <svg viewBox="0 0 50 40" className="w-full h-full stroke-gray-800 hover:drop-shadow-md transition-all" strokeWidth="2" fill={getFillColor(data.root)}>
                <RootPaths />
             </svg>
@@ -158,26 +161,26 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
         )}
 
         {/* Corona SVG */}
-        <div className="relative w-10 h-10 border border-transparent shadow-sm hover:shadow-md transition-all bg-white rounded-full">
+        <div className="relative w-6 h-6 sm:w-7 sm:h-7 md:w-9 md:h-9 lg:w-10 lg:h-10 border border-transparent shadow-sm hover:shadow-md transition-all bg-white rounded-full">
            <svg viewBox="0 0 50 50" className="w-full h-full stroke-gray-800" strokeWidth="2" strokeLinejoin="round">
-              <polygon points={topPoly} fill={getFillColor(data.top)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsent ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "top")} />
-              <polygon points={bottomPoly} fill={getFillColor(data.bottom)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsent ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "bottom")} />
-              <polygon points={leftPoly} fill={getFillColor(data.left)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsent ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "left")} />
-              <polygon points={rightPoly} fill={getFillColor(data.right)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsent ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "right")} />
-              <polygon points={centerPoly} fill={getFillColor(data.center)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsent ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "center")} />
+              <polygon points={topPoly} fill={getFillColor(data.top)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsentOrExtracted ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "top")} />
+              <polygon points={bottomPoly} fill={getFillColor(data.bottom)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsentOrExtracted ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "bottom")} />
+              <polygon points={leftPoly} fill={getFillColor(data.left)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsentOrExtracted ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "left")} />
+              <polygon points={rightPoly} fill={getFillColor(data.right)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsentOrExtracted ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "right")} />
+              <polygon points={centerPoly} fill={getFillColor(data.center)} className="hover:fill-emerald-100 transition-colors" opacity={isAbsentOrExtracted ? 0.3 : 1} onClick={() => handleSurfaceClick(id, "center")} />
            </svg>
            {/* Marca de Extraccion Completa X */}
-           {isAbsent && (
+           {isAbsentOrExtracted && (
              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 50 50">
-                <line x1="0" y1="0" x2="50" y2="50" stroke={isExtracted ? "#2563eb" : "#dc2626"} strokeWidth="4" />
-                <line x1="50" y1="0" x2="0" y2="50" stroke={isExtracted ? "#2563eb" : "#dc2626"} strokeWidth="4" />
+                <line x1="0" y1="0" x2="50" y2="50" stroke={isExtracted ? "#2563eb" : isToExtract ? "#dc2626" : "#000000"} strokeWidth="4" />
+                <line x1="50" y1="0" x2="0" y2="50" stroke={isExtracted ? "#2563eb" : isToExtract ? "#dc2626" : "#000000"} strokeWidth="4" />
              </svg>
            )}
         </div>
 
         {/* Renderizado de Raiz Maxilar Inferior */}
         {!isUpper && (
-          <div className="w-full h-8 mt-1" onClick={() => handleSurfaceClick(id, "root")}>
+          <div className="w-full h-5 sm:h-6 md:h-8 mt-0.5" onClick={() => handleSurfaceClick(id, "root")}>
             <svg viewBox="0 0 50 40" className="w-full h-full stroke-gray-800 hover:drop-shadow-md transition-all" strokeWidth="2" fill={getFillColor(data.root)}>
                <RootPaths />
             </svg>
@@ -192,7 +195,9 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
     try {
       await saveOdontograma(pacienteId, teethData, tipo);
       alert("¡Odontograma guardado con éxito!");
+      if (onUpdate) onUpdate();
     } catch (error: any) {
+      console.error(error);
       alert("Error: " + (error.message || "No se pudo guardar el odontograma"));
     } finally {
       setIsPending(false);
@@ -209,6 +214,7 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
           <ToolButton name="Sano" tool="healthy" current={activeTool} setTool={setActiveTool} colorClass="bg-white border border-gray-300" />
           <ToolButton name="Extraído (X Azul)" tool="extracted" current={activeTool} setTool={setActiveTool} colorClass="bg-blue-600" />
           <ToolButton name="A Extraer (X Roja)" tool="to_extract" current={activeTool} setTool={setActiveTool} colorClass="bg-red-600" />
+          <ToolButton name="Ausente (X Negra)" tool="absent" current={activeTool} setTool={setActiveTool} colorClass="bg-black" />
         </div>
 
         <button
@@ -221,20 +227,20 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
         </button>
       </div>
 
-      <div className="bg-gray-50 border border-gray-100 rounded-3xl p-6 lg:p-10 shadow-inner overflow-x-auto flex justify-center min-h-[500px]">
-        <div className="flex flex-col gap-12 min-w-max items-center">
+      <div className="bg-gray-50 border border-gray-100 rounded-3xl p-2 sm:p-6 lg:p-10 shadow-inner overflow-x-auto min-h-[400px] flex items-start justify-center">
+        <div className="flex flex-col gap-8 min-w-max items-center mx-auto scale-[0.85] sm:scale-95 md:scale-100 origin-top mt-4">
           
           {/* MAXILAR SUPERIOR */}
           <div className="flex flex-col items-center gap-6 border-b-2 border-dashed border-gray-300 pb-12 w-full">
             {/* Dientes Permanentes */}
-            <div className="flex gap-1 md:gap-3">
+            <div className="flex gap-0.5 sm:gap-1 md:gap-2">
               {[...adultTeeth.upperRight].map(id => <InteractiveTooth key={id} id={id} isUpper={true} />)}
               <div className="w-2 border-r-2 border-gray-800 mx-1 md:mx-4 hidden sm:block"></div>
               {[...adultTeeth.upperLeft].map(id => <InteractiveTooth key={id} id={id} isUpper={true} />)}
             </div>
 
             {/* Dientes Temporales */}
-            <div className="flex gap-1 md:gap-4 mt-2">
+            <div className="flex gap-0.5 sm:gap-1 md:gap-3 mt-2">
               {[...childTeeth.upperRight].map(id => <InteractiveTooth key={id} id={id} isUpper={true} />)}
               <div className="w-2 border-r-2 border-gray-400 mx-2 md:mx-6 hidden sm:block"></div>
               {[...childTeeth.upperLeft].map(id => <InteractiveTooth key={id} id={id} isUpper={true} />)}
@@ -244,14 +250,14 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
           {/* MAXILAR INFERIOR */}
           <div className="flex flex-col items-center gap-6 w-full">
             {/* Dientes Temporales */}
-            <div className="flex gap-1 md:gap-4">
+            <div className="flex gap-0.5 sm:gap-1 md:gap-3">
               {[...childTeeth.lowerRight].map(id => <InteractiveTooth key={id} id={id} isUpper={false} />)}
               <div className="w-2 border-r-2 border-gray-400 mx-2 md:mx-6 hidden sm:block"></div>
               {[...childTeeth.lowerLeft].map(id => <InteractiveTooth key={id} id={id} isUpper={false} />)}
             </div>
 
             {/* Dientes Permanentes */}
-            <div className="flex gap-1 md:gap-3 mt-2">
+            <div className="flex gap-0.5 sm:gap-1 md:gap-2 mt-2">
               {[...adultTeeth.lowerRight].map(id => <InteractiveTooth key={id} id={id} isUpper={false} />)}
               <div className="w-2 border-r-2 border-gray-800 mx-1 md:mx-4 hidden sm:block"></div>
               {[...adultTeeth.lowerLeft].map(id => <InteractiveTooth key={id} id={id} isUpper={false} />)}

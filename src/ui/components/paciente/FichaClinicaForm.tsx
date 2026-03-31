@@ -8,9 +8,10 @@ import { useRouter } from "next/navigation";
 interface FichaProps {
   pacienteId: string;
   initialData?: AntecedentesMedicos | null;
+  onUpdate?: () => void;
 }
 
-export default function FichaClinicaForm({ pacienteId, initialData }: FichaProps) {
+export default function FichaClinicaForm({ pacienteId, initialData, onUpdate }: FichaProps) {
   const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
@@ -36,7 +37,11 @@ export default function FichaClinicaForm({ pacienteId, initialData }: FichaProps
         habitos_viciosos: formData.get("habitos_viciosos")?.toString() || null,
       };
       await saveAntecedentes(pacienteId, datos);
-      router.refresh();
+      if (onUpdate) {
+        onUpdate();
+      } else {
+        router.refresh();
+      }
     } catch (error: any) {
       setErrorMsg(error.message || "Error guardando la ficha clínica.");
     } finally {

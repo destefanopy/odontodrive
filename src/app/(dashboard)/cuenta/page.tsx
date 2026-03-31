@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Lock, Phone, Mail, HelpCircle, AlertCircle, CheckCircle2, Crown } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Lock, Phone, Mail, HelpCircle, AlertCircle, CheckCircle2, Crown, Image as ImageIcon, UploadCloud, Loader2 } from "lucide-react";
 import { supabase } from "@/infrastructure/supabase";
 
 export default function MiCuentaPage() {
@@ -11,6 +11,13 @@ export default function MiCuentaPage() {
   const [telefono, setTelefono] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   
+  const [clinicName, setClinicName] = useState("");
+  const [clinicAddress, setClinicAddress] = useState("");
+  const [clinicPhone, setClinicPhone] = useState("");
+  const [clinicLogoUrl, setClinicLogoUrl] = useState("");
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
@@ -22,6 +29,10 @@ export default function MiCuentaPage() {
       if (user) {
         setEmail(user.email || "");
         setTelefono(user.user_metadata?.phone || "");
+        setClinicName(user.user_metadata?.clinic_name || "");
+        setClinicAddress(user.user_metadata?.clinic_address || "");
+        setClinicPhone(user.user_metadata?.clinic_phone || "");
+        setClinicLogoUrl(user.user_metadata?.clinic_logo_url || "");
         
         supabase.from('perfiles').select('plan, created_at')
           .eq('id', user.id).single()
@@ -68,6 +79,37 @@ export default function MiCuentaPage() {
     }
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingLogo(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuario no autenticado");
+
+      const fileExt = file.name.split('.').pop();
+      const filePath = `logos/${user.id}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('pacientes_archivos')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw new Error("Error subiendo el logo: " + uploadError.message);
+
+      const { data } = await supabase.storage
+        .from('pacientes_archivos')
+        .getPublicUrl(filePath);
+
+      setClinicLogoUrl(data.publicUrl);
+      setMessage({ text: "Logo subido correctamente. Recuerda guardar los cambios.", type: "success" });
+    } catch (err: any) {
+      setMessage({ text: err.message || "Hubo un error al subir el logo", type: "error" });
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -81,7 +123,13 @@ export default function MiCuentaPage() {
         updates.password = newPassword;
       }
 
-      updates.data = { phone: telefono };
+      updates.data = { 
+        phone: telefono,
+        clinic_name: clinicName,
+        clinic_address: clinicAddress,
+        clinic_phone: clinicPhone,
+        clinic_logo_url: clinicLogoUrl,
+      };
 
       const { error } = await supabase.auth.updateUser(updates);
       if (error) throw error;
@@ -246,6 +294,72 @@ export default function MiCuentaPage() {
                   />
                 </div>
                 <p className="mt-2 text-xs text-gray-500">Déjalo en blanco si no deseas cambiar tu contraseña actual.</p>
+              </div>
+
+              <div className="pt-6 border-t border-gray-100">
+                <h4 className="text-md font-bold text-gray-900 mb-4">Datos de la Clínica (Recetas e Informes)</h4>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Logo de la Clínica</label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden shrink-0">
+                        {clinicLogoUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={clinicLogoUrl} alt="Logo" className="w-full h-full object-contain" />
+                        ) : (
+                          <ImageIcon className="w-8 h-8 text-gray-400" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <input type="file" ref={logoInputRef} onChange={handleLogoUpload} accept="image/*" className="hidden" />
+                        <button
+                          type="button"
+                          onClick={() => logoInputRef.current?.click()}
+                          disabled={isUploadingLogo}
+                          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-sm font-bold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                          {isUploadingLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                          {isUploadingLogo ? "Subiendo..." : "Subir Logo"}
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2">Recomendado: formato PNG con fondo transparente.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Nombre de la Clínica</label>
+                    <input
+                      type="text"
+                      value={clinicName}
+                      onChange={(e) => setClinicName(e.target.value)}
+                      className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
+                      placeholder="Ej. Clínica Dental Sonrisas"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Teléfono de la Clínica</label>
+                    <input
+                      type="text"
+                      value={clinicPhone}
+                      onChange={(e) => setClinicPhone(e.target.value)}
+                      className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
+                      placeholder="+595 999 888777"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Dirección de la Clínica</label>
+                    <input
+                      type="text"
+                      value={clinicAddress}
+                      onChange={(e) => setClinicAddress(e.target.value)}
+                      className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
+                      placeholder="Av. Principal 123"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="pt-4 border-t border-gray-100 flex justify-end">

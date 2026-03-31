@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Activity, CreditCard, FolderOpen, Video, FileText, Wallet } from "lucide-react";
+import { User, Activity, CreditCard, FolderOpen, Video, FileText, Wallet, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import FichaClinicaForm from "./paciente/FichaClinicaForm";
 import OdontogramaVisual from "./paciente/OdontogramaVisual";
@@ -9,9 +9,10 @@ import DatosPersonalesForm from "./paciente/DatosPersonalesForm";
 import PresupuestosView from "./paciente/PresupuestosView";
 import ArchivosIA from "./paciente/ArchivosIA";
 import PagosView from "./paciente/PagosView";
+import RecetarioView from "./paciente/RecetarioView";
 import { AntecedentesMedicos, Paciente } from "@/core/api";
 
-type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos" | "pagos";
+type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos" | "pagos" | "recetario";
 
 interface PatientTabsProps {
   paciente: Paciente;
@@ -32,6 +33,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
     { id: "presupuestos", label: "Presupuestos", icon: CreditCard },
     { id: "pagos", label: "Abonos y Deudas", icon: Wallet },
     { id: "archivos", label: "Archivos e IA", icon: FolderOpen },
+    { id: "recetario", label: "Recetario", icon: ClipboardList },
   ];
 
   return (
@@ -63,7 +65,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
         
         {activeTab === "datos" && <DatosPersonalesForm paciente={paciente} onUpdate={onUpdate} />}
         
-        {activeTab === "ficha" && <FichaClinicaForm pacienteId={paciente.id} initialData={initialAntecedentes} />}
+        {activeTab === "ficha" && <FichaClinicaForm pacienteId={paciente.id} initialData={initialAntecedentes} onUpdate={onUpdate} />}
 
         {activeTab === "odontograma" && (
           <div className="space-y-6">
@@ -85,9 +87,9 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
             </div>
             
             {odontoTipo === "inicial" ? (
-              <OdontogramaVisual key="inicial" pacienteId={paciente.id} initialOdontograma={initialOdontograma} tipo="inicial" />
+              <OdontogramaVisual key="inicial" pacienteId={paciente.id} initialOdontograma={initialOdontograma} tipo="inicial" onUpdate={onUpdate} />
             ) : (
-              <OdontogramaVisual key="final" pacienteId={paciente.id} initialOdontograma={finalOdontograma} tipo="final" />
+              <OdontogramaVisual key="final" pacienteId={paciente.id} initialOdontograma={finalOdontograma} tipo="final" onUpdate={onUpdate} />
             )}
           </div>
         )}
@@ -99,6 +101,8 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
         {activeTab === "archivos" && (
           <ArchivosIA pacienteId={paciente.id} />
         )}
+
+        {activeTab === "recetario" && <RecetarioView paciente={paciente} />}
 
       </div>
     </div>

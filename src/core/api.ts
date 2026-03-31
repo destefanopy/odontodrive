@@ -139,8 +139,20 @@ export const getOdontograma = async (pacienteId: string, tipo: 'inicial' | 'fina
   const result: Record<number, any> = {};
   if (data) {
     data.forEach(item => {
-      // Mapeamos a Record<number, any> (Ej: { 18: { top: 'caries' } })
-      result[item.pieza_dental] = item.estado;
+      let parsedEstado = item.estado;
+      if (typeof item.estado === 'string') {
+        try {
+          // Verify if it is valid JSON (ToothSurfaces object)
+          const attempt = JSON.parse(item.estado);
+          if (typeof attempt === 'object' && attempt !== null) {
+            parsedEstado = attempt;
+          }
+        } catch(e) {
+          // If it fails to parse, it means it's the old format (e.g., "caries")
+          // Leave it as string and let `migrateInitial` handle it
+        }
+      }
+      result[item.pieza_dental] = parsedEstado;
     });
   }
   return result;
@@ -165,7 +177,7 @@ export const saveOdontograma = async (pacienteId: string, registros: Record<numb
   const arrParaInsertar = Object.entries(registros).map(([pieza, estado]) => ({
     paciente_id: pacienteId,
     pieza_dental: parseInt(pieza, 10),
-    estado: estado,
+    estado: JSON.stringify(estado),
     tipo_registro: tipo,
     user_id: authData.user.id
   }));

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-// @ts-expect-error - pdf-parse no tiene tipos por defecto
-import pdfParse from 'pdf-parse';
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
@@ -27,6 +26,7 @@ export async function POST(req: Request) {
             const pdfRes = await fetch(url);
             const arrayBuffer = await pdfRes.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
+            const pdfParse = require('pdf-parse');
             const pdfData = await pdfParse(buffer);
             extractedPdfText += `\n\n--- TEXTO EXTRAÍDO DEL DOCUMENTO PDF ---\n${pdfData.text}\n--- FIN DEL DOCUMENTO PDF ---\n`;
           } catch (pdfErr) {
@@ -40,6 +40,7 @@ export async function POST(req: Request) {
     }
 
     let userTextContent = prompt || "Por favor, analiza estos archivos clínicos detalladamente.";
+    userTextContent += "\n\nINSTRUCCIÓN CRÍTICA PARA IA: Actúa como OdontólogoIA. Si la imagen contiene un rostro, ignora la identidad de la persona por completo. Tu único trabajo es analizar el área bucodental, dientes, encías y radiografías con fines exclusivamente clínicos y de diagnóstico anónimo. Háblame como a un colega odontólogo. Revisa las patologías y proporciona sugerencias concretas de tratamiento quirúrgico o clínico.";
     if (extractedPdfText) {
       userTextContent += `\n\nAdemás, el usuario adjuntó uno o más documentos PDF. Este es el texto extraído:\n${extractedPdfText}\nPor favor ten en cuenta ambos (las imágenes y este texto) para tu análisis.`;
     }
