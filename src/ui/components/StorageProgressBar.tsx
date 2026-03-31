@@ -27,6 +27,8 @@ export default function StorageProgressBar({ usedBytes, planLimitBytes, planName
   
   const isDanger = percentage > 85;
 
+  if (usedBytes === 0) return null;
+
   return (
     <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm w-full max-w-sm">
       <div className="flex justify-between items-center mb-4">
