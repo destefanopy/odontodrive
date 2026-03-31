@@ -21,6 +21,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
   const [currentNombre, setCurrentNombre] = useState("");
   const [currentIndicaciones, setCurrentIndicaciones] = useState("");
+  const [diagnostico, setDiagnostico] = useState("");
   const [loadingConfig, setLoadingConfig] = useState(true);
 
   // Clinic profile
@@ -66,6 +67,10 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Receta_${paciente.nombres_apellidos.replace(/\s+/g, '_')}`,
+    pageStyle: `
+      @page { size: A4 landscape; margin: 0; }
+      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    `
   });
 
   if (loadingConfig) {
@@ -81,6 +86,21 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
     month: "long",
     day: "numeric",
   });
+
+  const calcularEdad = (fechaNacimiento?: string | null) => {
+    if (!fechaNacimiento) return "___";
+    const hoy = new Date();
+    const cumpleanos = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - cumpleanos.getFullYear();
+    const mes = hoy.getMonth() - cumpleanos.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < cumpleanos.getDate())) {
+      edad--;
+    }
+    return `${edad} años`;
+  };
+
+  const doctorName = clinicName; // En el formato parece ser el nombre del doctor en grande
+  const edad = calcularEdad(paciente.fecha_nacimiento);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -110,6 +130,16 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
         {/* Formulario Izquierda */}
         <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col gap-6">
           <form onSubmit={handleAdd} className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Diagnóstico (Opcional)</label>
+              <input
+                type="text"
+                value={diagnostico}
+                onChange={(e) => setDiagnostico(e.target.value)}
+                placeholder="Ej. Infección periapical..."
+                className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm font-medium"
+              />
+            </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Medicamento o Tratamiento</label>
               <input
@@ -205,71 +235,172 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
         </div>
       </div>
 
-      {/* Hidden Component for PDF generation */}
+      {/* Hidden Component for PDF generation (Dual Pane Landscape) */}
       <div className="hidden">
         <div 
           ref={printRef} 
-          className="w-full bg-white text-black flex flex-col p-12"
-          style={{ width: '210mm', minHeight: '297mm' }} /* Formato A4 */
+          className="bg-white text-black flex flex-row overflow-hidden relative"
+          style={{ width: '297mm', minHeight: '210mm' }} /* Formato A4 Landscape */
         >
-          {/* Membrete Clínica */}
-          <div className="flex items-center justify-between pb-6 border-b-2 border-gray-900 mb-6">
-            {clinicLogoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={clinicLogoUrl} alt="Logo Clínica" className="h-20 w-auto object-contain max-w-[200px]" />
-            ) : (
-              <div className="h-16 w-16 bg-gray-100 flex items-center justify-center rounded-lg text-gray-400 text-xs text-center font-bold">
-                Sin Logo
+          {/* === MITAD IZQUIERDA: RP/ (RECETA) === */}
+          <div className="w-1/2 h-full flex flex-col p-10 pr-12 relative border-r border-dashed border-gray-400/30">
+            
+            {/* Logo de Agua de Fondo */}
+            {clinicLogoUrl && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={clinicLogoUrl} alt="Watermark" className="w-[300px] object-contain grayscale" />
               </div>
             )}
-            <div className="text-right">
-              <h1 className="text-2xl font-black tracking-tight">{clinicName}</h1>
-              <p className="text-sm font-semibold text-gray-600 mt-1">{clinicAddress}</p>
-              <p className="text-sm font-semibold text-gray-600 mt-0.5">{clinicPhone}</p>
-            </div>
-          </div>
 
-          {/* Datos Paciente */}
-          <div className="mb-8 space-y-2 flex justify-between items-end border-b border-gray-200 pb-4">
-            <div>
-              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Paciente</p>
-              <p className="text-lg font-black">{paciente.nombres_apellidos}</p>
-              {paciente.documento_identidad && <p className="text-sm text-gray-700 mt-1">C.I.: {paciente.documento_identidad}</p>}
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-500">Fecha: {fechaImpresion}</p>
-            </div>
-          </div>
-
-          {/* Cuerpo de la Receta */}
-          <div className="flex-1 min-h-[300px]">
-            <h2 className="text-3xl font-black mb-8 italic font-serif">Rp/</h2>
-            <div className="space-y-8 pl-4">
-              {medicamentos.length === 0 ? (
-                <p className="text-gray-300 italic text-sm">El recetario está vacío...</p>
-              ) : (
-                medicamentos.map((med, index) => (
-                  <div key={med.id}>
-                    <p className="text-[17px] font-bold leading-tight flex gap-2">
-                      <span>{index + 1}.</span> {med.nombre}
-                    </p>
-                    <p className="text-[15px] font-medium text-gray-700 mt-2 pl-4 whitespace-pre-line leading-relaxed">
-                      {med.indicaciones}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Firma (Espacio) */}
-          <div className="mt-20 pt-8 border-t border-dashed border-gray-300 flex justify-center w-full">
-            <div className="text-center w-64">
-              <div className="border-b border-gray-900 mb-2 h-16 w-full relative">
+            {/* Texto Lateral en borde izquierdo */}
+            <div className="absolute left-6 top-0 bottom-0 flex flex-col items-center justify-center">
+              <div className="transform -rotate-90 origin-center text-[10px] text-gray-700 flex gap-6 whitespace-nowrap font-medium">
+                <span className="flex items-center gap-1">📍 {clinicAddress}</span>
+                <span className="flex items-center gap-1">📞 {clinicPhone}</span>
               </div>
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-600">Firma y Sello del Profesional</p>
+            </div>
+
+            <div className="pl-8 flex flex-col h-full relative z-10">
+              {/* Membrete Derecha Abajo del Logo */}
+              <div className="flex items-start justify-end gap-4 pb-4 border-b-2 border-orange-500 mb-6">
+                <div className="text-right mt-2">
+                  <h1 className="text-xl font-serif italic text-gray-900 leading-tight">{doctorName}</h1>
+                  <p className="text-sm font-medium text-gray-600">Odontólogo/a</p>
+                </div>
+                {clinicLogoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={clinicLogoUrl} alt="Logo" className="h-20 w-auto object-contain bg-white" />
+                )}
+              </div>
+
+              {/* Datos Paciente */}
+              <div className="mb-6 space-y-2 pb-4 border-b border-gray-200">
+                <div className="flex gap-2 items-center">
+                  <p className="text-xs font-bold text-gray-600 uppercase w-20">Paciente:</p>
+                  <p className="text-sm font-black flex-1 border-b border-dotted border-gray-400">{paciente.nombres_apellidos}</p>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex gap-2 items-center flex-1">
+                    <p className="text-xs font-bold text-gray-600 uppercase w-20">C.I. Nº:</p>
+                    <p className="text-sm font-bold flex-1 border-b border-dotted border-gray-400">{paciente.documento_identidad || "________________"}</p>
+                  </div>
+                  <div className="flex gap-2 items-center flex-1">
+                    <p className="text-xs font-bold text-gray-600 uppercase w-12">Edad:</p>
+                    <p className="text-sm font-bold flex-1 border-b border-dotted border-gray-400 text-center">{edad || "___"}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <p className="text-xs font-bold text-gray-600 uppercase w-20">Diagnóstico:</p>
+                  <p className="text-sm font-bold flex-1 border-b border-dotted border-gray-400">{diagnostico || "____________________________________"}</p>
+                </div>
+              </div>
+
+              {/* Etiqueta Rp */}
+              <div>
+                <span className="bg-[#e8701a] text-white font-bold px-3 py-1 rounded shadow-sm text-sm inline-block">Rp.)</span>
+              </div>
+
+              {/* Cuerpo RP/ */}
+              <div className="flex-1 mt-6">
+                <div className="space-y-4 pl-2">
+                  {medicamentos.length === 0 ? (
+                    <p className="text-gray-300 italic text-sm">El recetario está vacío...</p>
+                  ) : (
+                    medicamentos.map((med, index) => (
+                      <div key={med.id}>
+                        <p className="text-[14px] font-bold text-gray-900 leading-tight">
+                          {index + 1}. {med.nombre}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Firma */}
+              <div className="mt-8 flex justify-end">
+                <div className="text-center w-48">
+                  <div className="border-b border-gray-900 h-10 w-full"></div>
+                  <p className="text-[10px] mt-1 font-bold text-gray-500">Firma y Sello</p>
+                </div>
+              </div>
             </div>
           </div>
+
+
+          {/* === MITAD DERECHA: INDICACIONES === */}
+          <div className="w-1/2 h-full flex flex-col p-10 pl-12 relative">
+            
+            {/* Logo de Agua de Fondo */}
+            {clinicLogoUrl && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={clinicLogoUrl} alt="Watermark" className="w-[300px] object-contain grayscale" />
+              </div>
+            )}
+
+            {/* Texto Lateral en borde izquierdo */}
+            <div className="absolute left-6 top-0 bottom-0 flex flex-col items-center justify-center">
+              <div className="transform -rotate-90 origin-center text-[10px] text-gray-700 flex gap-6 whitespace-nowrap font-medium">
+                <span className="flex items-center gap-1">📍 {clinicAddress}</span>
+                <span className="flex items-center gap-1">📞 {clinicPhone}</span>
+              </div>
+            </div>
+
+            <div className="pl-8 flex flex-col h-full relative z-10">
+              {/* Membrete Derecha Abajo del Logo */}
+              <div className="flex items-start justify-end gap-4 pb-4 border-b-2 border-orange-500 mb-6">
+                <div className="text-right mt-2">
+                  <h1 className="text-xl font-serif italic text-gray-900 leading-tight">{doctorName}</h1>
+                  <p className="text-sm font-medium text-gray-600">Odontólogo/a</p>
+                </div>
+                {clinicLogoUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={clinicLogoUrl} alt="Logo" className="h-20 w-auto object-contain bg-white" />
+                )}
+              </div>
+
+              {/* Espacio para alinear visualmente o poner Fecha */}
+              <div className="mb-6 pb-4 border-b border-transparent h-[84px] flex items-end justify-end">
+                  <p className="text-xs font-bold text-gray-500">Fecha: {fechaImpresion}</p>
+              </div>
+
+              {/* Etiqueta Indicaciones */}
+              <div>
+                <span className="bg-[#e8701a] text-white font-bold px-3 py-1 rounded shadow-sm text-sm inline-block">Indicaciones</span>
+              </div>
+
+              {/* Cuerpo Indicaciones */}
+              <div className="flex-1 mt-6">
+                <div className="space-y-6 pl-2">
+                  {medicamentos.length === 0 ? (
+                    <p className="text-gray-300 italic text-sm">El recetario está vacío...</p>
+                  ) : (
+                    medicamentos.map((med, index) => (
+                      <div key={med.id}>
+                        <p className="text-[13px] font-bold text-gray-800 leading-tight">
+                          {med.nombre}
+                        </p>
+                        <p className="text-[13px] text-gray-900 mt-1 whitespace-pre-line leading-relaxed italic ml-2 border-l-2 border-orange-200 pl-3">
+                          {med.indicaciones}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Firma */}
+              <div className="mt-8 flex justify-end">
+                <div className="text-center w-48">
+                  <div className="border-b border-gray-900 h-10 w-full"></div>
+                  <p className="text-[10px] mt-1 font-bold text-gray-500">Firma y Sello</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
         </div>
       </div>
     </div>
