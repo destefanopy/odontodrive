@@ -28,24 +28,24 @@ export default function LandingTemplate({
   seoDescription 
 }: LandingProps) {
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-emerald-200 selection:text-emerald-900">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-cyan-200 selection:text-cyan-900">
       <title>{seoTitle}</title>
       <meta name="description" content={seoDescription} />
       
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-emerald-100/50">
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-cyan-100/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm md:w-10 md:h-10 md:text-base">
+            <div className="w-8 h-8 bg-cyan-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-sm md:w-10 md:h-10 md:text-base">
               OD
             </div>
-            <span className="text-xl font-black tracking-tight text-slate-900">Odonto<span className="text-emerald-600">Drive</span></span>
+            <span className="text-xl font-black tracking-tight text-slate-900">Odonto<span className="text-cyan-600">Drive</span></span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors">
+            <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-cyan-600 transition-colors">
               Iniciar Sesión
             </Link>
-            <Link href="/login" className="text-sm font-bold bg-emerald-600 text-white px-5 py-2.5 rounded-full hover:bg-emerald-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5">
+            <Link href="/login" className="text-sm font-bold bg-cyan-500 text-white px-5 py-2.5 rounded-full shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)] hover:bg-cyan-400 transition-all transform hover:-translate-y-0.5">
               Prueba Gratis
             </Link>
           </div>
@@ -55,15 +55,15 @@ export default function LandingTemplate({
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center relative overflow-hidden">
         {/* Abstract Background Shapes */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-100/40 rounded-full blur-3xl -z-10 animate-pulse"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-cyan-100/40 rounded-full blur-3xl -z-10 animate-pulse"></div>
         
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-bold mb-8 shadow-sm">
-          <Star className="w-4 h-4 text-emerald-500 fill-emerald-500" />
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-cyan-100 text-cyan-700 text-sm font-bold mb-8 shadow-sm">
+          <Star className="w-4 h-4 text-cyan-500 fill-cyan-500" />
           <span>El Software Clínico #1 para Odontólogos {countryName ? `en ${countryName}` : 'de vanguardia'}</span>
         </div>
         
         <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-tight mb-6 max-w-4xl mx-auto">
-          Gestiona tu clínica con <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-400">Inteligencia Artificial</span>
+          Gestiona tu clínica con <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-400 to-cyan-500 drop-shadow-sm">Inteligencia Artificial</span>
         </h1>
         
         <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
@@ -83,7 +83,7 @@ export default function LandingTemplate({
         {/* Hero Mockup Preview */}
         <div className="mt-20 block w-full aspect-video rounded-3xl bg-slate-900 shadow-2xl overflow-hidden border-8 border-slate-800 relative group">
           <div className="absolute inset-0 flex items-center justify-center bg-slate-800/80 backdrop-blur-sm z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Link href="/login" className="px-6 py-3 bg-emerald-600 text-white font-bold rounded-full shadow-lg hover:scale-105 transition-transform">Probar Demo Real</Link>
+            <Link href="/login" className="px-6 py-3 bg-cyan-500 text-white font-bold rounded-full shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:scale-105 transition-transform">Probar Demo Real</Link>
           </div>
           <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=2600&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay"></div>
           {/* Falso Dashboard UI overlay para darle pinta de software */}
@@ -92,9 +92,9 @@ export default function LandingTemplate({
              <div className="flex-1 bg-white/95 rounded-xl h-full shadow-inner flex flex-col p-6 space-y-4">
                <div className="w-full h-12 bg-slate-100 rounded-lg animate-pulse"></div>
                <div className="flex gap-4">
-                 <div className="w-1/3 h-32 bg-emerald-50 rounded-lg border border-emerald-100"></div>
-                 <div className="w-1/3 h-32 bg-emerald-50 rounded-lg border border-emerald-100"></div>
-                 <div className="w-1/3 h-32 bg-emerald-50 rounded-lg border border-emerald-100"></div>
+                 <div className="w-1/3 h-32 bg-emerald-50 rounded-lg border border-cyan-100"></div>
+                 <div className="w-1/3 h-32 bg-emerald-50 rounded-lg border border-cyan-100"></div>
+                 <div className="w-1/3 h-32 bg-emerald-50 rounded-lg border border-cyan-100"></div>
                </div>
              </div>
           </div>
@@ -111,14 +111,14 @@ export default function LandingTemplate({
           
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { title: "Odontograma Iterativo", icon: <Target className="w-8 h-8 text-emerald-600" />, desc: "Registra caries, resinas, extracciones y más con una interfaz visual. Marca piezas ausentes y deciduas con un clic." },
-              { title: "Manejo Financiero SaaS", icon: <Activity className="w-8 h-8 text-emerald-600" />, desc: "Módulo de cotizador interactivo. Genera presupuestos en PDF con estética corporativa (tu logo y tus colores) al instante." },
-              { title: "HCE y Analítica IA", icon: <Search className="w-8 h-8 text-emerald-600" />, desc: "Comparador de radiografías con Inteligencia Artificial. Almacenamiento seguro en la nube para el historial de tus pacientes." },
-              { title: "Recetario Profesional", icon: <Shield className="w-8 h-8 text-emerald-600" />, desc: "Prescribe medicamentos rápido y envía a impresión en formato A4 con tu registro profesional y logo precargados." },
-              { title: "Agenda Dinámica", icon: <MonitorSmartphone className="w-8 h-8 text-emerald-600" />, desc: "Visualiza todas tus citas del día, la semana o el mes en una vista responsive para móviles, tablets o PCs." },
-              { title: "Experiencia Premium", icon: <Smile className="w-8 h-8 text-emerald-600" />, desc: "Diseño minimalista que asombra visualmente y transmite paz, ayudándote a ser extremadamente eficiente cada día." }
+              { title: "Odontograma Iterativo", icon: <Target className="w-8 h-8 text-cyan-600" />, desc: "Registra caries, resinas, extracciones y más con una interfaz visual. Marca piezas ausentes y deciduas con un clic." },
+              { title: "Manejo Financiero SaaS", icon: <Activity className="w-8 h-8 text-cyan-600" />, desc: "Módulo de cotizador interactivo. Genera presupuestos en PDF con estética corporativa (tu logo y tus colores) al instante." },
+              { title: "HCE y Analítica IA", icon: <Search className="w-8 h-8 text-cyan-600" />, desc: "Comparador de radiografías con Inteligencia Artificial. Almacenamiento seguro en la nube para el historial de tus pacientes." },
+              { title: "Recetario Profesional", icon: <Shield className="w-8 h-8 text-cyan-600" />, desc: "Prescribe medicamentos rápido y envía a impresión en formato A4 con tu registro profesional y logo precargados." },
+              { title: "Agenda Dinámica", icon: <MonitorSmartphone className="w-8 h-8 text-cyan-600" />, desc: "Visualiza todas tus citas del día, la semana o el mes en una vista responsive para móviles, tablets o PCs." },
+              { title: "Experiencia Premium", icon: <Smile className="w-8 h-8 text-cyan-600" />, desc: "Diseño minimalista que asombra visualmente y transmite paz, ayudándote a ser extremadamente eficiente cada día." }
             ].map((f, i) => (
-              <div key={i} className="bg-slate-50 border border-slate-100 p-8 rounded-3xl hover:bg-emerald-50 hover:border-emerald-200 transition-all group">
+              <div key={i} className="bg-slate-50 border border-slate-100 p-8 rounded-3xl hover:bg-emerald-50 hover:border-cyan-200 transition-all group">
                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
                   {f.icon}
                 </div>
@@ -131,11 +131,11 @@ export default function LandingTemplate({
       </section>
 
       {/* Testimonials / Trust */}
-      <section className="py-20 bg-emerald-900 text-white text-center">
+      <section className="py-20 bg-cyan-900 text-white text-center">
         <div className="max-w-4xl mx-auto px-4">
-          <Heart className="w-12 h-12 text-emerald-400 mx-auto mb-6 opacity-80" />
+          <Heart className="w-12 h-12 text-cyan-400 mx-auto mb-6 opacity-80" />
           <h2 className="text-4xl font-black mb-6 leading-tight">"OdontoDrive cambió por completo la forma en la que gestiono mis pacientes."</h2>
-          <p className="text-emerald-200 text-lg uppercase tracking-widest font-bold">Dra. María Laura - Ortodoncista</p>
+          <p className="text-cyan-200 text-lg uppercase tracking-widest font-bold">Dra. María Laura - Ortodoncista</p>
         </div>
       </section>
 
@@ -149,17 +149,17 @@ export default function LandingTemplate({
             {plans.map((plan, index) => (
               <div 
                 key={index} 
-                className={`bg-white rounded-3xl p-8 relative flex flex-col items-center text-center transition-all ${plan.isPopular ? 'border-2 border-emerald-500 shadow-xl shadow-emerald-500/20 scale-105 z-10' : 'border border-slate-200 shadow-md hover:shadow-xl hover:border-emerald-200'}`}
+                className={`bg-white rounded-3xl p-8 relative flex flex-col items-center text-center transition-all duration-300 ${plan.isPopular ? 'border-2 border-cyan-400 shadow-[0_8px_30px_rgb(6,182,212,0.2)] scale-105 z-10' : 'border border-slate-200 shadow-sm hover:shadow-xl hover:border-cyan-200'}`}
               >
                 {plan.isPopular && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500 text-white px-4 py-1.5 rounded-full text-xs font-black shadow-md tracking-wider">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-400 to-teal-400 text-white px-6 py-1.5 rounded-full text-xs font-black shadow-lg shadow-cyan-500/30 tracking-wider border border-cyan-300/50">
                     RECOMENDADO
                   </div>
                 )}
                 
                 <h3 className="text-2xl font-black text-slate-900 mb-2">{plan.name}</h3>
                 <div className="flex items-center justify-center gap-2 mb-6 bg-slate-50 px-4 py-1.5 rounded-full text-sm font-semibold text-slate-600">
-                  <HardDrive className="w-4 h-4 text-emerald-500" />
+                  <HardDrive className="w-4 h-4 text-cyan-500" />
                   {plan.storage}
                 </div>
                 
@@ -172,13 +172,13 @@ export default function LandingTemplate({
                 <ul className="space-y-4 mb-8 text-left w-full mx-auto flex-1">
                   {plan.features.map((feature, i) => (
                     <li key={i} className="flex items-start gap-3 text-slate-700 font-medium text-sm leading-snug">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-cyan-500 shrink-0" />
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
                 
-                <Link href="/login" className={`block w-full py-4 font-bold rounded-2xl transition-all shadow-sm text-sm ${plan.isPopular ? 'bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-lg' : 'bg-slate-900 text-white hover:bg-black'}`}>
+                <Link href="/login" className={`block w-full py-4 font-bold rounded-2xl transition-all text-sm ${plan.isPopular ? 'bg-cyan-500 text-white shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:bg-cyan-400 hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)]' : 'bg-slate-900 text-white hover:bg-black shadow-sm'}`}>
                   Seleccionar {plan.name}
                 </Link>
               </div>
@@ -192,7 +192,7 @@ export default function LandingTemplate({
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between">
           <div className="flex items-center gap-2 mb-4 md:mb-0">
              <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center text-slate-300 font-bold text-xs">OD</div>
-             <span className="text-lg font-bold text-white tracking-tight">Odonto<span className="text-emerald-500">Drive</span></span>
+             <span className="text-lg font-bold text-white tracking-tight">Odonto<span className="text-cyan-500">Drive</span></span>
           </div>
           <p className="font-medium text-sm">© 2026 OdontoDrive. Todos los derechos reservados. Diseñado para optimizar tu tiempo.</p>
         </div>
