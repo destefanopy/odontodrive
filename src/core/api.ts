@@ -66,6 +66,23 @@ export const getUltimosPacientes = async (): Promise<Paciente[]> => {
 };
 
 /**
+ * Obtiene tódos los pacientes registrados, ordenados alfabéticamente para el directorio.
+ */
+export const getTodosLosPacientes = async (): Promise<Paciente[]> => {
+  const { data, error } = await supabase
+    .from('pacientes')
+    .select('*')
+    .order('nombres_apellidos', { ascending: true });
+
+  if (error) {
+    console.error('Error obteniendo todos los pacientes:', error.message);
+    return [];
+  }
+
+  return data as Paciente[];
+};
+
+/**
  * Obtiene un paciente específico por su ID.
  */
 export const getPacienteById = async (id: string): Promise<Paciente | null> => {

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getUltimosPacientes, Paciente } from "@/core/api";
+import { getTodosLosPacientes, Paciente } from "@/core/api";
 import { Users, Plus, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -9,7 +9,7 @@ export default function PacientesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getUltimosPacientes()
+    getTodosLosPacientes()
       .then(data => {
         setPacientes(data);
       })
