@@ -555,3 +555,52 @@ export async function deleteDeuda(id: string) {
   if (error) throw new Error(error.message);
   return true;
 }
+
+/**
+ * API DE PRESUPUESTOS (Historial Interactivo)
+ */
+
+export interface PresupuestoDB {
+  id: string;
+  paciente_id: string;
+  user_id: string;
+  items: any;
+  descuento: number;
+  subtotal: number;
+  total: number;
+  created_at: string;
+}
+
+export async function createPresupuesto(data: Omit<PresupuestoDB, 'id' | 'user_id' | 'created_at'>) {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
+  const { data: newRecord, error } = await supabase.from('presupuestos').insert({
+    ...data,
+    user_id: authData.user.id
+  }).select().single();
+
+  if (error) throw new Error(error.message);
+  return newRecord as PresupuestoDB;
+}
+
+export async function getPresupuestos(pacienteId: string): Promise<PresupuestoDB[]> {
+  const { data, error } = await supabase
+    .from('presupuestos')
+    .select('*')
+    .eq('paciente_id', pacienteId)
+    .order('created_at', { ascending: false });
+
+  if (error && error.code !== '42P01') {
+    console.error("Error obteniendo presupuestos:", error.message);
+    return [];
+  }
+  return (data || []) as PresupuestoDB[];
+}
+
+export async function deletePresupuesto(id: string) {
+  const { error } = await supabase.from('presupuestos').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
