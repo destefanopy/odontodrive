@@ -143,9 +143,9 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
         setMessage("Presupuesto guardado exitosamente en el historial.");
         setTimeout(() => setMessage(""), 4000);
       } catch (e: any) {
-        console.error(e);
-        setMessage("Error al guardar presupuesto.");
-        setTimeout(() => setMessage(""), 3000);
+        console.error("Presupuesto Save Error:", e);
+        setMessage(`Error al guardar: ${e.message || 'Desconocido'}`);
+        setTimeout(() => setMessage(""), 5000);
       }
     });
   };
