@@ -72,51 +72,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Profile Info (hidden on strict mobile, shown on md and lg) */}
-        <div className="hidden md:flex items-center gap-4">
-          <div 
-            className="relative group w-10 h-10 rounded-full overflow-hidden shadow-sm cursor-pointer"
-            onClick={() => fileInputRef.current?.click()}
-            title="Cambiar Foto de Perfil"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={userData?.avatarUrl || `https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`}
-              alt="Avatar"
-              className="w-full h-full object-cover p-1 bg-white"
-            />
-            <div className={cn(
-              "absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity",
-              isUploading && "opacity-100 bg-black/60"
-            )}>
-              {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
-            </div>
-          </div>
-          <input 
-            type="file" 
-            accept="image/*" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            className="hidden" 
-          />
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1">
-              <Link href="/cuenta" className="text-sm font-bold text-gray-900 hover:text-accent transition-colors hover:underline">
-                {userData ? userData.name : "Cargando..."}
-              </Link>
-              <button 
-                onClick={handleLogout} 
-                className="ml-2 p-1 rounded-md text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors" 
-                title="Cerrar sesión"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-            <Link href="/cuenta" className="text-xs text-gray-700 font-medium hover:text-accent transition-colors">
-              {userData ? userData.email : ""}
-            </Link>
-          </div>
-        </div>
+
 
         <div className="flex items-center gap-3 lg:gap-6">
           {/* Desktop Search */}

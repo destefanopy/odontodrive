@@ -3,15 +3,19 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Calendar, Shield, Wallet, Crown, HardDrive, User } from "lucide-react";
+import { Home, Users, Calendar, Shield, Wallet, Crown, HardDrive, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/infrastructure/supabase";
+import { authService } from "@/core/auth";
+import { useRouter } from "next/navigation";
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState(false);
   const [userPlan, setUserPlan] = useState<string>("free");
   const [storageUsed, setStorageUsed] = useState<number>(0);
+  const [userData, setUserData] = useState<{name: string, email: string, avatarUrl: string | null} | null>(null);
+  const router = useRouter();
 
   const planLimits: Record<string, number> = {
     free: 100 * 1024 * 1024,
@@ -28,6 +32,13 @@ export default function Sidebar() {
       supabase.auth.getUser().then(({ data }) => {
         if (data?.user && isMounted) {
           if (data.user.email === 'destefanopy@gmail.com') setIsAdmin(true);
+          
+          setUserData({
+            name: data.user.user_metadata?.full_name || "Odontólogo(a)",
+            email: data.user.email || "",
+            avatarUrl: data.user.user_metadata?.avatar_url || null
+          });
+
           supabase.from('perfiles').select('plan, storage_usado_bytes').eq('id', data.user.id).single()
             .then(({ data: perfil }) => {
               if (perfil && isMounted) {
@@ -57,6 +68,11 @@ export default function Sidebar() {
     { name: "Mi Cuenta", href: "/cuenta", icon: User },
     ...(isAdmin ? [{ name: "Admin", href: "/admin", icon: Shield }] : [])
   ];
+
+  const handleLogout = async () => {
+    await authService.signOut();
+    router.push("/login");
+  };
 
   const limitBytes = planLimits[userPlan] || planLimits.free;
   const percentage = Math.min(100, Math.round((storageUsed / limitBytes) * 100));
@@ -101,7 +117,29 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto w-full mb-4">
+      <div className="mt-auto w-full mb-4 space-y-4">
+        {/* User Card */}
+        <div className="flex items-center gap-3 px-3 py-2 bg-white/40 rounded-xl shadow-sm border border-white/60">
+          <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm flex-shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={userData?.avatarUrl || `https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`} alt="Profile" className="w-full h-full object-cover p-1 bg-white" />
+          </div>
+          <div className="flex-1 w-0">
+            <Link href="/cuenta" className="block">
+              <p className="text-xs font-bold text-gray-900 truncate hover:text-accent transition-colors">{userData ? userData.name : "Cargando..."}</p>
+              <p className="text-[10px] text-gray-700 truncate hover:text-accent transition-colors">{userData ? userData.email : ""}</p>
+            </Link>
+          </div>
+          <button 
+            onClick={handleLogout} 
+            className="p-1.5 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+            title="Cerrar sesión"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Plan Block */}
         <div className="bg-white/60 border border-white/80 rounded-2xl p-4 text-center space-y-3 relative overflow-hidden group shadow-sm flex flex-col items-center">
           <HardDrive className="w-6 h-6 text-accent mb-1" />
           <h3 className="text-sm font-black text-gray-900 capitalize">Plan {userPlan}</h3>
