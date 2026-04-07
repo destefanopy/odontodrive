@@ -70,8 +70,8 @@ export default function PacientePerfilPage({ params }: PageProps) {
       </Link>
 
       {/* Header del Paciente */}
-      <div className="bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
+      <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
           <PacienteAvatar 
             pacienteId={paciente.id} 
             nombres={paciente.nombres_apellidos} 
@@ -79,22 +79,22 @@ export default function PacientePerfilPage({ params }: PageProps) {
             onUploadSuccess={loadData}
           />
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight">
               {paciente.nombres_apellidos}
             </h1>
-            <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-700 font-medium">
-              <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-full">
-                <Phone className="w-3.5 h-3.5" />
+            <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs md:text-sm text-gray-700 font-medium">
+              <span className="flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
+                <Phone className="w-3 h-3" />
                 {paciente.telefono_celular || "Sin teléfono"}
               </span>
-              <span className="flex items-center gap-1.5 bg-gray-50 px-3 py-1 rounded-full">
-                <Calendar className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
+                <Calendar className="w-3 h-3" />
                 Alta: {fechaAlta}
               </span>
             </div>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0 w-full md:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <EliminarPacienteBoton pacienteId={paciente.id} nombrePaciente={paciente.nombres_apellidos} />
           <AgendarCitaBoton paciente={paciente} />
         </div>
