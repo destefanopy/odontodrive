@@ -610,3 +610,54 @@ export async function updatePresupuesto(id: string, data: Partial<Omit<Presupues
   return updatedRecord as PresupuestoDB;
 }
 
+/**
+ * API DE RECETAS (Historial)
+ */
+
+export interface RecetaDB {
+  id: string;
+  paciente_id: string;
+  user_id: string;
+  medicamentos: any;
+  created_at: string;
+}
+
+export async function createReceta(data: Omit<RecetaDB, 'id' | 'user_id' | 'created_at'>) {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
+  const { data: newRecord, error } = await supabase.from('recetas').insert({
+    ...data,
+    user_id: authData.user.id
+  }).select().single();
+
+  if (error) throw new Error(error.message);
+  return newRecord as RecetaDB;
+}
+
+export async function getRecetas(pacienteId: string): Promise<RecetaDB[]> {
+  const { data, error } = await supabase
+    .from('recetas')
+    .select('*')
+    .eq('paciente_id', pacienteId)
+    .order('created_at', { ascending: false });
+
+  if (error && error.code !== '42P01') {
+    console.error("Error obteniendo recetas:", error.message);
+    return [];
+  }
+  return (data || []) as RecetaDB[];
+}
+
+export async function deleteReceta(id: string) {
+  const { error } = await supabase.from('recetas').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+export async function updateReceta(id: string, data: Partial<Omit<RecetaDB, 'id' | 'user_id' | 'created_at'>>) {
+  const { data: updatedRecord, error } = await supabase.from('recetas').update(data).eq('id', id).select().single();
+  if (error) throw new Error(error.message);
+  return updatedRecord as RecetaDB;
+}
+

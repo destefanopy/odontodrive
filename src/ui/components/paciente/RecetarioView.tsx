@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Paciente } from "@/core/api";
+import { Paciente, RecetaDB, getRecetas, createReceta, updateReceta } from "@/core/api";
 import { supabase } from "@/infrastructure/supabase";
 import { Plus, Trash2, Printer, ClipboardList, Loader2 } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
@@ -22,6 +22,11 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
   const [currentNombre, setCurrentNombre] = useState("");
   const [currentIndicaciones, setCurrentIndicaciones] = useState("");
   const [loadingConfig, setLoadingConfig] = useState(true);
+
+  // Historial
+  const [historial, setHistorial] = useState<RecetaDB[]>([]);
+  const [recetaId, setRecetaId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Clinic profile
   const [clinicName, setClinicName] = useState("");
@@ -48,6 +53,39 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
       setLoadingConfig(false);
     });
   }, []);
+
+  useEffect(() => {
+    getRecetas(paciente.id).then(setHistorial);
+  }, [paciente.id]);
+
+  const handleSelectHistorial = (receta: RecetaDB) => {
+    setMedicamentos(receta.medicamentos || []);
+    setRecetaId(receta.id);
+  };
+
+  const handleNueva = () => {
+    setMedicamentos([]);
+    setRecetaId(null);
+  };
+
+  const handleGuardar = async () => {
+    if (medicamentos.length === 0) return;
+    setIsSaving(true);
+    try {
+      if (recetaId) {
+        await updateReceta(recetaId, { medicamentos });
+      } else {
+        const saved = await createReceta({ paciente_id: paciente.id, medicamentos });
+        setRecetaId(saved.id);
+      }
+      const data = await getRecetas(paciente.id);
+      setHistorial(data);
+    } catch (err: any) {
+      alert("Error al guardar receta: " + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,14 +157,17 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
             Añade los medicamentos e indicaciones aquí. Los datos de la clínica se obtienen automáticamente de tu Perfil de Cuenta.
           </p>
         </div>
-        <div>
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
-            onClick={handlePrint}
-            disabled={medicamentos.length === 0}
-            className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-black transition-all disabled:opacity-50"
+            onClick={async () => {
+              await handleGuardar();
+              handlePrint();
+            }}
+            disabled={medicamentos.length === 0 || isSaving}
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-black transition-all disabled:opacity-50"
           >
-            <Printer className="w-5 h-5" />
-            Imprimir Receta
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
+            Guardar e Imprimir
           </button>
         </div>
       </div>
@@ -134,6 +175,35 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Formulario Izquierda */}
         <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col gap-6">
+          
+          {/* Historial */}
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+              <h4 className="font-bold text-gray-900 text-sm">Historial</h4>
+              <button type="button" onClick={handleNueva} className="text-xs font-bold text-accent hover:underline">
+                Nueva Receta
+              </button>
+            </div>
+            {historial.length > 0 ? (
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {historial.map(r => (
+                  <button
+                    key={r.id}
+                    onClick={() => handleSelectHistorial(r)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border",
+                      recetaId === r.id ? "bg-accent/10 border-accent text-accent" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
+                    )}
+                  >
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-500 italic">No hay recetas guardadas.</p>
+            )}
+          </div>
+
           <form onSubmit={handleAdd} className="space-y-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Medicamento o Tratamiento</label>
