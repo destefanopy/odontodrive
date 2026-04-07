@@ -25,7 +25,6 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   // Editor Activo
   const [activeId, setActiveId] = useState<string | null>(null);
   const [items, setItems] = useState<PresupuestoItem[]>([{ id: crypto.randomUUID(), descripcion: "", costo: 0 }]);
-  const [descuento, setDescuento] = useState<number>(0);
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
 
@@ -73,14 +72,12 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   const handleCreateNew = () => {
     setActiveId(null);
     setItems([{ id: crypto.randomUUID(), descripcion: "", costo: 0 }]);
-    setDescuento(0);
     setMessage("");
   };
 
   const handleSelectPast = (p: PresupuestoDB) => {
     setActiveId(p.id);
     setItems(p.items);
-    setDescuento(Number(p.descuento));
     setMessage("");
   };
 
@@ -96,8 +93,9 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
-  const subtotal = items.reduce((acc, item) => acc + (Number(item.costo) || 0), 0);
-  const total = Math.max(0, subtotal - (Number(descuento) || 0));
+  const total = items.reduce((acc, item) => acc + (Number(item.costo) || 0), 0);
+  const subtotal = total;
+  const descuento = 0;
 
   const formatGs = (num: number) => new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG", maximumFractionDigits: 0 }).format(num);
 
@@ -209,7 +207,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
                     {formatGs(p.total)}
                   </h4>
                   <p className={`text-xs font-medium mt-1 ${activeId === p.id ? 'text-emerald-700' : 'text-gray-500'}`}>
-                    {Array.isArray(p.items) ? p.items.length : 0} ítems / {Number(p.descuento) > 0 ? 'Con descuento' : 'Tarifa base'}
+                    {Array.isArray(p.items) ? p.items.length : 0} ítems
                   </p>
                 </div>
               ))
@@ -309,29 +307,10 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
           </div>
 
           {/* Totales */}
-          <div className="mt-10 border-t border-gray-100 pt-6 flex flex-col md:flex-row justify-between items-end gap-6">
-            <div className="w-full md:w-1/3 space-y-2">
-              <label className="text-sm font-bold text-gray-700">Descuento Global en Dinero</label>
-              <input
-                type="number"
-                value={descuento || ""}
-                onChange={(e) => setDescuento(Number(e.target.value))}
-                placeholder="0"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none font-bold text-gray-900"
-              />
-            </div>
-
-            <div className={`w-full md:w-1/3 bg-white border rounded-2xl p-5 shadow-sm space-y-3 ${activeId ? 'border-gray-200' : 'border-emerald-100'}`}>
-              <div className="flex justify-between text-gray-600 font-medium text-sm">
-                <span>Subtotal:</span>
-                <span>{formatGs(subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-emerald-600 font-medium text-sm">
-                <span>Descuento:</span>
-                <span>- {formatGs(descuento)}</span>
-              </div>
-              <div className="flex justify-between text-xl font-black text-gray-900 pt-3 border-t border-gray-100">
-                <span>Total a Pagar:</span>
+          <div className="mt-8 border-t border-gray-100 pt-6 flex justify-end">
+            <div className={`w-full md:w-1/2 bg-white border rounded-2xl p-6 shadow-sm space-y-3 ${activeId ? 'border-gray-200' : 'border-emerald-100'}`}>
+              <div className="flex justify-between text-2xl font-black text-gray-900">
+                <span>Total Estimado:</span>
                 <span>{formatGs(total)}</span>
               </div>
             </div>
