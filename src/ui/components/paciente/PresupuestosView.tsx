@@ -256,14 +256,14 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
         <div className={`bg-white border rounded-3xl p-6 overflow-hidden transition-all ${activeId ? 'border-gray-200 opacity-95' : 'border-gray-100 shadow-sm'}`}>
           <div className="flex flex-col gap-4">
             <div className="grid grid-cols-12 gap-4 px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-xs font-bold text-gray-600 uppercase tracking-wider">
-              <div className="col-span-8 md:col-span-9">Tratamiento / Descripción</div>
-              <div className="col-span-3 md:col-span-2 text-right">Costo (Gs)</div>
+              <div className="col-span-7 md:col-span-7">Tratamiento / Descripción</div>
+              <div className="col-span-4 md:col-span-4 text-right">Costo (Gs)</div>
               <div className="col-span-1 text-center"></div>
             </div>
 
             {items.map((item, index) => (
-              <div key={item.id} className="grid grid-cols-12 gap-4 items-center">
-                <div className="col-span-8 md:col-span-9 relative group">
+              <div key={item.id} className="grid grid-cols-12 gap-4 items-center mt-2">
+                <div className="col-span-7 md:col-span-7 relative group">
                   <input
                     type="text"
                     value={item.descripcion}
@@ -276,7 +276,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
                     {commonTreatments.map(t => <option key={t} value={t} />)}
                   </datalist>
                 </div>
-                <div className="col-span-3 md:col-span-2">
+                <div className="col-span-4 md:col-span-4">
                   <input
                     type="number"
                     value={item.costo === 0 && !item.descripcion ? "" : item.costo}
