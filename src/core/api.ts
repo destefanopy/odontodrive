@@ -604,3 +604,9 @@ export async function deletePresupuesto(id: string) {
   return true;
 }
 
+export async function updatePresupuesto(id: string, data: Partial<Omit<PresupuestoDB, 'id' | 'user_id' | 'created_at'>>) {
+  const { data: updatedRecord, error } = await supabase.from('presupuestos').update(data).eq('id', id).select().single();
+  if (error) throw new Error(error.message);
+  return updatedRecord as PresupuestoDB;
+}
+

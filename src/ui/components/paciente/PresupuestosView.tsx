@@ -4,7 +4,7 @@ import { useState, useRef, useTransition, useEffect } from "react";
 import { Plus, Trash2, Printer, Save, FileText, CheckCircle2 } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import PresupuestoPDFTemplate from "./PresupuestoPDFTemplate";
-import { Paciente, createPresupuesto, getPresupuestos, deletePresupuesto, PresupuestoDB } from "@/core/api";
+import { Paciente, createPresupuesto, getPresupuestos, deletePresupuesto, PresupuestoDB, updatePresupuesto } from "@/core/api";
 import { authService } from "@/core/auth";
 
 interface PresupuestoItem {
@@ -85,17 +85,14 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   };
 
   const addItem = () => {
-    if (activeId) return; // Si es histórico, no permitimos editar
     setItems([...items, { id: crypto.randomUUID(), descripcion: "", costo: 0 }]);
   };
 
   const removeItem = (id: string) => {
-    if (activeId) return;
     setItems(items.filter(item => item.id !== id));
   };
 
   const updateItem = (id: string, field: keyof PresupuestoItem, value: string | number) => {
-    if (activeId) return;
     setItems(items.map(item => item.id === id ? { ...item, [field]: value } : item));
   };
 
@@ -117,12 +114,6 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   ];
 
   const handleSave = () => {
-    if (activeId) {
-      setMessage("Este presupuesto pertenece al archivo histórico.");
-      setTimeout(() => setMessage(""), 3000);
-      return;
-    }
-    
     if (items.every(i => !i.descripcion || i.costo === 0)) {
       setMessage("Agrega al menos un ítem válido para guardar.");
       setTimeout(() => setMessage(""), 3000);
@@ -131,16 +122,27 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
 
     startTransition(async () => {
       try {
-        const np = await createPresupuesto({
-          paciente_id: paciente.id,
-          items,
-          descuento,
-          subtotal,
-          total
-        });
-        setActiveId(np.id);
-        await loadHistoryData();
-        setMessage("Presupuesto guardado exitosamente en el historial.");
+        if (activeId) {
+          await updatePresupuesto(activeId, {
+            items,
+            descuento,
+            subtotal,
+            total
+          });
+          await loadHistoryData();
+          setMessage("Presupuesto actualizado exitosamente.");
+        } else {
+          const np = await createPresupuesto({
+            paciente_id: paciente.id,
+            items,
+            descuento,
+            subtotal,
+            total
+          });
+          setActiveId(np.id);
+          await loadHistoryData();
+          setMessage("Presupuesto guardado exitosamente en el historial.");
+        }
         setTimeout(() => setMessage(""), 4000);
       } catch (e: any) {
         console.error("Presupuesto Save Error:", e);
@@ -226,16 +228,14 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {!activeId && (
-              <button
-                onClick={handleSave}
-                disabled={isPending}
-                className="flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-100 transition-all disabled:opacity-70"
-              >
-                <Save className="w-4 h-4" />
-                {isPending ? "Guardando..." : "Guardar Presupuesto"}
-              </button>
-            )}
+            <button
+              onClick={handleSave}
+              disabled={isPending}
+              className="flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:bg-emerald-100 transition-all disabled:opacity-70"
+            >
+              <Save className="w-4 h-4" />
+              {isPending ? "Guardando..." : activeId ? "Actualizar Presupuesto" : "Guardar Presupuesto"}
+            </button>
             
             <button
               onClick={() => handlePrint()}
@@ -271,49 +271,41 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
                     value={item.descripcion}
                     onChange={(e) => updateItem(item.id, "descripcion", e.target.value)}
                     placeholder="Ej. Limpieza completa..."
-                    disabled={!!activeId}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none font-medium text-gray-800 disabled:bg-gray-50 disabled:text-gray-600"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none font-medium text-gray-800"
                     list={`treatments-${index}`}
                   />
-                  {!activeId && (
-                    <datalist id={`treatments-${index}`}>
-                      {commonTreatments.map(t => <option key={t} value={t} />)}
-                    </datalist>
-                  )}
+                  <datalist id={`treatments-${index}`}>
+                    {commonTreatments.map(t => <option key={t} value={t} />)}
+                  </datalist>
                 </div>
                 <div className="col-span-3 md:col-span-2">
                   <input
                     type="number"
-                    value={item.costo || ""}
+                    value={item.costo === 0 && !item.descripcion ? "" : item.costo}
                     onChange={(e) => updateItem(item.id, "costo", Number(e.target.value))}
                     placeholder="0"
-                    disabled={!!activeId}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none font-bold text-gray-900 text-right disabled:bg-gray-50 disabled:text-gray-600"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none font-bold text-gray-900 text-right"
                   />
                 </div>
                 <div className="col-span-1 flex justify-center">
-                  {!activeId && (
-                    <button 
-                      onClick={() => removeItem(item.id)}
-                      disabled={items.length === 1}
-                      className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  )}
+                  <button 
+                    onClick={() => removeItem(item.id)}
+                    disabled={items.length === 1}
+                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all disabled:opacity-30"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             ))}
 
-            {!activeId && (
-              <button
-                onClick={addItem}
-                className="flex items-center gap-2 self-start mt-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded-xl text-sm font-bold transition-all border border-dashed border-emerald-300"
-              >
-                <Plus className="w-4 h-4" />
-                + Añadir Fila
-              </button>
-            )}
+            <button
+              onClick={addItem}
+              className="flex items-center gap-2 self-start mt-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded-xl text-sm font-bold transition-all border border-dashed border-emerald-300"
+            >
+              <Plus className="w-4 h-4" />
+              + Añadir Fila
+            </button>
           </div>
 
           {/* Totales */}
@@ -325,8 +317,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
                 value={descuento || ""}
                 onChange={(e) => setDescuento(Number(e.target.value))}
                 placeholder="0"
-                disabled={!!activeId}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none font-bold text-gray-900 disabled:bg-gray-50"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none font-bold text-gray-900"
               />
             </div>
 
