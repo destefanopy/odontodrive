@@ -57,7 +57,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="h-20 bg-background flex items-center justify-between px-4 lg:px-8 z-10 sticky top-0 border-b border-gray-200 lg:border-none">
+      <header className="h-16 lg:hidden bg-background flex items-center justify-between px-4 z-10 sticky top-0 border-b border-gray-200 shadow-sm">
         
         {/* Mobile Hamburger Button */}
         <div className="flex items-center gap-2 lg:hidden">
@@ -74,27 +74,7 @@ export default function Header() {
 
 
 
-        <div className="flex items-center gap-3 lg:gap-6">
-          {/* Desktop Search */}
-          <div className="relative group hidden lg:block">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-accent transition-colors" />
-            <input
-              type="text"
-              placeholder="Buscar paciente..."
-              className="pl-11 pr-4 py-2.5 rounded-full border-none bg-white text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 w-72 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] transition-all"
-            />
-          </div>
-          
-          {/* Mobile Search Button */}
-          <button className="lg:hidden p-2 rounded-full bg-white text-gray-800 shadow-sm">
-             <Search className="w-5 h-5" />
-          </button>
 
-          <button className="relative w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-50 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] transition-all hover:scale-105 active:scale-95">
-            <Bell className="w-5 h-5 text-gray-800" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-accent rounded-full border-2 border-white box-content shadow-sm"></span>
-          </button>
-        </div>
       </header>
 
       {/* Mobile Slide-over Menu */}
