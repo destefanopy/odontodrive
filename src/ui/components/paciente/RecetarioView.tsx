@@ -145,65 +145,100 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
   const doctorName = clinicName; // En el formato parece ser el nombre del doctor en grande
   const edad = calcularEdad(paciente.fecha_nacimiento);
 
+  const handleDelete = async (id: string) => {
+    // A placeholder if we want to delete later. Currently didn't import deleteReceta so just reload.
+    // If we want it to work: require `deleteReceta`
+    if (!confirm("¿Borrar esta receta permanentemente?")) return;
+    try {
+      const { deleteReceta } = await import("@/core/api");
+      await deleteReceta(id);
+      if (recetaId === id) handleNueva();
+      getRecetas(paciente.id).then(setHistorial);
+    } catch (err: any) {
+      alert("Error al borrar la receta: " + err.message);
+    }
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Título de la sección */}
-      <div className="flex flex-col md:flex-row gap-6 justify-between">
-        <div className="space-y-2">
-          <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
-            <ClipboardList className="w-5 h-5 text-accent" /> Recetario Interactivo
-          </h2>
-          <p className="text-sm text-gray-600 font-medium max-w-lg">
-            Añade los medicamentos e indicaciones aquí. Los datos de la clínica se obtienen automáticamente de tu Perfil de Cuenta.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={async () => {
-              await handleGuardar();
-              handlePrint();
-            }}
-            disabled={medicamentos.length === 0 || isSaving}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-black transition-all disabled:opacity-50"
-          >
-            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
-            Guardar e Imprimir
-          </button>
+    <div className="flex flex-col xl:flex-row gap-8 animate-in fade-in duration-300">
+      
+      {/* Columna Izquierda: Historial */}
+      <div className="w-full xl:w-1/3 flex flex-col gap-4">
+        <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm h-full max-h-[700px] flex flex-col">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h3 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-accent" />
+              Historial
+            </h3>
+            <button 
+              onClick={handleNueva} 
+              className="text-accent bg-accent/10 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-accent/20 transition-colors shadow-sm"
+            >
+              + Nueva
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto pr-2 space-y-3">
+            {loadingConfig ? (
+              <p className="text-sm font-medium text-gray-500 text-center mt-6 animate-pulse">Cargando...</p>
+            ) : historial.length === 0 ? (
+              <div className="text-center p-6 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50 mt-4">
+                 <p className="text-sm font-medium text-gray-500">No hay recetas previas guardadas.</p>
+              </div>
+            ) : (
+              historial.map(r => (
+                <div 
+                  key={r.id} 
+                  onClick={() => handleSelectHistorial(r)} 
+                  className={`p-4 rounded-2xl cursor-pointer border transition-all ${recetaId === r.id ? 'border-accent bg-accent/5 shadow-sm' : 'border-gray-100 bg-white hover:border-accent/30 hover:shadow-sm'}`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <span className={`text-xs font-bold px-2 py-1 rounded-md ${recetaId === r.id ? 'bg-accent/20 text-accent' : 'bg-gray-100 text-gray-600'}`}>
+                      {new Date(r.created_at).toLocaleDateString()}
+                    </span>
+                    <button onClick={(e) => { e.stopPropagation(); handleDelete(r.id); }} className="text-gray-300 hover:text-red-500 hover:bg-red-50 p-1 rounded-md transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className={`text-sm font-bold truncate ${recetaId === r.id ? 'text-gray-900' : 'text-gray-700'}`}>
+                    {Array.isArray(r.medicamentos) && r.medicamentos.length > 0 ? r.medicamentos.map((m: any) => m.nombre).join(', ') : 'Sin medicamentos'}
+                  </p>
+                  <p className={`text-xs font-medium mt-1 ${recetaId === r.id ? 'text-accent' : 'text-gray-500'}`}>
+                    {Array.isArray(r.medicamentos) ? r.medicamentos.length : 0} medicamento(s)
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Formulario Izquierda */}
-        <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex flex-col gap-6">
-          
-          {/* Historial */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-              <h4 className="font-bold text-gray-900 text-sm">Historial</h4>
-              <button type="button" onClick={handleNueva} className="text-xs font-bold text-accent hover:underline">
-                Nueva Receta
-              </button>
-            </div>
-            {historial.length > 0 ? (
-              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                {historial.map(r => (
-                  <button
-                    key={r.id}
-                    onClick={() => handleSelectHistorial(r)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border",
-                      recetaId === r.id ? "bg-accent/10 border-accent text-accent" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50"
-                    )}
-                  >
-                    {new Date(r.created_at).toLocaleDateString()}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-gray-500 italic">No hay recetas guardadas.</p>
-            )}
+      {/* Columna Derecha: Editor/Vista Principal */}
+      <div className="w-full xl:w-2/3 space-y-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-extrabold text-gray-900">{recetaId ? "Receta Guardada" : "Nueva Receta"}</h2>
+            <p className="text-sm font-medium text-gray-600 mt-1">
+              Añade los medicamentos e indicaciones aquí.
+            </p>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={async () => {
+                await handleGuardar();
+                handlePrint();
+              }}
+              disabled={medicamentos.length === 0 || isSaving}
+              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl shadow-md hover:bg-black transition-all disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
+              Guardar e Imprimir
+            </button>
+          </div>
+        </div>
 
+        {/* Formularios */}
+        <div className={`bg-gray-50 border rounded-3xl p-6 overflow-hidden transition-all ${recetaId ? 'border-gray-200' : 'border-gray-100 shadow-sm'}`}>
           <form onSubmit={handleAdd} className="space-y-4">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">Medicamento o Tratamiento</label>
@@ -212,7 +247,7 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
                 value={currentNombre}
                 onChange={(e) => setCurrentNombre(e.target.value)}
                 placeholder="Ej. Amoxicilina 875mg / Ác. Clavulánico 125mg"
-                className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm font-medium"
+                className="block w-full px-3 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm font-medium"
               />
             </div>
             <div>
@@ -222,13 +257,13 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
                 onChange={(e) => setCurrentIndicaciones(e.target.value)}
                 placeholder="Ej. Tomar 1 comprimido cada 12 hs por 7 días"
                 rows={3}
-                className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm resize-none"
+                className="block w-full px-3 py-3 border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm resize-none"
               />
             </div>
             <button
               type="submit"
               disabled={!currentNombre.trim() || !currentIndicaciones.trim()}
-              className="w-full flex justify-center items-center gap-2 py-3 bg-white border border-gray-200 text-gray-800 font-bold rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50"
+              className="flex justify-center items-center gap-2 px-4 py-2 mt-2 bg-white border border-gray-200 text-gray-800 font-bold rounded-xl hover:bg-gray-100 transition-colors disabled:opacity-50 text-sm"
             >
               <Plus className="w-4 h-4" />
               Añadir a Receta
@@ -236,8 +271,8 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
           </form>
 
           {/* Lista de Edición */}
-          <div className="space-y-3 flex-1">
-            <h4 className="font-bold text-gray-900 border-b border-gray-200 pb-2">Elementos Agregados</h4>
+          <div className="mt-8 pt-6 border-t border-gray-200 space-y-3">
+            <h4 className="font-bold text-gray-900 border-gray-200 pb-2">Elementos Agregados ({medicamentos.length})</h4>
             {medicamentos.length === 0 ? (
               <p className="text-sm text-gray-500 italic">No hay medicamentos en la receta.</p>
             ) : (
@@ -253,49 +288,6 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
                 </div>
               ))
             )}
-          </div>
-        </div>
-
-        {/* Previsualización Derecha (visible solo en pantalla) */}
-        <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden hidden lg:flex">
-          <span className="absolute top-2 right-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Previsualización (Solo referencia)</span>
-          <div className="w-full max-w-md bg-white p-8 border border-gray-100 shadow-sm rounded-xl text-black flex flex-col opacity-50 select-none pointer-events-none grayscale">
-            {/* Membrete Clínica */}
-            <div className="flex items-center justify-between pb-6 border-b-2 border-gray-900 mb-6">
-              {clinicLogoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={clinicLogoUrl} alt="Logo Clínica" className="h-16 w-auto object-contain" />
-              ) : (
-                <div className="h-16 w-16 bg-gray-100 flex items-center justify-center rounded-lg text-gray-400 text-xs text-center font-bold">
-                  Sin Logo
-                </div>
-              )}
-              <div className="text-right">
-                <h1 className="text-lg font-black tracking-tight">{clinicName}</h1>
-                <p className="text-xs font-semibold text-gray-600 mt-1">{clinicAddress}</p>
-                <p className="text-xs font-semibold text-gray-600 mt-0.5">{clinicPhone}</p>
-              </div>
-            </div>
-
-            {/* Datos Paciente */}
-            <div className="mb-8 space-y-2 flex justify-between items-end border-b border-gray-200 pb-4">
-              <div>
-                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Paciente</p>
-                <p className="text-base font-black">{paciente.nombres_apellidos}</p>
-              </div>
-            </div>
-
-            {/* Cuerpo de la Receta */}
-            <div className="flex-1 min-h-[150px]">
-              <h2 className="text-2xl font-black mb-6 italic font-serif">Rp/</h2>
-              <div className="space-y-6 pl-4">
-                {medicamentos.length === 0 ? (
-                  <p className="text-gray-300 italic text-sm">El recetario está vacío...</p>
-                ) : (
-                  <p className="text-gray-500 text-sm font-bold">{medicamentos.length} medicamento(s) agregado(s)...</p>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>
