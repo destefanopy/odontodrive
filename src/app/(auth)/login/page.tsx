@@ -22,7 +22,7 @@ export default function LoginPage() {
       const { error } = await authService.signIn(email, password);
       if (error) throw error;
       
-      router.push("/agenda");
+      router.push("/pacientes");
     } catch (err: any) {
       setError(err.message || "Ocurrió un error al iniciar sesión.");
     } finally {

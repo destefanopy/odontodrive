@@ -13,7 +13,23 @@ interface DatosProps {
 export default function DatosPersonalesForm({ paciente, onUpdate }: DatosProps) {
   const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fechaNac, setFechaNac] = useState(paciente.fecha_nacimiento || "");
   const router = useRouter();
+
+  const calcularEdadTexto = (fecha: string) => {
+    if (!fecha) return "";
+    const hoy = new Date();
+    // Prevenir desfases por timezone si el input es YYYY-MM-DD local
+    const [year, month, day] = fecha.split('-');
+    if (!year || !month || !day) return "";
+    const cumpleanos = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    let edad = hoy.getFullYear() - cumpleanos.getFullYear();
+    const mes = hoy.getMonth() - cumpleanos.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < cumpleanos.getDate())) {
+      edad--;
+    }
+    return `${edad} años`;
+  };
   
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -104,14 +120,22 @@ export default function DatosPersonalesForm({ paciente, onUpdate }: DatosProps) 
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-rose-500" />
-            Fecha de Nacimiento
+          <label className="text-sm font-bold text-gray-700 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-rose-500" />
+              Fecha de Nacimiento
+            </span>
+            {fechaNac && (
+              <span className="text-xs text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md font-bold text-right ml-auto">
+                {calcularEdadTexto(fechaNac)}
+              </span>
+            )}
           </label>
           <input
             type="date"
             name="fecha_nacimiento"
-            defaultValue={paciente.fecha_nacimiento || ""}
+            value={fechaNac}
+            onChange={(e) => setFechaNac(e.target.value)}
             className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all text-sm outline-none"
           />
         </div>

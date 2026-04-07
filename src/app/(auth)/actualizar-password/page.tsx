@@ -41,7 +41,7 @@ export default function UpdatePasswordPage() {
       if (error) throw error;
       
       // Contraseña actualizada
-      router.push("/agenda");
+      router.push("/pacientes");
     } catch (err: any) {
       setError(err.message || "Ocurrió un error al actualizar la contraseña.");
     } finally {

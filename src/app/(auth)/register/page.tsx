@@ -32,7 +32,7 @@ export default function RegisterPage() {
       
       // Transición SPA para no interrumpir el flujo del token de Supabase en LocalStorage
       if (data?.session) {
-        router.push("/agenda");
+        router.push("/pacientes");
       } else {
         setIsSuccess(true);
       }
