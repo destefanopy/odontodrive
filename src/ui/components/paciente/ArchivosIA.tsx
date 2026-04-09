@@ -401,51 +401,53 @@ function GaleriaThumbnail({ doc, onViewer, onDelete, onMove, onAI }: { doc: Docu
   const nextPhase = phases[(currentPhaseIndex + 1) % phases.length];
 
   return (
-    <div className="group relative aspect-square rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
-       {isImage && doc.signedUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img 
-            src={doc.signedUrl} 
-            alt={doc.url_archivo.split('/').pop() || "Imagen clínica"}
-            className="w-full h-full object-cover mix-blend-multiply hover:mix-blend-normal transition-all duration-300 group-hover:scale-110"
-            onClick={() => onViewer(doc.signedUrl!)}
-          />
-       ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-50" onClick={() => window.open(doc.signedUrl, '_blank')}>
-            <FileText className="w-8 h-8 text-gray-800" />
-          </div>
-       )}
-       
-       <button 
-         onClick={(e) => { e.stopPropagation(); onDelete(doc.id, doc.url_archivo); }}
-         className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-sm"
-         title="Eliminar"
-       >
-         <Trash2 className="w-3.5 h-3.5" />
-       </button>
+    <div className="flex flex-col gap-2">
+      <div className="group relative aspect-square rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer">
+         {isImage && doc.signedUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img 
+              src={doc.signedUrl} 
+              alt={doc.url_archivo.split('/').pop() || "Imagen clínica"}
+              className="w-full h-full object-cover mix-blend-multiply hover:mix-blend-normal transition-all duration-300 group-hover:scale-110"
+              onClick={() => onViewer(doc.signedUrl!)}
+            />
+         ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-50" onClick={() => window.open(doc.signedUrl, '_blank')}>
+              <FileText className="w-8 h-8 text-gray-800" />
+            </div>
+         )}
+         
+         <button 
+           onClick={(e) => { e.stopPropagation(); onDelete(doc.id, doc.url_archivo); }}
+           className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-sm"
+           title="Eliminar"
+         >
+           <Trash2 className="w-3.5 h-3.5" />
+         </button>
 
-       {isImage && onAI && (
+         <button 
+           onClick={(e) => { e.stopPropagation(); onMove(doc.id, nextPhase); }}
+           className="absolute top-2 left-2 p-1.5 bg-white/80 backdrop-blur-md text-gray-900 rounded-lg opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm font-bold text-[10px] flex items-center gap-1"
+           title={`Mover a ${nextPhase}`}
+         >
+           Mover <MoveRight className="w-3 h-3 text-accent" />
+         </button>
+         
+         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+           <p className="text-[10px] text-white font-bold truncate">{doc.url_archivo.split('/').pop()}</p>
+           <p className="text-[9px] text-white/80">{new Date(doc.fecha_subida).toLocaleDateString()}</p>
+         </div>
+      </div>
+      
+      {isImage && onAI && (
          <button 
            onClick={(e) => { e.stopPropagation(); onAI(doc); }}
-           className="absolute bottom-2 right-2 z-10 p-1.5 bg-gray-900 text-accent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black shadow-sm"
-           title="Analizar Radiografía con IA"
+           className="w-full py-2 flex justify-center items-center gap-1.5 text-[11px] sm:text-xs font-bold bg-teal-50 text-teal-700 hover:bg-teal-100 rounded-xl transition-colors border border-teal-100 shadow-sm"
+           title="Analizar Imagen con IA"
          >
-           <BrainCircuit className="w-3.5 h-3.5" />
+           <BrainCircuit className="w-4 h-4" /> Analizar con IA
          </button>
-       )}
-
-       <button 
-         onClick={(e) => { e.stopPropagation(); onMove(doc.id, nextPhase); }}
-         className="absolute top-2 left-2 p-1.5 bg-white/80 backdrop-blur-md text-gray-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white shadow-sm font-bold text-[10px] flex items-center gap-1"
-         title={`Mover a ${nextPhase}`}
-       >
-         Mover <MoveRight className="w-3 h-3 text-accent" />
-       </button>
-       
-       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-         <p className="text-[10px] text-white font-bold truncate">{doc.url_archivo.split('/').pop()}</p>
-         <p className="text-[9px] text-white/80">{new Date(doc.fecha_subida).toLocaleDateString()}</p>
-       </div>
+      )}
     </div>
   );
 }
