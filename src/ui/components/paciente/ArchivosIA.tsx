@@ -187,7 +187,7 @@ export default function ArchivosIA({ pacienteId }: ArchivosIAProps) {
       <div className="flex flex-col md:flex-row gap-6">
         <div className="flex-1 space-y-2">
           <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
-            <HardDrive className="w-5 h-5 text-accent" /> Gabinete de Archivos e IA
+            <HardDrive className="w-5 h-5 text-accent" /> Gabinete de Archivos
           </h2>
           <p className="text-sm text-gray-600 font-medium">Sube todas las historias clínicas y radiografías bajo una infraestructura en la nube segura. Tus herramientas analíticas funcionarán a la perfección gracias a OdontólogoIA.</p>
         </div>

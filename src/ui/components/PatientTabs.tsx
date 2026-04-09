@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { User, Activity, CreditCard, FolderOpen, Video, FileText, Wallet, ClipboardList } from "lucide-react";
+import { User, Activity, CreditCard, FolderOpen, Video, FileText, Wallet, ClipboardList, BrainCircuit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import FichaClinicaForm from "./paciente/FichaClinicaForm";
 import OdontogramaVisual from "./paciente/OdontogramaVisual";
 import DatosPersonalesForm from "./paciente/DatosPersonalesForm";
 import PresupuestosView from "./paciente/PresupuestosView";
 import ArchivosIA from "./paciente/ArchivosIA";
+import OdontologoIA from "./paciente/OdontologoIA";
 import PagosView from "./paciente/PagosView";
 import RecetarioView from "./paciente/RecetarioView";
 import { AntecedentesMedicos, Paciente } from "@/core/api";
 
-type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos" | "pagos" | "recetario";
+type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos" | "pagos" | "recetario" | "ia";
 
 interface PatientTabsProps {
   paciente: Paciente;
@@ -32,7 +33,8 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
     { id: "odontograma", label: "Odontograma", icon: Activity },
     { id: "presupuestos", label: "Presupuestos", icon: CreditCard },
     { id: "pagos", label: "Abonos y Deudas", icon: Wallet },
-    { id: "archivos", label: "Archivos e IA", icon: FolderOpen },
+    { id: "archivos", label: "Archivos", icon: FolderOpen },
+    { id: "ia", label: "OdontólogoIA", icon: BrainCircuit },
     { id: "recetario", label: "Recetario", icon: ClipboardList },
   ];
 
@@ -100,6 +102,10 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
 
         {activeTab === "archivos" && (
           <ArchivosIA pacienteId={paciente.id} />
+        )}
+
+        {activeTab === "ia" && (
+          <OdontologoIA pacienteId={paciente.id} />
         )}
 
         {activeTab === "recetario" && <RecetarioView paciente={paciente} />}
