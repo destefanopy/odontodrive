@@ -18,6 +18,7 @@ export default function MiCuentaPage() {
   const [clinicTitle, setClinicTitle] = useState("Odontólogo/a");
   const [clinicRegProf, setClinicRegProf] = useState("");
   const [clinicColor, setClinicColor] = useState("#e8701a");
+  const [currencySymbol, setCurrencySymbol] = useState("Gs.");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   const PRESET_COLORS = [
@@ -48,6 +49,7 @@ export default function MiCuentaPage() {
         setClinicTitle(user.user_metadata?.clinic_title || "Odontólogo/a");
         setClinicRegProf(user.user_metadata?.clinic_reg_prof || "");
         setClinicColor(user.user_metadata?.clinic_color || "#e8701a");
+        setCurrencySymbol(user.user_metadata?.currency_symbol || "Gs.");
         
         supabase.from('perfiles').select('plan, created_at')
           .eq('id', user.id).single()
@@ -162,6 +164,7 @@ export default function MiCuentaPage() {
         clinic_title: clinicTitle,
         clinic_reg_prof: clinicRegProf,
         clinic_color: clinicColor,
+        currency_symbol: currencySymbol,
       };
 
       const { error } = await supabase.auth.updateUser(updates);
@@ -429,6 +432,18 @@ export default function MiCuentaPage() {
                       className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
                       placeholder="Av. Principal 123"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Símbolo de Moneda</label>
+                    <input
+                      type="text"
+                      value={currencySymbol}
+                      onChange={(e) => setCurrencySymbol(e.target.value)}
+                      className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all font-bold"
+                      placeholder="Ej. Gs., $, S/., €"
+                    />
+                    <p className="mt-2 text-xs text-gray-500">Este símbolo se usará en tus presupuestos, tablero y recibos.</p>
                   </div>
                 </div>
               </div>

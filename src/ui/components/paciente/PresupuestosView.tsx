@@ -37,6 +37,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   const [clinicName, setClinicName] = useState("");
   const [clinicPhone, setClinicPhone] = useState("");
   const [clinicAddress, setClinicAddress] = useState("");
+  const [currencySymbol, setCurrencySymbol] = useState("Gs.");
 
   useEffect(() => {
     loadHistoryData();
@@ -50,6 +51,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
         setClinicName(user.user_metadata?.clinic_name || "");
         setClinicPhone(user.user_metadata?.clinic_phone || user.user_metadata?.phone || "");
         setClinicAddress(user.user_metadata?.clinic_address || "");
+        setCurrencySymbol(user.user_metadata?.currency_symbol || "Gs.");
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -97,7 +99,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   const subtotal = total;
   const descuento = 0;
 
-  const formatGs = (num: number) => new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG", maximumFractionDigits: 0 }).format(num);
+  const formatCurrency = (num: number) => `${currencySymbol} ${num.toLocaleString("es-ES", { maximumFractionDigits: 0 })}`;
 
   const commonTreatments = [
     "Limpieza de sarro completa",
@@ -204,7 +206,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
                     </button>
                   </div>
                   <h4 className={`text-lg font-black truncate ${activeId === p.id ? 'text-emerald-900' : 'text-gray-900'}`}>
-                    {formatGs(p.total)}
+                    {formatCurrency(p.total)}
                   </h4>
                   <p className={`text-xs font-medium mt-1 ${activeId === p.id ? 'text-emerald-700' : 'text-gray-500'}`}>
                     {Array.isArray(p.items) ? p.items.length : 0} ítems
@@ -311,7 +313,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
             <div className={`w-full md:w-1/2 bg-white border rounded-2xl p-6 shadow-sm space-y-3 ${activeId ? 'border-gray-200' : 'border-emerald-100'}`}>
               <div className="flex justify-between text-2xl font-black text-gray-900">
                 <span>Total Estimado:</span>
-                <span>{formatGs(total)}</span>
+                <span>{formatCurrency(total)}</span>
               </div>
             </div>
           </div>
@@ -335,6 +337,7 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
           clinicName={clinicName}
           clinicPhone={clinicPhone}
           clinicAddress={clinicAddress}
+          currencySymbol={currencySymbol}
         />
       </div>
     </div>

@@ -21,6 +21,7 @@ interface PDFProps {
   clinicName?: string;
   clinicPhone?: string;
   clinicAddress?: string;
+  currencySymbol?: string;
 }
 
 const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
@@ -37,10 +38,11 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
     clinicRegProf = "",
     clinicName = "",
     clinicPhone = "",
-    clinicAddress = ""
+    clinicAddress = "",
+    currencySymbol = "Gs."
   }, ref) => {
     
-    const formatGs = (num: number) => new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG", maximumFractionDigits: 0 }).format(num);
+    const formatCurrency = (num: number) => `${currencySymbol} ${num.toLocaleString("es-ES", { maximumFractionDigits: 0 })}`;
     const dateStr = new Date().toLocaleDateString("es-PY", { year: 'numeric', month: 'long', day: 'numeric' });
 
     return (
@@ -107,7 +109,7 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
               {items.map((item, i) => (
                 <tr key={item.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                   <td className="py-4 px-4 font-medium text-gray-800">{item.descripcion || "Elemento sin descripción"}</td>
-                  <td className="py-4 px-4 font-bold text-gray-900 text-right">{formatGs(item.costo)}</td>
+                  <td className="py-4 px-4 font-bold text-gray-900 text-right">{formatCurrency(item.costo)}</td>
                 </tr>
               ))}
             </tbody>
@@ -119,7 +121,7 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
           <div className="w-80 bg-gray-50 rounded-2xl p-6 border border-gray-200 shadow-sm">
             <div className="flex justify-between mb-2 text-gray-800">
               <span className="font-medium">Subtotal</span>
-              <span>{formatGs(subtotal)}</span>
+              <span>{formatCurrency(subtotal)}</span>
             </div>
             {descuento > 0 && (
               <div 
@@ -127,7 +129,7 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
                 style={{ color: clinicColor }}
               >
                 <span className="font-medium">Descuento</span>
-                <span>-{formatGs(descuento)}</span>
+                <span>-{formatCurrency(descuento)}</span>
               </div>
             )}
             <div 
@@ -135,7 +137,7 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
               style={{ borderTopColor: clinicColor, color: clinicColor }}
             >
               <span className="font-black">Total</span>
-              <span className="font-black">{formatGs(total)}</span>
+              <span className="font-black">{formatCurrency(total)}</span>
             </div>
           </div>
         </div>

@@ -12,6 +12,7 @@ export default function PagosView({ paciente }: PagosViewProps) {
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [deudas, setDeudas] = useState<Deuda[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currencySymbol, setCurrencySymbol] = useState("Gs.");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -27,6 +28,13 @@ export default function PagosView({ paciente }: PagosViewProps) {
 
   useEffect(() => {
     cargarFinanzas();
+    import("@/infrastructure/supabase").then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user?.user_metadata?.currency_symbol) {
+          setCurrencySymbol(user.user_metadata.currency_symbol);
+        }
+      });
+    });
   }, [paciente.id]);
 
   const cargarFinanzas = async () => {
@@ -97,7 +105,7 @@ export default function PagosView({ paciente }: PagosViewProps) {
     }
   };
 
-  const formatGs = (num: number) => new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG", maximumFractionDigits: 0 }).format(num);
+  const formatCurrency = (num: number) => `${currencySymbol} ${num.toLocaleString("es-ES", { maximumFractionDigits: 0 })}`;
 
   const totalDeudas = deudas.reduce((acc, d) => acc + Number(d.monto), 0);
   const totalPagos = pagos.reduce((acc, p) => acc + Number(p.monto), 0);
@@ -127,12 +135,12 @@ export default function PagosView({ paciente }: PagosViewProps) {
       <div className={`p-8 rounded-3xl border-2 text-center transition-all ${saldoNeto >= 0 ? 'bg-emerald-50 border-emerald-100 text-emerald-900' : 'bg-red-50 border-red-100 text-red-900'}`}>
         <p className="text-sm font-bold uppercase tracking-wider mb-2 opacity-80">Saldo Actual del Paciente</p>
         <h1 className="text-5xl md:text-6xl font-black mb-4 tracking-tight">
-          {formatGs(Math.abs(saldoNeto))}
+          {formatCurrency(Math.abs(saldoNeto))}
         </h1>
         <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 text-sm font-bold opacity-90">
-          <span className="flex items-center gap-1.5"><ArrowUpCircle className="w-4 h-4 text-red-500" /> Total Cargos: {formatGs(totalDeudas)}</span>
+          <span className="flex items-center gap-1.5"><ArrowUpCircle className="w-4 h-4 text-red-500" /> Total Cargos: {formatCurrency(totalDeudas)}</span>
           <span className="hidden md:inline text-gray-300">|</span>
-          <span className="flex items-center gap-1.5"><ArrowDownCircle className="w-4 h-4 text-emerald-500" /> Total Abonado: {formatGs(totalPagos)}</span>
+          <span className="flex items-center gap-1.5"><ArrowDownCircle className="w-4 h-4 text-emerald-500" /> Total Abonado: {formatCurrency(totalPagos)}</span>
         </div>
         <div className="mt-4 font-bold text-sm">
           {saldoNeto === 0 && <span className="bg-gray-200 text-gray-800 px-3 py-1 rounded-full">Saldo Cero (Al día)</span>}
@@ -289,7 +297,7 @@ export default function PagosView({ paciente }: PagosViewProps) {
                 
                 <div className="flex items-center gap-6">
                   <span className={`text-lg font-black ${tx._tipo === 'Abono' ? 'text-emerald-600' : 'text-gray-900'}`}>
-                    {tx._tipo === 'Abono' ? '+' : '-'}{formatGs(tx.monto)}
+                    {tx._tipo === 'Abono' ? '+' : '-'}{formatCurrency(tx.monto)}
                   </span>
                   
                   <button 

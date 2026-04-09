@@ -6,12 +6,21 @@ import { Wallet, TrendingUp, Calendar, CreditCard, Loader2, ArrowUpCircle, Arrow
 import { cn } from "@/lib/utils";
 
 export default function FinanzasPage() {
+
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [deudas, setDeudas] = useState<Deuda[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currencySymbol, setCurrencySymbol] = useState("Gs.");
 
   useEffect(() => {
     cargarFinanzas();
+    import("@/infrastructure/supabase").then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user?.user_metadata?.currency_symbol) {
+          setCurrencySymbol(user.user_metadata.currency_symbol);
+        }
+      });
+    });
   }, []);
 
   const cargarFinanzas = async () => {
@@ -29,7 +38,9 @@ export default function FinanzasPage() {
     }
   };
 
-  const formatGs = (num: number) => new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG", maximumFractionDigits: 0 }).format(num);
+  const formatCurrency = (num: number) => {
+    return `${currencySymbol} ${num.toLocaleString("es-ES", { maximumFractionDigits: 0 })}`;
+  };
 
   const hoy = new Date();
   
@@ -74,7 +85,7 @@ export default function FinanzasPage() {
           </div>
           <div className="relative">
             <h3 className="text-emerald-700 font-bold text-xs tracking-wide uppercase">Ingresos Hoy</h3>
-            <p className="text-3xl font-black text-emerald-900 mt-2">{formatGs(ingresosHoy)}</p>
+            <p className="text-3xl font-black text-emerald-900 mt-2">{formatCurrency(ingresosHoy)}</p>
             <p className="text-[10px] text-emerald-600 mt-2 font-black uppercase tracking-widest">
               CAJA DEL DÍA
             </p>
@@ -87,7 +98,7 @@ export default function FinanzasPage() {
           </div>
           <div className="relative">
             <h3 className="text-gray-700 font-bold text-xs tracking-wide uppercase">Ingresos Mes</h3>
-            <p className="text-3xl font-black text-gray-900 mt-2">{formatGs(ingresosMes)}</p>
+            <p className="text-3xl font-black text-gray-900 mt-2">{formatCurrency(ingresosMes)}</p>
             <p className="text-[10px] text-gray-800 mt-2 font-black uppercase tracking-widest">
               PERIODO ACTUAL
             </p>
@@ -100,7 +111,7 @@ export default function FinanzasPage() {
           </div>
           <div className="relative">
             <h3 className="text-blue-700 font-bold text-xs tracking-wide uppercase">Caja Histórica</h3>
-            <p className="text-3xl font-black text-blue-900 mt-2">{formatGs(ingresosTotal)}</p>
+            <p className="text-3xl font-black text-blue-900 mt-2">{formatCurrency(ingresosTotal)}</p>
             <p className="text-[10px] text-blue-400 mt-2 font-black uppercase tracking-widest">
               ACUMULADO GLOBAL
             </p>
@@ -113,7 +124,7 @@ export default function FinanzasPage() {
           </div>
           <div className="relative">
             <h3 className="text-red-700 font-bold text-xs tracking-wide uppercase">Por Cobrar</h3>
-            <p className="text-3xl font-black text-red-900 mt-2">{formatGs(totalPorCobrar)}</p>
+            <p className="text-3xl font-black text-red-900 mt-2">{formatCurrency(totalPorCobrar)}</p>
             <p className="text-[10px] text-red-500 mt-2 font-black uppercase tracking-widest">
               DEUDA GLOBAL PACIENTES
             </p>
@@ -178,7 +189,7 @@ export default function FinanzasPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <span className={`text-base font-black ${tx._tipo === 'Abono' ? 'text-blue-700' : 'text-red-700'}`}>
-                        {tx._tipo === 'Abono' ? '+' : '-'}{formatGs(tx.monto)}
+                        {tx._tipo === 'Abono' ? '+' : '-'}{formatCurrency(tx.monto)}
                       </span>
                     </td>
                   </tr>
