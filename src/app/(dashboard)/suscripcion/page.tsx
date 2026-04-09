@@ -181,7 +181,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Free" id="free"
           storage="100 MB" price="0" 
-          features={["Historia Clínica Básica", "Agenda de Citas", "Odontograma", "Límite: Archivos muy ligeros"]}
+          features={["100 MB de almacenamiento", "Análisis IA Básico (Imágenes planas)", "Soporte estándar comunitario"]}
           isPopular={false} color="gray"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "free"}
         />
@@ -190,7 +190,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Básico" id="basico"
           storage="1 GB" price="4" 
-          features={["Todo lo de Free", "Análisis con IA (Imágenes/PDF)", "Soporte para fotos intraorales", "Ideal para consultorio único"]}
+          features={["1 GB de almacenamiento rápido", "Análisis IA Extendido (Textos largos)", "Soporte estándar por correo"]}
           isPopular={false} color="blue"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "basico"}
         />
@@ -199,7 +199,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Estándar" id="estandar"
           storage="5 GB" price="10" 
-          features={["Todo lo de Básico", "Archivos DICOM / STL ligeros", "Copias de seguridad automáticas", "Soporte por email"]}
+          features={["5 GB de almacenamiento DICOM", "Análisis IA Profundo y detallado", "Soporte prioritario asegurado"]}
           isPopular={true} color="accent"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "estandar"}
         />
@@ -208,7 +208,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Avanzado" id="avanzado"
           storage="20 GB" price="20" 
-          features={["Todo lo de Estándar", "Radiografías panorámicas masivas", "Múltiples sucursales ligeras", "Soporte prioritario 24/7"]}
+          features={["20 GB de almacenamiento masivo", "Análisis IA Médico sin límites", "Soporte prioritario 24/7"]}
           isPopular={false} color="purple"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "avanzado"}
         />
@@ -217,7 +217,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Premium" id="premium"
           storage="40 GB" price="30" 
-          features={["Todo lo de Avanzado", "Almacenamiento masivo sin límites", "Integración completa clínica", "Análisis médico avanzado"]}
+          features={["40 GB de almacenamiento expansible", "IA Dedicada de Máximo Rendimiento", "Soporte VIP Exclusivo 24/7"]}
           isPopular={false} color="amber" icon="👑"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "premium"}
         />
