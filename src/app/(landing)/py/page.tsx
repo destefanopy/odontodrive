@@ -1,4 +1,20 @@
+import { Metadata } from 'next';
 import LandingTemplate, { PricingPlan } from "@/ui/components/landing/LandingTemplate";
+
+export const metadata: Metadata = {
+  title: "OdontoDrive Paraguay | Software Odontológico Líder en Py",
+  description: "El mejor sistema de gestión para clínicas odontológicas en Paraguay. Historias clínicas, odontogramas y facturación en Guaraníes totalmente en la nube.",
+  keywords: ["software odontologico paraguay", "software dental asunción", "clínica dental sistema paraguay", "odontograma py", "facturacion guaranies odontologos", "historia clinica py"],
+  openGraph: {
+    title: "OdontoDrive Paraguay | Potencia Tu Clínica en Guaraníes",
+    description: "Registra cobros, recetarios con SET y presupuestos listos para Paraguay. Comienza tu prueba gratuita hoy.",
+    type: "website",
+    url: "https://odontodrive.com/py"
+  },
+  alternates: {
+    canonical: "https://odontodrive.com/py"
+  }
+};
 
 export default function ParaguayLandingPage() {
   const paraguayPlans: PricingPlan[] = [
