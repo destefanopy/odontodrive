@@ -87,7 +87,7 @@ export default function LandingTemplate({
           <div className="absolute inset-0 flex items-center justify-center bg-slate-800/80 backdrop-blur-sm z-10 opacity-0 group-hover:opacity-100 transition-opacity">
             <Link href="/login" className="px-6 py-3 bg-cyan-500 text-white font-bold rounded-full shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:scale-105 transition-transform">Probar Demo Real</Link>
           </div>
-          <div className="w-full h-full bg-[url('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?q=80&w=2600&auto=format&fit=crop')] bg-cover bg-center mix-blend-overlay"></div>
+          <div className="w-full h-full bg-[url('/imagen_landing.jpg')] bg-cover bg-center mix-blend-overlay"></div>
           {/* Falso Dashboard UI overlay para darle pinta de software */}
           <div className="absolute top-4 left-4 right-4 bottom-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-4 flex gap-4">
              <div className="w-64 bg-white/90 rounded-xl h-full hidden md:block"></div>
