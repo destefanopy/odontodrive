@@ -84,22 +84,12 @@ export default function LandingTemplate({
         
         {/* Hero Mockup Preview */}
         <div className="mt-20 block w-full aspect-video rounded-3xl bg-slate-900 shadow-2xl overflow-hidden border-8 border-slate-800 relative group">
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-800/80 backdrop-blur-sm z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm z-10 opacity-0 group-hover:opacity-100 transition-opacity">
             <Link href="/login" className="px-6 py-3 bg-cyan-500 text-white font-bold rounded-full shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:scale-105 transition-transform">Probar Demo Real</Link>
           </div>
-          <div className="w-full h-full bg-[url('/imagen_landing.jpg')] bg-cover bg-center mix-blend-overlay"></div>
-          {/* Falso Dashboard UI overlay para darle pinta de software */}
-          <div className="absolute top-4 left-4 right-4 bottom-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-4 flex gap-4">
-             <div className="w-64 bg-white/90 rounded-xl h-full hidden md:block"></div>
-             <div className="flex-1 bg-white/95 rounded-xl h-full shadow-inner flex flex-col p-6 space-y-4">
-               <div className="w-full h-12 bg-slate-100 rounded-lg animate-pulse"></div>
-               <div className="flex gap-4">
-                 <div className="w-1/3 h-32 bg-emerald-50 rounded-lg border border-cyan-100"></div>
-                 <div className="w-1/3 h-32 bg-emerald-50 rounded-lg border border-cyan-100"></div>
-                 <div className="w-1/3 h-32 bg-emerald-50 rounded-lg border border-cyan-100"></div>
-               </div>
-             </div>
-          </div>
+          
+          {/* Custom Promotional Image */}
+          <div className="w-full h-full bg-[url('/imagen_landing.jpg')] bg-cover bg-center"></div>
         </div>
       </section>
 
