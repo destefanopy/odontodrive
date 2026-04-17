@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Calendar, Clock, User, FileText } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Calendar, Clock, User, FileText, ChevronDown } from "lucide-react";
 import { Paciente, Cita, createCita, updateCita } from "@/core/api";
 import { useRouter } from "next/navigation";
 
@@ -17,6 +17,43 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
   const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
+
+  // Buscador de pacientes
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedPacienteId, setSelectedPacienteId] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Inicializar paciente seleccionado
+  useEffect(() => {
+    let initialId = null;
+    if (existingCita?.paciente_id) {
+      initialId = existingCita.paciente_id;
+    } else if (pacientes.length === 1) {
+      initialId = pacientes[0].id;
+    }
+    
+    if (initialId) {
+      setSelectedPacienteId(initialId);
+      const px = pacientes.find(p => p.id === initialId);
+      if (px) setSearchTerm(px.nombres_apellidos);
+    }
+  }, [existingCita, pacientes]);
+
+  // Cerrar dropdown al hacer click afuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const pacientesFiltrados = pacientes.filter(p => 
+    p.nombres_apellidos.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const formatDateForInput = (date: Date | null) => {
     if (!date) return "";
@@ -43,7 +80,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
       const horaFin = formData.get("hora_fin")?.toString();
 
       if (!pacienteId || !fecha || !horaInicio || !horaFin) {
-        throw new Error("Faltan datos obligatorios para agendar la cita.");
+        throw new Error("Faltan datos obligatorios o debes seleccionar un paciente de la lista.");
       }
 
       const fechaInicioStr = `${fecha}T${horaInicio}:00-03:00`;
@@ -68,7 +105,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
       }
 
       if (onSaveSuccess) onSaveSuccess();
-      router.refresh(); // Fallback for layouts relying on route fresh data
+      router.refresh();
       onClose();
     } catch (err: any) {
       setErrorMsg(err.message || "Error al procesar la cita.");
@@ -92,30 +129,74 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {errorMsg && (
-            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl mb-4 font-medium">
+            <div className="bg-red-50 text-red-600 text-sm p-3 rounded-xl mb-4 font-medium animate-in slide-in-from-top-1">
               {errorMsg}
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-2 relative" ref={dropdownRef}>
             <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
               <User className="w-4 h-4 text-[#31b8b3]" />
               Paciente
             </label>
-            <select
-              name="paciente_id"
-              required
-              defaultValue={existingCita?.paciente_id || (pacientes.length === 1 ? pacientes[0].id : "")}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
-            >
-              <option value="">Seleccione un paciente...</option>
-              {pacientes.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nombres_apellidos}
-                </option>
-              ))}
-            </select>
-            <input type="hidden" name="nombre_paciente" id="nombre_paciente_hidden" />
+            
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Buscar paciente por nombre..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setIsDropdownOpen(true);
+                  if (selectedPacienteId) {
+                    const match = pacientes.find(p => p.id === selectedPacienteId);
+                    if (match && match.nombres_apellidos !== e.target.value) {
+                      setSelectedPacienteId(null);
+                    }
+                  }
+                }}
+                onFocus={() => setIsDropdownOpen(true)}
+                className="w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              >
+                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+              </button>
+            </div>
+
+            {isDropdownOpen && (
+              <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-56 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+                {pacientesFiltrados.length === 0 ? (
+                  <div className="p-4 text-center text-sm font-medium text-gray-500">
+                    No se encontraron resultados
+                  </div>
+                ) : (
+                  <div className="py-2">
+                    {pacientesFiltrados.map((p) => (
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedPacienteId(p.id);
+                          setSearchTerm(p.nombres_apellidos);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors hover:bg-[#e6f7fa] hover:text-[#1e7e7a] ${
+                          selectedPacienteId === p.id ? "bg-[#e6f7fa] text-[#1e7e7a] font-bold" : "text-gray-700"
+                        }`}
+                      >
+                        {p.nombres_apellidos}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <input type="hidden" name="paciente_id" value={selectedPacienteId || ""} />
+            <input type="hidden" name="nombre_paciente" id="nombre_paciente_hidden" value={searchTerm} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -149,7 +230,6 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
           </div>
 
           <div className="grid grid-cols-2 gap-4 items-end">
-             {/* Offset to second column for visual balance */}
             <div className="space-y-2 col-start-2">
               <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-red-500" />
@@ -192,14 +272,6 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
               type="submit"
               disabled={isPending}
               className="px-5 py-2.5 rounded-xl text-sm font-bold bg-[#31b8b3] text-white shadow-md hover:bg-[#279490] disabled:opacity-70 transition-all"
-              onClick={(e) => {
-                const select = e.currentTarget.form?.querySelector('select[name="paciente_id"]') as HTMLSelectElement;
-                const hiddenInput = e.currentTarget.form?.querySelector('#nombre_paciente_hidden') as HTMLInputElement;
-                if (select && hiddenInput) {
-                  const selectedOption = select.options[select.selectedIndex];
-                  hiddenInput.value = selectedOption.text;
-                }
-              }}
             >
               {isPending ? "Procesando..." : existingCita ? "Guardar Cambios" : "Confirmar Cita"}
             </button>
