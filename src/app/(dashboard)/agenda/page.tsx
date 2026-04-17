@@ -1,7 +1,7 @@
 "use client";
 import CalendarioMaestro from "@/ui/components/agenda/CalendarioMaestro";
 import { useEffect, useState } from "react";
-import { getCitas, getUltimosPacientes, Cita, Paciente } from "@/core/api";
+import { getCitas, getTodosLosPacientes, Cita, Paciente } from "@/core/api";
 import { Loader2 } from "lucide-react";
 import RecordatoriosMananaBoton from "@/ui/components/agenda/RecordatoriosMananaBoton";
 
@@ -11,7 +11,7 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getCitas(), getUltimosPacientes()])
+    Promise.all([getCitas(), getTodosLosPacientes()])
       .then(([c, p]) => {
         setCitas(c);
         setPacientes(p);

@@ -105,7 +105,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
             <select
               name="paciente_id"
               required
-              defaultValue={existingCita?.paciente_id || ""}
+              defaultValue={existingCita?.paciente_id || (pacientes.length === 1 ? pacientes[0].id : "")}
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
             >
               <option value="">Seleccione un paciente...</option>
