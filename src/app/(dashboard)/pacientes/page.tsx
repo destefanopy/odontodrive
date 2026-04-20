@@ -39,9 +39,16 @@ export default function PacientesPage() {
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 mt-4 lg:mt-0">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
-            Pacientes
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
+              Pacientes
+            </h1>
+            {!loading && (
+              <span className="inline-flex items-center justify-center px-2.5 py-1 text-[11px] font-bold bg-[#e6f7fa] text-[#1e7e7a] border border-[#31b8b3]/30 rounded-full shadow-sm animate-in zoom-in-95 duration-300">
+                {pacientes.length} Registrado{pacientes.length !== 1 && 's'}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-gray-700">
             Listado general y registro de nuevos ingresos.
           </p>
