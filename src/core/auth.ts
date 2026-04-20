@@ -71,7 +71,7 @@ export const authService = {
 
   // --- ADMIN RPC FUNCIONES ---
   async adminGetAllUsers() {
-    return supabase.rpc('admin_get_all_users');
+    return supabase.rpc('admin_get_users_stats');
   },
 
   async adminUpgradePlan(userId: string, nuevoPlan: string) {

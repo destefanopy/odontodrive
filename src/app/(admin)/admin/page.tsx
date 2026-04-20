@@ -13,6 +13,10 @@ interface Profile {
   activo: boolean;
   es_admin: boolean;
   created_at: string;
+  num_pacientes?: number;
+  num_archivos?: number;
+  num_presupuestos?: number;
+  espacio_usado_bytes?: number;
 }
 
 export default function AdminConsole() {
@@ -108,19 +112,20 @@ export default function AdminConsole() {
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Plan</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Estado</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Rol</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Métricas</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {isLoading && users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-800">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-800">
                       Cargando profesionales...
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-gray-800">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-800">
                       No hay profesionales registrados aún.
                     </td>
                   </tr>
@@ -160,6 +165,22 @@ export default function AdminConsole() {
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-gray-700">
                         {u.es_admin ? "Administrador" : "Odontólogo"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1.5 min-w-32">
+                          <span className="text-[10px] font-bold text-gray-700 bg-gray-100 rounded-md px-2 py-0.5 w-max">
+                            {u.num_pacientes || 0} Pacientes
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-gray-100 rounded-md px-2 py-0.5 w-max">
+                            {u.num_archivos || 0} Archivos
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-gray-100 rounded-md px-2 py-0.5 w-max">
+                            {u.num_presupuestos || 0} Presupuestos
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-gray-100 rounded-md px-2 py-0.5 w-max">
+                            {((u.espacio_usado_bytes || 0) / (1024 * 1024)).toFixed(2)} MB Usados
+                          </span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         {!u.es_admin && (
