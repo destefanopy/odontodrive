@@ -16,14 +16,12 @@ export default function PagosView({ paciente }: PagosViewProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Selector de registro rápido en una sola línea
-  const [tipoOperacion, setTipoOperacion] = useState<"Cargo" | "Abono">("Cargo");
-  
+  // Registro rápido de entrada doble
   const [formulario, setFormulario] = useState({
-    monto: "",
     concepto: "",
+    costo: "",
+    entrega: "",
     metodo: "Efectivo",
-    fechaDialog: new Date().toISOString().split('T')[0] // Format YYYY-MM-DD
   });
 
   useEffect(() => {
@@ -54,34 +52,45 @@ export default function PagosView({ paciente }: PagosViewProps) {
   };
 
   const handleRegistrar = async () => {
-    const montoNumerico = Number(formulario.monto);
-    if (!montoNumerico || montoNumerico <= 0 || !formulario.concepto) {
-      alert("Por favor, ingresa un monto válido y un concepto.");
+    const costoNumerico = Number(formulario.costo) || 0;
+    const entregaNumerica = Number(formulario.entrega) || 0;
+    
+    if (!formulario.concepto || (costoNumerico === 0 && entregaNumerica === 0)) {
+      alert("Por favor, ingresa un concepto y al menos un monto (costo o entrega).");
       return;
     }
     
     setIsSubmitting(true);
     try {
-      const isoDate = new Date(formulario.fechaDialog + "T12:00:00Z").toISOString();
+      const isoDate = new Date().toISOString();
       
-      if (tipoOperacion === "Abono") {
-        await createPago({
-          paciente_id: paciente.id,
-          monto: montoNumerico,
-          metodo_pago: formulario.metodo,
-          concepto: formulario.concepto,
-          fecha_pago: isoDate
-        });
-      } else {
-        await createDeuda({
-          paciente_id: paciente.id,
-          monto: montoNumerico,
-          concepto: formulario.concepto,
-          fecha: isoDate
-        });
+      const operaciones = [];
+      if (costoNumerico > 0) {
+        operaciones.push(
+          createDeuda({
+            paciente_id: paciente.id,
+            monto: costoNumerico,
+            concepto: formulario.concepto,
+            fecha: isoDate
+          })
+        );
+      }
+      
+      if (entregaNumerica > 0) {
+        operaciones.push(
+          createPago({
+            paciente_id: paciente.id,
+            monto: entregaNumerica,
+            metodo_pago: formulario.metodo,
+            concepto: formulario.concepto,
+            fecha_pago: isoDate
+          })
+        );
       }
 
-      setFormulario({ monto: "", concepto: "", metodo: "Efectivo", fechaDialog: new Date().toISOString().split('T')[0] });
+      await Promise.all(operaciones);
+
+      setFormulario({ concepto: "", costo: "", entrega: "", metodo: "Efectivo" });
       await cargarFinanzas();
     } catch (error: any) {
       alert(`Error al registrar: ` + error.message);
@@ -148,71 +157,66 @@ export default function PagosView({ paciente }: PagosViewProps) {
         </div>
       </div>
 
-      {/* Quick Entry Form (Una sola línea) */}
+      {/* Quick Entry Form (Una sola línea - Doble Entrada) */}
       <div className="bg-white p-4 md:p-6 rounded-3xl border border-gray-200 shadow-sm animate-in fade-in slide-in-from-bottom-2">
         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4 px-2 flex items-center gap-2">
-          {tipoOperacion === "Cargo" ? <Receipt className="w-4 h-4 text-red-500" /> : <Wallet className="w-4 h-4 text-emerald-500" />}
-          Registro Rápido
+          <Landmark className="w-4 h-4 text-gray-600" />
+          Registrar Operación (Libro Diario)
         </h3>
         
         <div className="flex flex-col xl:flex-row items-center gap-3 w-full">
-          {/* Toggle Cargo/Abono */}
-          <div className="flex bg-gray-100 p-1.5 rounded-2xl w-full xl:w-auto shrink-0">
-            <button
-              onClick={() => setTipoOperacion("Cargo")}
-              className={`flex-1 xl:flex-none px-5 py-3 rounded-xl text-sm font-bold transition-all ${tipoOperacion === "Cargo" ? "bg-white shadow-sm text-red-600" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              Cargo
-            </button>
-            <button
-              onClick={() => setTipoOperacion("Abono")}
-              className={`flex-1 xl:flex-none px-5 py-3 rounded-xl text-sm font-bold transition-all ${tipoOperacion === "Abono" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              Abono
-            </button>
-          </div>
-
-          <div className="w-full relative flex-1">
+          <div className="w-full relative flex-[2] shrink-0 xl:shrink">
             <input
               type="text"
-              placeholder={tipoOperacion === "Cargo" ? "Concepto (Ej. Extracción)" : "Concepto (Ej. Adelanto efectivo)"}
+              placeholder="Tratamiento o Concepto..."
               value={formulario.concepto}
               onChange={e => setFormulario({...formulario, concepto: e.target.value})}
               className="w-full px-5 py-4 rounded-2xl bg-gray-50 border border-transparent focus:border-gray-200 focus:bg-white focus:ring-2 focus:ring-gray-100 outline-none text-sm font-bold transition-all"
             />
           </div>
           
-          <div className="w-full xl:w-52 relative shrink-0">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">Gs.</span>
-            <input
-              type="number"
-              placeholder="0"
-              value={formulario.monto}
-              onChange={e => setFormulario({...formulario, monto: e.target.value})}
-              className="w-full pl-12 pr-4 py-4 rounded-2xl bg-gray-50 border border-transparent focus:border-gray-200 focus:bg-white focus:ring-2 focus:ring-gray-100 outline-none font-black text-gray-900 transition-all text-sm"
-            />
-          </div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full flex-[3]">
+            <div className="w-full relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500 font-bold text-xs uppercase tracking-wider">Costo</span>
+              <input
+                type="number"
+                placeholder="0"
+                value={formulario.costo}
+                onChange={e => setFormulario({...formulario, costo: e.target.value})}
+                className="w-full pl-[4.5rem] pr-4 py-4 rounded-2xl bg-red-50/50 border border-transparent focus:border-red-100 focus:bg-red-50 focus:ring-2 focus:ring-red-100 outline-none font-black text-gray-900 transition-all text-sm placeholder:text-red-300"
+              />
+            </div>
+            
+            <div className="w-full relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600 font-bold text-xs uppercase tracking-wider">Abono</span>
+              <input
+                type="number"
+                placeholder="0"
+                value={formulario.entrega}
+                onChange={e => setFormulario({...formulario, entrega: e.target.value})}
+                className="w-full pl-[4.5rem] pr-4 py-4 rounded-2xl bg-emerald-50/50 border border-transparent focus:border-emerald-100 focus:bg-emerald-50 focus:ring-2 focus:ring-emerald-100 outline-none font-black text-gray-900 transition-all text-sm placeholder:text-emerald-300"
+              />
+            </div>
 
-          {tipoOperacion === "Abono" && (
-            <div className="w-full xl:w-40 shrink-0">
+            <div className="w-full sm:w-32 shrink-0">
               <select
                 value={formulario.metodo}
                 onChange={e => setFormulario({...formulario, metodo: e.target.value})}
-                className="w-full px-4 py-4 rounded-2xl bg-gray-50 border border-transparent focus:border-gray-200 focus:bg-white focus:ring-2 focus:ring-emerald-100 outline-none text-sm font-bold text-gray-700 appearance-none cursor-pointer"
+                className="w-full px-3 py-4 rounded-2xl bg-gray-50 border border-transparent focus:border-gray-200 focus:bg-white focus:ring-2 focus:ring-gray-100 outline-none text-xs font-bold text-gray-700 appearance-none cursor-pointer"
               >
-                <option value="Efectivo">Efectivo 💵</option>
-                <option value="Tarjeta">Tarjeta 💳</option>
-                <option value="Transferencia">Banco 🏦</option>
+                <option value="Efectivo">Efectivo</option>
+                <option value="Tarjeta">Tarjeta</option>
+                <option value="Transferencia">Banco</option>
               </select>
             </div>
-          )}
+          </div>
 
           <button
             onClick={handleRegistrar}
-            disabled={isSubmitting || !formulario.monto || !formulario.concepto}
+            disabled={isSubmitting || !formulario.concepto || (!formulario.costo && !formulario.entrega)}
             className="w-full xl:w-auto px-8 py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-black flex items-center justify-center gap-2 transition-all disabled:opacity-50 shrink-0 shadow-md"
           >
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
             Guardar
           </button>
         </div>
