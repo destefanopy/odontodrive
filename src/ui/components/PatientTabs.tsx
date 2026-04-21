@@ -39,16 +39,17 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
   ];
 
   return (
-    <div className="mt-8 space-y-6">
-      {/* Selector de Pestañas (Tabs) */}
-      <div className="relative">
-        {/* Indicador de Deslizamiento (Solo Móvil) */}
-        <div className="flex md:hidden justify-end mb-2 pr-1">
-          <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-teal-600 bg-teal-50 border border-teal-100 px-3 py-1 rounded-full shadow-sm fade-in animate-in zoom-in-95 duration-700">
-            Desliza opciones <ChevronRight className="w-3 h-3" />
-          </span>
-        </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+    <div className="mt-8 space-y-4">
+      {/* Indicador minimalista de Deslizamiento (Solo Móvil) */}
+      <div className="flex md:hidden justify-end pr-2">
+        <span className="flex items-center gap-0.5 text-[9px] uppercase tracking-widest font-bold text-gray-400 opacity-70">
+          Desliza opciones <ChevronRight className="w-2.5 h-2.5" />
+        </span>
+      </div>
+
+      {/* Selector de Pestañas (Tabs) con Degradado usando CSS Mask */}
+      <div className="relative w-full md:[mask-image:none] [mask-image:linear-gradient(to_right,black_85%,transparent_100%)]">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none pr-8">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
