@@ -10,7 +10,12 @@ export default function FinanzasPage() {
   const [deudas, setDeudas] = useState<Deuda[]>([]);
   const [loading, setLoading] = useState(true);
   const [currencySymbol, setCurrencySymbol] = useState("Gs.");
-  const [periodo, setPeriodo] = useState<"este_mes" | "mes_pasado" | "historico">("este_mes");
+  
+  // Filtros
+  const [periodo, setPeriodo] = useState<"este_mes" | "mes_pasado" | "historico" | "personalizado">("este_mes");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
+  const [pacienteId, setPacienteId] = useState<string>("todos");
 
   useEffect(() => {
     cargarFinanzas();
@@ -44,8 +49,13 @@ export default function FinanzasPage() {
 
   const ahora = new Date();
   
-  const filtarPorPeriodo = (fechaIso: string) => {
+  const filtarPorPeriodoYPaciente = (fechaIso: string, pId: string) => {
+    // 1. Filtrar Paciente
+    if (pacienteId !== "todos" && pId !== pacienteId) return false;
+
+    // 2. Filtrar Temporalidad
     if (periodo === "historico") return true;
+    
     const d = new Date(fechaIso);
     if (periodo === "este_mes") {
       return d.getMonth() === ahora.getMonth() && d.getFullYear() === ahora.getFullYear();
@@ -56,15 +66,40 @@ export default function FinanzasPage() {
       if (mesAnterior < 0) { mesAnterior = 11; año--; }
       return d.getMonth() === mesAnterior && d.getFullYear() === año;
     }
+    if (periodo === "personalizado") {
+      const t = d.getTime();
+      let pasaDesde = true;
+      let pasaHasta = true;
+      if (fechaDesde) {
+        const start = new Date(fechaDesde + "T00:00:00").getTime();
+        if (t < start) pasaDesde = false;
+      }
+      if (fechaHasta) {
+        const end = new Date(fechaHasta + "T23:59:59").getTime();
+        if (t > end) pasaHasta = false;
+      }
+      return pasaDesde && pasaHasta;
+    }
+    
     return true;
   };
 
-  const pagosFiltrados = pagos.filter(p => filtarPorPeriodo(p.fecha_pago));
-  const deudasFiltradas = deudas.filter(d => filtarPorPeriodo(d.fecha));
+  const pagosFiltrados = pagos.filter(p => filtarPorPeriodoYPaciente(p.fecha_pago, p.paciente_id));
+  const deudasFiltradas = deudas.filter(d => filtarPorPeriodoYPaciente(d.fecha, d.paciente_id));
 
   const ingresos = pagosFiltrados.reduce((acc, p) => acc + Number(p.monto), 0);
   const produccion = deudasFiltradas.reduce((acc, d) => acc + Number(d.monto), 0);
   const porCobrar = Math.max(0, produccion - ingresos);
+
+  // Lista de pacientes únicos para el select
+  const pacientesMap = new Map<string, { id: string, nombre: string }>();
+  pagos.forEach(p => {
+    if (p.paciente_id && p.pacientes) pacientesMap.set(p.paciente_id, { id: p.paciente_id, nombre: p.pacientes.nombres_apellidos });
+  });
+  deudas.forEach(d => {
+    if (d.paciente_id && d.pacientes) pacientesMap.set(d.paciente_id, { id: d.paciente_id, nombre: d.pacientes.nombres_apellidos });
+  });
+  const pacientesOptions = Array.from(pacientesMap.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   // Lógica de Vaciado de Libro Diario (Misma fila)
   const mergedEntries = new Map<string, any>();
@@ -102,25 +137,67 @@ export default function FinanzasPage() {
   return (
     <div className="space-y-8 max-w-6xl mx-auto px-4 sm:px-6 py-8">
       
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 text-indigo-500" /> Cierre de Caja
-          </h1>
-          <p className="text-gray-700 font-medium mt-1">
-            Métricas de ingresos efectivos, producción y saldos por cobrar.
-          </p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row justify-between md:items-end gap-5">
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
+              <TrendingUp className="w-8 h-8 text-indigo-500" /> Cierre de Caja
+            </h1>
+            <p className="text-gray-700 font-medium mt-1">
+              Métricas de ingresos efectivos, producción y saldos por cobrar.
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Filtro de Paciente */}
+            <select 
+              value={pacienteId} 
+              onChange={(e) => setPacienteId(e.target.value)}
+              className="bg-white border border-gray-200 text-gray-900 text-sm font-bold py-3 px-4 rounded-xl shadow-sm outline-none focus:ring-2 focus:ring-indigo-100 cursor-pointer w-full sm:w-auto"
+            >
+              <option value="todos">👤 Todos los Pacientes</option>
+              {pacientesOptions.map(p => (
+                <option key={p.id} value={p.id}>{p.nombre}</option>
+              ))}
+            </select>
+
+            {/* Filtro de Tiempo */}
+            <select 
+              value={periodo} 
+              onChange={(e) => setPeriodo(e.target.value as any)}
+              className="bg-white border border-gray-200 text-gray-900 text-sm font-bold py-3 px-4 rounded-xl shadow-sm outline-none focus:ring-2 focus:ring-indigo-100 cursor-pointer w-full sm:w-auto"
+            >
+              <option value="este_mes">📅 Este mes</option>
+              <option value="mes_pasado">⏳ Mes anterior</option>
+              <option value="historico">📚 Todo el Historial</option>
+              <option value="personalizado">⚙️ Personalizado</option>
+            </select>
+          </div>
         </div>
-        
-        <select 
-          value={periodo} 
-          onChange={(e) => setPeriodo(e.target.value as any)}
-          className="bg-white border border-gray-200 text-gray-900 text-sm font-bold py-3 px-6 rounded-xl shadow-sm outline-none focus:ring-2 focus:ring-indigo-100 cursor-pointer appearance-none md:w-auto w-full text-center"
-        >
-          <option value="este_mes">👉 Este mes</option>
-          <option value="mes_pasado">Mes anterior</option>
-          <option value="historico">Todo el Historial</option>
-        </select>
+
+        {/* Inputs Personalizados (Ocultos por defecto) */}
+        {periodo === "personalizado" && (
+          <div className="flex flex-col sm:flex-row gap-4 items-center bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 animate-in fade-in slide-in-from-top-2 w-full md:w-fit self-end">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-xs font-bold text-indigo-800 uppercase tracking-wider">Desde:</span>
+              <input 
+                type="date" 
+                value={fechaDesde} 
+                onChange={(e) => setFechaDesde(e.target.value)} 
+                className="px-3 py-2 text-sm rounded-lg border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full"
+              />
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <span className="text-xs font-bold text-indigo-800 uppercase tracking-wider">Hasta:</span>
+              <input 
+                type="date" 
+                value={fechaHasta} 
+                onChange={(e) => setFechaHasta(e.target.value)} 
+                className="px-3 py-2 text-sm rounded-lg border border-indigo-200 bg-white focus:ring-2 focus:ring-indigo-500 outline-none w-full"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -186,7 +263,7 @@ export default function FinanzasPage() {
             <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
                <Wallet className="w-8 h-8 text-gray-300" />
             </div>
-            <p className="text-gray-500 font-medium">No hay registros financieros para este periodo.</p>
+            <p className="text-gray-500 font-medium">No hay registros financieros para esta búsqueda.</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
