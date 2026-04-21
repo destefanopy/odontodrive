@@ -39,17 +39,30 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
   ];
 
   return (
-    <div className="mt-8 space-y-4">
-      {/* Indicador minimalista de Deslizamiento (Solo Móvil) */}
-      <div className="flex md:hidden justify-end pr-2">
-        <span className="flex items-center gap-0.5 text-[9px] uppercase tracking-widest font-bold text-gray-400 opacity-70">
-          Desliza opciones <ChevronRight className="w-2.5 h-2.5" />
-        </span>
+    <div className="mt-8 space-y-6">
+      
+      {/* Vista Móvil: Dropdown moderno en vez de botones horizontales */}
+      <div className="md:hidden">
+        <label htmlFor="mobile-tabs" className="sr-only">Selecciona una opción</label>
+        <div className="relative">
+          <select
+            id="mobile-tabs"
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value as TabValue)}
+            className="w-full appearance-none bg-white border border-gray-200 text-gray-900 font-bold text-sm py-4 px-5 pr-10 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-900 overflow-hidden"
+          >
+            {tabs.map(tab => (
+              <option key={tab.id} value={tab.id}>{tab.label}</option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+          </div>
+        </div>
       </div>
 
-      {/* Selector de Pestañas (Tabs) con Degradado usando CSS Mask */}
-      <div className="relative w-full md:[mask-image:none] [mask-image:linear-gradient(to_right,black_85%,transparent_100%)]">
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none pr-8">
+      {/* Vista Escritorio: Selector de Pestañas Hoziontal (Desktop) */}
+      <div className="hidden md:flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -68,7 +81,6 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
             </button>
           );
         })}
-        </div>
       </div>
 
       {/* Contenido Dinámico de la Pestaña */}
