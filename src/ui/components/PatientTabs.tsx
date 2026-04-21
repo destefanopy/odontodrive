@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Activity, CreditCard, FolderOpen, Video, FileText, Wallet, ClipboardList, BrainCircuit } from "lucide-react";
+import { User, Activity, CreditCard, FolderOpen, Video, FileText, Wallet, ClipboardList, BrainCircuit, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import FichaClinicaForm from "./paciente/FichaClinicaForm";
 import OdontogramaVisual from "./paciente/OdontogramaVisual";
@@ -41,7 +41,14 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
   return (
     <div className="mt-8 space-y-6">
       {/* Selector de Pestañas (Tabs) */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <div className="relative">
+        {/* Indicador de Deslizamiento (Solo Móvil) */}
+        <div className="flex md:hidden justify-end mb-2 pr-1">
+          <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-teal-600 bg-teal-50 border border-teal-100 px-3 py-1 rounded-full shadow-sm fade-in animate-in zoom-in-95 duration-700">
+            Desliza opciones <ChevronRight className="w-3 h-3" />
+          </span>
+        </div>
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -60,6 +67,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* Contenido Dinámico de la Pestaña */}
