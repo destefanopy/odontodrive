@@ -99,14 +99,11 @@ export default function PagosView({ paciente }: PagosViewProps) {
     }
   };
 
-  const deleteItem = async (id: string, tipo: "Abono" | "Deuda") => {
-    if (!confirm(`¿Eliminar este ${tipo.toLowerCase()}? Esta acción no se puede deshacer.`)) return;
+  const deleteItem = async (deudaId: string | null, pagoId: string | null) => {
+    if (!confirm(`¿Eliminar este registro del historial? Esta acción no se puede deshacer.`)) return;
     try {
-      if (tipo === "Abono") {
-        await deletePago(id);
-      } else {
-        await deleteDeuda(id);
-      }
+      if (deudaId) await deleteDeuda(deudaId);
+      if (pagoId) await deletePago(pagoId);
       await cargarFinanzas();
     } catch (error: any) {
       alert("Error eliminando: " + error.message);
@@ -118,6 +115,29 @@ export default function PagosView({ paciente }: PagosViewProps) {
   const totalDeudas = deudas.reduce((acc, d) => acc + Number(d.monto), 0);
   const totalPagos = pagos.reduce((acc, p) => acc + Number(p.monto), 0);
   const saldoNeto = totalPagos - totalDeudas;
+
+  // Lógica de Agrupación de libro diario
+  const mergedEntries = new Map<string, any>();
+  deudas.forEach(d => {
+    const fechaStr = new Date(d.fecha).toLocaleDateString();
+    const key = `${d.concepto}_${fechaStr}`;
+    if (!mergedEntries.has(key)) {
+      mergedEntries.set(key, { key, concepto: d.concepto, fecha: new Date(d.fecha), deuda: 0, abono: 0, deudaId: d.id, pagoId: null, metodo_pago: null });
+    }
+    mergedEntries.get(key).deuda += Number(d.monto);
+  });
+  pagos.forEach(p => {
+    const fechaStr = new Date(p.fecha_pago).toLocaleDateString();
+    const key = `${p.concepto}_${fechaStr}`;
+    if (!mergedEntries.has(key)) {
+      mergedEntries.set(key, { key, concepto: p.concepto, fecha: new Date(p.fecha_pago), deuda: 0, abono: 0, pagoId: p.id, deudaId: null, metodo_pago: p.metodo_pago });
+    } else {
+      mergedEntries.get(key).pagoId = p.id;
+      mergedEntries.get(key).metodo_pago = p.metodo_pago;
+    }
+    mergedEntries.get(key).abono += Number(p.monto);
+  });
+  const timeline = Array.from(mergedEntries.values()).sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
 
   // Render icons para método de pago
   const renderIconoMetodo = (metodo: string) => {
@@ -224,36 +244,42 @@ export default function PagosView({ paciente }: PagosViewProps) {
 
       {/* Lista de Movimientos */}
       <div className="bg-white border text-left border-gray-200 rounded-3xl overflow-hidden shadow-sm mt-8">
-        <div className="px-6 py-5 border-b border-gray-100 bg-gray-50">
+        <div className="px-6 py-5 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
           <h3 className="font-bold text-gray-800">Historial de Movimientos</h3>
         </div>
         
+        {/* Cabeceras de la Tabla (Escritorio) */}
+        {!loading && timeline.length > 0 && (
+          <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 font-bold text-xs text-gray-400 uppercase tracking-wider bg-white border-b border-gray-100">
+            <div className="col-span-6">Tratamiento / Concepto</div>
+            <div className="col-span-3 text-right">Costo</div>
+            <div className="col-span-3 text-right md:pr-14">Abono</div>
+          </div>
+        )}
+
         {loading ? (
           <div className="py-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-gray-300" /></div>
-        ) : deudas.length === 0 && pagos.length === 0 ? (
+        ) : timeline.length === 0 ? (
           <div className="py-16 text-center">
             <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
                <Receipt className="w-8 h-8 text-gray-300" />
             </div>
-            <p className="text-gray-500 font-medium">Aún no hay cargos ni pagos registrados.</p>
+            <p className="text-gray-500 font-medium">Aún no hay transacciones registradas.</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {[
-              ...pagos.map(p => ({ ...p, _tipo: "Abono" as const, _fecha: new Date(p.fecha_pago) })),
-              ...deudas.map(d => ({ ...d, _tipo: "Deuda" as const, _fecha: new Date(d.fecha) }))
-            ].sort((a, b) => b._fecha.getTime() - a._fecha.getTime())
-                .map(tx => (
-              <div key={tx.id} className="flex items-center justify-between p-5 hover:bg-gray-50 transition-colors group">
-                <div className="flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${tx._tipo === 'Abono' ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                    {tx._tipo === 'Abono' ? <ArrowDownCircle className="w-5 h-5" /> : <ArrowUpCircle className="w-5 h-5" />}
+            {timeline.map(tx => (
+              <div key={tx.key} className="flex flex-col md:grid md:grid-cols-12 gap-3 md:gap-4 items-start md:items-center p-5 md:pl-6 hover:bg-gray-50 transition-colors group relative">
+                
+                <div className="col-span-6 flex items-center gap-4 w-full">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${tx.deuda > 0 && tx.abono > 0 ? 'bg-indigo-100 text-indigo-600' : tx.abono > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                    {tx.deuda > 0 && tx.abono > 0 ? <Receipt className="w-5 h-5" /> : tx.abono > 0 ? <ArrowDownCircle className="w-5 h-5" /> : <ArrowUpCircle className="w-5 h-5" />}
                   </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900">{tx.concepto}</h4>
+                  <div className="min-w-0 pr-8 md:pr-0">
+                    <h4 className="font-bold text-gray-900 truncate">{tx.concepto}</h4>
                     <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-1">
-                      <span>{tx._fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                      {tx._tipo === 'Abono' && (
+                      <span>{tx.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      {tx.metodo_pago && (
                         <span className="flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-md">
                           {renderIconoMetodo(tx.metodo_pago)}
                           {tx.metodo_pago}
@@ -263,19 +289,27 @@ export default function PagosView({ paciente }: PagosViewProps) {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-6">
-                  <span className={`text-lg font-black ${tx._tipo === 'Abono' ? 'text-emerald-600' : 'text-gray-900'}`}>
-                    {tx._tipo === 'Abono' ? '+' : '-'}{formatCurrency(tx.monto)}
+                <div className="col-span-3 flex justify-between md:block w-full md:w-auto text-right md:-ml-2">
+                  <span className="md:hidden text-gray-400 font-bold text-xs uppercase tracking-wider">Costo:</span>
+                  <span className={`text-base font-black ${tx.deuda > 0 ? 'text-gray-900' : 'text-gray-300'}`}>
+                    {tx.deuda > 0 ? formatCurrency(tx.deuda) : '-'}
                   </span>
-                  
-                  <button 
-                    onClick={() => deleteItem(tx.id, tx._tipo)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all border border-transparent hover:border-red-100"
-                    title="Eliminar movimiento"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
                 </div>
+                
+                <div className="col-span-3 flex justify-between md:block w-full md:w-auto text-right md:pr-14">
+                  <span className="md:hidden text-gray-400 font-bold text-xs uppercase tracking-wider">Abono:</span>
+                  <span className={`text-base font-black ${tx.abono > 0 ? 'text-emerald-600' : 'text-gray-300'}`}>
+                    {tx.abono > 0 ? `+${formatCurrency(tx.abono)}` : '-'}
+                  </span>
+                </div>
+                
+                <button 
+                  onClick={() => deleteItem(tx.deudaId, tx.pagoId)}
+                  className="absolute right-4 top-5 md:top-1/2 md:-translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 sm:opacity-0 group-hover:opacity-100 transition-all border border-transparent hover:border-red-100"
+                  title="Eliminar este asiento contable"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             ))}
           </div>
