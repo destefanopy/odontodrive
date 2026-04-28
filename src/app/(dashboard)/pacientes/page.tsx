@@ -1,25 +1,40 @@
 "use client";
 import { useEffect, useState } from "react";
 import { getTodosLosPacientes, Paciente } from "@/core/api";
-import { Users, Plus, ChevronRight, Loader2, Search } from "lucide-react";
+import { Users, Plus, ChevronRight, Loader2, Search, Crown, AlertTriangle } from "lucide-react";
 import Link from "next/link";
+import { supabase } from "@/infrastructure/supabase";
 
 export default function PacientesPage() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [userPlan, setUserPlan] = useState<string>("free");
 
   useEffect(() => {
-    getTodosLosPacientes()
-      .then(data => {
+    const loadData = async () => {
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user) {
+          const { data: perfil } = await supabase
+            .from('perfiles')
+            .select('plan')
+            .eq('id', authData.user.id)
+            .single();
+          if (perfil) {
+            setUserPlan(perfil.plan || 'free');
+          }
+        }
+        
+        const data = await getTodosLosPacientes();
         setPacientes(data);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error("Error catastrofico cargando pacientes:", err);
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    loadData();
   }, []);
 
   if (loading) {
@@ -34,6 +49,9 @@ export default function PacientesPage() {
   const filteredPacientes = pacientes.filter(p => 
     p.nombres_apellidos.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const isFreePlan = userPlan === 'free';
+  const hasReachedLimit = isFreePlan && pacientes.length >= 50;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 mt-4 lg:mt-0">
@@ -64,12 +82,42 @@ export default function PacientesPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Link href="/pacientes/nuevo" className="flex items-center justify-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition-colors shrink-0">
-            <Plus className="w-4 h-4" />
-            Nuevo Paciente
-          </Link>
+          {hasReachedLimit ? (
+            <button disabled className="flex items-center justify-center gap-2 bg-gray-400 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md cursor-not-allowed shrink-0">
+              <Plus className="w-4 h-4" />
+              Nuevo Paciente
+            </button>
+          ) : (
+            <Link href="/pacientes/nuevo" className="flex items-center justify-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition-colors shrink-0">
+              <Plus className="w-4 h-4" />
+              Nuevo Paciente
+            </Link>
+          )}
         </div>
       </div>
+
+      {hasReachedLimit && (
+        <div className="bg-amber-50 border border-amber-200 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-start gap-4">
+            <div className="bg-amber-100 p-3 rounded-full flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-amber-900">Límite de pacientes alcanzado</h3>
+              <p className="text-sm text-amber-800 mt-1">
+                Has llegado al límite de 50 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar a Premium.
+              </p>
+              <p className="text-xs text-amber-700/70 mt-2 font-medium italic">
+                * Con el plan Premium obtienes cantidad ilimitada de casos y almacenamiento expandido.
+              </p>
+            </div>
+          </div>
+          <Link href="/suscripcion" className="flex-shrink-0 bg-amber-500 text-white px-6 py-3 rounded-full text-sm font-bold shadow-md hover:bg-amber-600 transition-colors flex items-center gap-2">
+            <Crown className="w-4 h-4" />
+            Mejorar a Premium
+          </Link>
+        </div>
+      )}
 
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         {pacientes.length === 0 ? (

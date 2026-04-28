@@ -122,6 +122,17 @@ export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) throw new Error("No autenticado");
 
+  // Verify plan limit
+  const { data: perfil } = await supabase.from('perfiles').select('plan').eq('id', authData.user.id).single();
+  const plan = perfil?.plan || 'free';
+  
+  if (plan === 'free') {
+    const { count } = await supabase.from('pacientes').select('*', { count: 'exact', head: true }).eq('user_id', authData.user.id);
+    if (count !== null && count >= 50) {
+      throw new Error("Límite de pacientes alcanzado. Por favor, pásate a Premium para registrar más (cantidad ilimitada de casos).");
+    }
+  }
+
   const fechaIngreso = new Date().toISOString(); 
   const { data: newPaciente, error } = await supabase
     .from('pacientes')
