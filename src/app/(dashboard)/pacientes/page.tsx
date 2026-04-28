@@ -51,7 +51,7 @@ export default function PacientesPage() {
   );
 
   const isFreePlan = userPlan === 'free';
-  const hasReachedLimit = isFreePlan && pacientes.length >= 30;
+  const hasReachedLimit = isFreePlan && pacientes.length >= 50;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 mt-4 lg:mt-0">
