@@ -181,7 +181,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Free" id="free"
           storage="100 MB" price="0" 
-          features={["Hasta 30 pacientes", "100 MB de almacenamiento", "Análisis IA Básico (Imágenes planas)"]}
+          features={["Hasta 50 pacientes", "100 MB de almacenamiento", "Análisis IA Básico (Imágenes planas)"]}
           isPopular={false} color="gray"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "free"}
         />

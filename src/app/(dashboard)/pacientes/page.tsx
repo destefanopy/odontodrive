@@ -105,7 +105,7 @@ export default function PacientesPage() {
             <div>
               <h3 className="text-lg font-bold text-amber-900">Límite de pacientes alcanzado</h3>
               <p className="text-sm text-amber-800 mt-1">
-                Has llegado al límite de 30 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar al plan Básico o superior.
+                Has llegado al límite de 50 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar al plan Básico o superior.
               </p>
               <p className="text-xs text-amber-700/70 mt-2 font-medium italic">
                 * Con cualquier plan de pago obtienes pacientes ilimitados y almacenamiento expandido.
