@@ -33,7 +33,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
     { id: "ficha", label: "Historia Médica", icon: FileText },
     { id: "odontograma", label: "Odontograma", icon: Activity },
     { id: "presupuestos", label: "Presupuestos", icon: CreditCard },
-    { id: "pagos", label: "Cuenta Corriente", icon: Wallet },
+    { id: "pagos", label: "Tratamientos y Cobros", icon: Wallet },
     { id: "archivos", label: "Archivos", icon: FolderOpen },
     { id: "ia", label: "OdontólogoIA", icon: BrainCircuit },
     { id: "recetario", label: "Recetario", icon: ClipboardList },

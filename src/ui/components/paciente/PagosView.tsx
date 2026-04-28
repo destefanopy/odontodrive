@@ -16,12 +16,12 @@ export default function PagosView({ paciente }: PagosViewProps) {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Registro rápido de entrada doble
   const [formulario, setFormulario] = useState({
     concepto: "",
     costo: "",
     entrega: "",
     metodo: "Efectivo",
+    fecha: new Date().toISOString().split('T')[0]
   });
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function PagosView({ paciente }: PagosViewProps) {
     
     setIsSubmitting(true);
     try {
-      const isoDate = new Date().toISOString();
+      const isoDate = new Date(formulario.fecha || new Date()).toISOString();
       
       const operaciones = [];
       if (costoNumerico > 0) {
@@ -90,7 +90,7 @@ export default function PagosView({ paciente }: PagosViewProps) {
 
       await Promise.all(operaciones);
 
-      setFormulario({ concepto: "", costo: "", entrega: "", metodo: "Efectivo" });
+      setFormulario({ concepto: "", costo: "", entrega: "", metodo: "Efectivo", fecha: new Date().toISOString().split('T')[0] });
       await cargarFinanzas();
     } catch (error: any) {
       alert(`Error al registrar: ` + error.message);
@@ -185,7 +185,13 @@ export default function PagosView({ paciente }: PagosViewProps) {
         </h3>
         
         <div className="flex flex-col xl:flex-row items-center gap-3 w-full">
-          <div className="w-full relative flex-[2] shrink-0 xl:shrink">
+          <div className="flex flex-col sm:flex-row gap-3 w-full flex-[2] shrink-0 xl:shrink">
+            <input
+              type="date"
+              value={formulario.fecha}
+              onChange={e => setFormulario({...formulario, fecha: e.target.value})}
+              className="w-full sm:w-36 px-4 py-4 rounded-2xl bg-gray-50 border border-transparent focus:border-gray-200 focus:bg-white focus:ring-2 focus:ring-gray-100 outline-none text-sm font-bold transition-all text-gray-700"
+            />
             <input
               type="text"
               placeholder="Tratamiento o Concepto..."
@@ -276,7 +282,7 @@ export default function PagosView({ paciente }: PagosViewProps) {
                     {tx.deuda > 0 && tx.abono > 0 ? <Receipt className="w-5 h-5" /> : tx.abono > 0 ? <ArrowDownCircle className="w-5 h-5" /> : <ArrowUpCircle className="w-5 h-5" />}
                   </div>
                   <div className="min-w-0 pr-8 md:pr-0">
-                    <h4 className="font-bold text-gray-900 truncate">{tx.concepto}</h4>
+                    <h4 className="font-bold text-gray-900 break-words">{tx.concepto}</h4>
                     <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-1">
                       <span>{tx.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                       {tx.metodo_pago && (
