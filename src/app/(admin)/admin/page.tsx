@@ -22,6 +22,14 @@ interface Profile {
   num_tratamientos?: number;
   num_usos_ia?: number;
   num_dientes_odontograma?: number;
+  metadata?: {
+    clinic_name?: string;
+    clinic_phone?: string;
+    clinic_logo_url?: string;
+    clinic_title?: string;
+    clinic_color?: string;
+    phone?: string;
+  };
 }
 
 export default function AdminConsole() {
@@ -139,9 +147,33 @@ export default function AdminConsole() {
                   users.map((u) => (
                     <tr key={u.id} className={`transition-colors hover:bg-gray-50/50 ${!u.activo ? "opacity-60" : ""}`}>
                       <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-gray-900 text-sm">{u.nombre || "Sin Nombre"}</span>
-                          <span className="text-xs text-gray-700">{u.email}</span>
+                        <div className="flex flex-col gap-2">
+                           <div className="flex items-center gap-3">
+                             {u.metadata?.clinic_logo_url ? (
+                               // eslint-disable-next-line @next/next/no-img-element
+                               <img src={u.metadata.clinic_logo_url} className="w-10 h-10 rounded-lg object-contain border border-gray-100 bg-white shadow-sm flex-shrink-0" alt="Logo" />
+                             ) : (
+                               <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-[10px] text-gray-400 font-bold border border-gray-100 flex-shrink-0">
+                                 Sin Logo
+                               </div>
+                             )}
+                             <div>
+                               <span className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                                 {u.nombre || "Sin Nombre"}
+                                 {u.metadata?.clinic_color && (
+                                   <span className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: u.metadata.clinic_color }} title="Color de clínica"></span>
+                                 )}
+                               </span>
+                               <span className="text-xs text-gray-500 font-medium">{u.email}</span>
+                             </div>
+                           </div>
+                           {(u.metadata?.clinic_title || u.metadata?.clinic_name || u.metadata?.clinic_phone || u.metadata?.phone) && (
+                             <div className="flex flex-col text-[11px] text-gray-600 font-medium bg-gray-50 p-2 rounded-lg border border-gray-100">
+                               {u.metadata?.clinic_title && <span><b className="text-gray-800">Título:</b> {u.metadata.clinic_title}</span>}
+                               {u.metadata?.clinic_name && <span><b className="text-gray-800">Clínica:</b> {u.metadata.clinic_name}</span>}
+                               {(u.metadata?.clinic_phone || u.metadata?.phone) && <span><b className="text-gray-800">Telf:</b> {u.metadata.clinic_phone || u.metadata.phone}</span>}
+                             </div>
+                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
