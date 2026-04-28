@@ -111,13 +111,15 @@ export default function PagosView({ paciente }: PagosViewProps) {
   };
 
   const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ concepto: '', fechaStr: '' });
+  const [editForm, setEditForm] = useState({ concepto: '', fechaStr: '', costo: '', abono: '' });
   
   const startEditing = (tx: any) => {
     setEditingKey(tx.key);
     setEditForm({
       concepto: tx.concepto,
-      fechaStr: tx.fecha.toISOString().split('T')[0]
+      fechaStr: tx.fecha.toISOString().split('T')[0],
+      costo: tx.deuda > 0 ? tx.deuda.toString() : '',
+      abono: tx.abono > 0 ? tx.abono.toString() : ''
     });
   };
 
@@ -131,14 +133,22 @@ export default function PagosView({ paciente }: PagosViewProps) {
       const localDate = new Date(editForm.fechaStr);
       localDate.setMinutes(localDate.getMinutes() + localDate.getTimezoneOffset());
       const isoDate = localDate.toISOString();
+      const newCosto = Number(editForm.costo) || 0;
+      const newAbono = Number(editForm.abono) || 0;
       
       const updates = [];
       if (tx.pagoId) {
-        updates.push(updatePago(tx.pagoId, { fecha_pago: isoDate, concepto: editForm.concepto }));
+        updates.push(updatePago(tx.pagoId, { fecha_pago: isoDate, concepto: editForm.concepto, monto: newAbono }));
+      } else if (newAbono > 0) {
+        updates.push(createPago({ paciente_id: paciente.id, concepto: editForm.concepto, fecha_pago: isoDate, monto: newAbono, metodo_pago: tx.metodo_pago || 'Efectivo' }));
       }
+      
       if (tx.deudaId) {
-        updates.push(updateDeuda(tx.deudaId, { fecha: isoDate, concepto: editForm.concepto }));
+        updates.push(updateDeuda(tx.deudaId, { fecha: isoDate, concepto: editForm.concepto, monto: newCosto }));
+      } else if (newCosto > 0) {
+        updates.push(createDeuda({ paciente_id: paciente.id, concepto: editForm.concepto, fecha: isoDate, monto: newCosto }));
       }
+      
       await Promise.all(updates);
       setEditingKey(null);
       await cargarFinanzas();
@@ -325,18 +335,32 @@ export default function PagosView({ paciente }: PagosViewProps) {
                           type="text"
                           value={editForm.concepto}
                           onChange={(e) => setEditForm({ ...editForm, concepto: e.target.value })}
-                          className="w-full px-2 py-1 text-sm font-bold border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-accent"
+                          className="w-full px-2 py-1.5 text-sm font-bold border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-accent"
                           placeholder="Concepto..."
                         />
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 items-center">
                           <input
                             type="date"
                             value={editForm.fechaStr}
                             onChange={(e) => setEditForm({ ...editForm, fechaStr: e.target.value })}
-                            className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-accent"
+                            className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-accent w-[110px]"
                           />
-                          <button onClick={() => handleSaveEdit(tx)} className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded hover:bg-emerald-100 text-xs font-bold">Guardar</button>
-                          <button onClick={() => setEditingKey(null)} className="text-gray-500 bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 text-xs font-bold">Cancelar</button>
+                          <input
+                            type="number"
+                            placeholder="Costo"
+                            value={editForm.costo}
+                            onChange={(e) => setEditForm({ ...editForm, costo: e.target.value })}
+                            className="px-2 py-1 text-xs border border-red-200 bg-red-50 rounded focus:outline-none focus:ring-1 focus:ring-red-400 w-24 placeholder:text-red-300 font-bold"
+                          />
+                          <input
+                            type="number"
+                            placeholder="Abono"
+                            value={editForm.abono}
+                            onChange={(e) => setEditForm({ ...editForm, abono: e.target.value })}
+                            className="px-2 py-1 text-xs border border-emerald-200 bg-emerald-50 rounded focus:outline-none focus:ring-1 focus:ring-emerald-400 w-24 placeholder:text-emerald-300 font-bold"
+                          />
+                          <button onClick={() => handleSaveEdit(tx)} className="text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded hover:bg-emerald-100 text-xs font-bold shadow-sm">Guardar</button>
+                          <button onClick={() => setEditingKey(null)} className="text-gray-500 bg-gray-100 border border-gray-200 px-3 py-1 rounded hover:bg-gray-200 text-xs font-bold shadow-sm">Cancelar</button>
                         </div>
                       </div>
                     ) : (
