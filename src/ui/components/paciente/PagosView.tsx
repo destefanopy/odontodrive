@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Loader2, Save, Wallet, Receipt, CreditCard, Banknote, Landmark } from "lucide-react";
-import { Paciente, Pago, Deuda, createPago, getPagos, deletePago, createDeuda, getDeudas, deleteDeuda } from "@/core/api";
+import { Paciente, Pago, Deuda, createPago, getPagos, deletePago, createDeuda, getDeudas, deleteDeuda, updatePago, updateDeuda } from "@/core/api";
 
 interface PagosViewProps {
   paciente: Paciente;
@@ -15,6 +15,7 @@ export default function PagosView({ paciente }: PagosViewProps) {
   const [currencySymbol, setCurrencySymbol] = useState("Gs.");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingDateKey, setEditingDateKey] = useState<string | null>(null);
   
   const [formulario, setFormulario] = useState({
     concepto: "",
@@ -107,6 +108,34 @@ export default function PagosView({ paciente }: PagosViewProps) {
       await cargarFinanzas();
     } catch (error: any) {
       alert("Error eliminando: " + error.message);
+    }
+  };
+
+  const handleSaveDate = async (key: string, tx: any, newDateStr: string) => {
+    if (!newDateStr) {
+      setEditingDateKey(null);
+      return;
+    }
+    
+    try {
+      // Intentamos usar la fecha local como UTC para no desfasar
+      const localDate = new Date(newDateStr);
+      // Evitar desfase de zona horaria añadiendo el offset
+      localDate.setMinutes(localDate.getMinutes() + localDate.getTimezoneOffset());
+      const isoDate = localDate.toISOString();
+      
+      const updates = [];
+      if (tx.pagoId) {
+        updates.push(updatePago(tx.pagoId, { fecha_pago: isoDate }));
+      }
+      if (tx.deudaId) {
+        updates.push(updateDeuda(tx.deudaId, { fecha: isoDate }));
+      }
+      await Promise.all(updates);
+      setEditingDateKey(null);
+      await cargarFinanzas();
+    } catch (e: any) {
+      alert("Error actualizando la fecha: " + e.message);
     }
   };
 
@@ -284,7 +313,27 @@ export default function PagosView({ paciente }: PagosViewProps) {
                   <div className="min-w-0 pr-8 md:pr-0">
                     <h4 className="font-bold text-gray-900 break-words">{tx.concepto}</h4>
                     <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-1">
-                      <span>{tx.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                      {editingDateKey === tx.key ? (
+                        <input
+                          type="date"
+                          autoFocus
+                          defaultValue={tx.fecha.toISOString().split('T')[0]}
+                          onBlur={(e) => handleSaveDate(tx.key, tx, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveDate(tx.key, tx, e.currentTarget.value);
+                            if (e.key === 'Escape') setEditingDateKey(null);
+                          }}
+                          className="px-2 py-0.5 text-xs rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-accent"
+                        />
+                      ) : (
+                        <span 
+                          onClick={() => setEditingDateKey(tx.key)}
+                          className="cursor-pointer hover:underline decoration-dashed decoration-gray-400 hover:text-accent"
+                          title="Haz clic para editar la fecha"
+                        >
+                          {tx.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </span>
+                      )}
                       {tx.metodo_pago && (
                         <span className="flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-md">
                           {renderIconoMetodo(tx.metodo_pago)}

@@ -523,6 +523,12 @@ export async function deletePago(id: string) {
   return true;
 }
 
+export async function updatePago(id: string, updates: Partial<Pago>) {
+  const { error } = await supabase.from('pagos').update(updates).eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
 export interface Deuda {
   id: string;
   paciente_id: string;
@@ -563,6 +569,12 @@ export async function getDeudas(pacienteId?: string): Promise<Deuda[]> {
 
 export async function deleteDeuda(id: string) {
   const { error } = await supabase.from('deudas').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}
+
+export async function updateDeuda(id: string, updates: Partial<Deuda>) {
+  const { error } = await supabase.from('deudas').update(updates).eq('id', id);
   if (error) throw new Error(error.message);
   return true;
 }
