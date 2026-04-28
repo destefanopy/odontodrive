@@ -190,7 +190,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Básico" id="basico"
           storage="1 GB" price="4" 
-          features={["Pacientes ilimitados", "1 GB de almacenamiento rápido", "Análisis IA Extendido (Textos largos)"]}
+          features={["Pacientes ilimitados", "1 GB de almacenamiento rápido", "Análisis IA Extendido (Textos largos)", "Soporte prioritario asegurado"]}
           isPopular={false} color="blue"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "basico"}
         />
