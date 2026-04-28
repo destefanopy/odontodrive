@@ -105,16 +105,16 @@ export default function PacientesPage() {
             <div>
               <h3 className="text-lg font-bold text-amber-900">Límite de pacientes alcanzado</h3>
               <p className="text-sm text-amber-800 mt-1">
-                Has llegado al límite de 30 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar a Premium.
+                Has llegado al límite de 30 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar al plan Básico o superior.
               </p>
               <p className="text-xs text-amber-700/70 mt-2 font-medium italic">
-                * Con el plan Premium obtienes cantidad ilimitada de casos y almacenamiento expandido.
+                * Con cualquier plan de pago obtienes pacientes ilimitados y almacenamiento expandido.
               </p>
             </div>
           </div>
           <Link href="/suscripcion" className="flex-shrink-0 bg-amber-500 text-white px-6 py-3 rounded-full text-sm font-bold shadow-md hover:bg-amber-600 transition-colors flex items-center gap-2">
             <Crown className="w-4 h-4" />
-            Mejorar a Premium
+            Ver Planes
           </Link>
         </div>
       )}

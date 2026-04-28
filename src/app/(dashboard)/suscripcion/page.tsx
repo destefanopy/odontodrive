@@ -199,7 +199,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Estándar" id="estandar"
           storage="5 GB" price="10" 
-          features={["5 GB de almacenamiento DICOM", "Análisis IA Profundo y detallado", "Soporte prioritario asegurado"]}
+          features={["Pacientes ilimitados", "5 GB de almacenamiento DICOM", "Análisis IA Profundo y detallado", "Soporte prioritario asegurado"]}
           isPopular={true} color="accent"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "estandar"}
         />
@@ -208,7 +208,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Avanzado" id="avanzado"
           storage="20 GB" price="20" 
-          features={["20 GB de almacenamiento masivo", "Análisis IA Médico sin límites", "Soporte prioritario 24/7"]}
+          features={["Pacientes ilimitados", "20 GB de almacenamiento masivo", "Análisis IA Médico sin límites", "Soporte prioritario 24/7"]}
           isPopular={false} color="purple"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "avanzado"}
         />
@@ -217,7 +217,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Premium" id="premium"
           storage="40 GB" price="30" 
-          features={["40 GB de almacenamiento expansible", "IA Dedicada de Máximo Rendimiento", "Soporte VIP Exclusivo 24/7"]}
+          features={["Pacientes ilimitados", "40 GB de almacenamiento expansible", "IA Dedicada de Máximo Rendimiento", "Soporte VIP Exclusivo 24/7"]}
           isPopular={false} color="amber" icon="👑"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "premium"}
         />
