@@ -181,7 +181,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Free" id="free"
           storage="100 MB" price="0" 
-          features={["100 MB de almacenamiento", "Análisis IA Básico (Imágenes planas)", "Soporte estándar comunitario"]}
+          features={["Hasta 30 pacientes", "100 MB de almacenamiento", "Análisis IA Básico (Imágenes planas)"]}
           isPopular={false} color="gray"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "free"}
         />
@@ -190,7 +190,7 @@ function SuscripcionContent() {
         <PricingCard 
           plan="Básico" id="basico"
           storage="1 GB" price="4" 
-          features={["1 GB de almacenamiento rápido", "Análisis IA Extendido (Textos largos)", "Soporte estándar por correo"]}
+          features={["Pacientes ilimitados", "1 GB de almacenamiento rápido", "Análisis IA Extendido (Textos largos)"]}
           isPopular={false} color="blue"
           onCheckout={handleCheckout} isLoading={isLoadingPlan === "basico"}
         />
