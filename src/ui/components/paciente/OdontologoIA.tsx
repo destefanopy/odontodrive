@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User, Loader2, Sparkles, BrainCircuit } from "lucide-react";
+import { incrementIaUsage } from "@/core/api";
 
 interface Message {
   role: "user" | "assistant";
@@ -45,6 +46,7 @@ export default function OdontologoIA({ pacienteId }: { pacienteId: string }) {
 
       const data = await response.json();
       setMessages([...newMessages, { role: "assistant", content: data.result }]);
+      await incrementIaUsage();
     } catch (error: any) {
       alert("Error: " + error.message);
       setMessages([...newMessages, { role: "assistant", content: "Lo siento, ocurrió un error de red al contactar al motor inteligente." }]);

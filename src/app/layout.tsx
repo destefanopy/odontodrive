@@ -9,8 +9,8 @@ export const metadata: Metadata = {
   title: "Odontodrive",
   description: "Sistema de Gestión Odontológica Avanzada con IA",
   verification: {
-    // Reemplaza "TU_CODIGO_DE_SEARCH_CONSOLE" con el código HTML tag que te da Google Search Console
-    google: "TU_CODIGO_DE_SEARCH_CONSOLE",
+    // Código de verificación de Google Search Console
+    google: "EFJ5ckd_CiHh2RJBHmaekkutXY7IdbVRkCGWp2gKiqs",
   },
 };
 

@@ -19,6 +19,9 @@ interface Profile {
   espacio_usado_bytes?: number;
   num_citas?: number;
   ultimo_login?: string;
+  num_tratamientos?: number;
+  num_usos_ia?: number;
+  num_dientes_odontograma?: number;
 }
 
 export default function AdminConsole() {
@@ -182,6 +185,15 @@ export default function AdminConsole() {
                           </span>
                           <span className="text-[10px] font-bold text-gray-700 bg-gray-100 rounded-md px-2 py-0.5 w-max">
                             {u.num_citas || 0} Citas
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-blue-50 text-blue-700 border border-blue-100 rounded-md px-2 py-0.5 w-max">
+                            {u.num_tratamientos || 0} Tratamientos
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-teal-50 text-teal-700 border border-teal-100 rounded-md px-2 py-0.5 w-max">
+                            {u.num_usos_ia || 0} Usos OdontólogoIA
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-md px-2 py-0.5 w-max">
+                            {u.num_dientes_odontograma || 0} Dientes Marcados
                           </span>
                           <span className="text-[10px] font-bold text-gray-700 bg-gray-100 rounded-md px-2 py-0.5 w-max">
                             {((u.espacio_usado_bytes || 0) / (1024 * 1024)).toFixed(2)} MB Usados

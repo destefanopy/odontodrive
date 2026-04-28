@@ -454,6 +454,13 @@ export async function updatePacienteFileFase(id: string, fase: string) {
   return true;
 }
 
+export async function incrementIaUsage() {
+  const { data: authData } = await supabase.auth.getUser();
+  if (authData?.user) {
+    await supabase.rpc('increment_ia_usage', { target_user_id: authData.user.id });
+  }
+}
+
 export async function analyzeImagesWithAI(signedUrls: string[], customPrompt?: string): Promise<string> {
   const req = await fetch('/api/openai', {
     method: 'POST',
@@ -469,6 +476,7 @@ export async function analyzeImagesWithAI(signedUrls: string[], customPrompt?: s
     throw new Error(res.error || "Error al conectar con OdontólogoIA.");
   }
   
+  await incrementIaUsage();
   return res.result;
 }
 
