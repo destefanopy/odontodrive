@@ -51,7 +51,7 @@ export default function PacientesPage() {
   );
 
   const isFreePlan = userPlan === 'free';
-  const hasReachedLimit = isFreePlan && pacientes.length >= 50;
+  const hasReachedLimit = isFreePlan && pacientes.length >= 30;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 mt-4 lg:mt-0">
@@ -105,7 +105,7 @@ export default function PacientesPage() {
             <div>
               <h3 className="text-lg font-bold text-amber-900">Límite de pacientes alcanzado</h3>
               <p className="text-sm text-amber-800 mt-1">
-                Has llegado al límite de 50 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar a Premium.
+                Has llegado al límite de 30 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar a Premium.
               </p>
               <p className="text-xs text-amber-700/70 mt-2 font-medium italic">
                 * Con el plan Premium obtienes cantidad ilimitada de casos y almacenamiento expandido.

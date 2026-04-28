@@ -128,7 +128,7 @@ export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'
   
   if (plan === 'free') {
     const { count } = await supabase.from('pacientes').select('*', { count: 'exact', head: true }).eq('user_id', authData.user.id);
-    if (count !== null && count >= 50) {
+    if (count !== null && count >= 30) {
       throw new Error("Límite de pacientes alcanzado. Por favor, pásate a Premium para registrar más (cantidad ilimitada de casos).");
     }
   }
