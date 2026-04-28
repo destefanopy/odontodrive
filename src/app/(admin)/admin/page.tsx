@@ -17,6 +17,8 @@ interface Profile {
   num_archivos?: number;
   num_presupuestos?: number;
   espacio_usado_bytes?: number;
+  num_citas?: number;
+  ultimo_login?: string;
 }
 
 export default function AdminConsole() {
@@ -113,19 +115,20 @@ export default function AdminConsole() {
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Estado</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Rol</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Métricas</th>
+                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Último Acceso</th>
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {isLoading && users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-800">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-800">
                       Cargando profesionales...
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-800">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-800">
                       No hay profesionales registrados aún.
                     </td>
                   </tr>
@@ -178,9 +181,15 @@ export default function AdminConsole() {
                             {u.num_presupuestos || 0} Presupuestos
                           </span>
                           <span className="text-[10px] font-bold text-gray-700 bg-gray-100 rounded-md px-2 py-0.5 w-max">
+                            {u.num_citas || 0} Citas
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-gray-100 rounded-md px-2 py-0.5 w-max">
                             {((u.espacio_usado_bytes || 0) / (1024 * 1024)).toFixed(2)} MB Usados
                           </span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-600">
+                        {u.ultimo_login ? new Date(u.ultimo_login).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Nunca"}
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         {!u.es_admin && (
