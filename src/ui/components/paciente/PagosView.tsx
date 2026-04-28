@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Loader2, Save, Wallet, Receipt, CreditCard, Banknote, Landmark } from "lucide-react";
+import { Plus, Trash2, ArrowDownCircle, ArrowUpCircle, Loader2, Save, Wallet, Receipt, CreditCard, Banknote, Landmark, Edit2, X } from "lucide-react";
 import { Paciente, Pago, Deuda, createPago, getPagos, deletePago, createDeuda, getDeudas, deleteDeuda, updatePago, updateDeuda } from "@/core/api";
 
 interface PagosViewProps {
@@ -15,7 +15,6 @@ export default function PagosView({ paciente }: PagosViewProps) {
   const [currencySymbol, setCurrencySymbol] = useState("Gs.");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingDateKey, setEditingDateKey] = useState<string | null>(null);
   
   const [formulario, setFormulario] = useState({
     concepto: "",
@@ -111,31 +110,40 @@ export default function PagosView({ paciente }: PagosViewProps) {
     }
   };
 
-  const handleSaveDate = async (key: string, tx: any, newDateStr: string) => {
-    if (!newDateStr) {
-      setEditingDateKey(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ concepto: '', fechaStr: '' });
+  
+  const startEditing = (tx: any) => {
+    setEditingKey(tx.key);
+    setEditForm({
+      concepto: tx.concepto,
+      fechaStr: tx.fecha.toISOString().split('T')[0]
+    });
+  };
+
+  const handleSaveEdit = async (tx: any) => {
+    if (!editForm.concepto || !editForm.fechaStr) {
+      alert("El concepto y la fecha no pueden estar vacíos.");
       return;
     }
     
     try {
-      // Intentamos usar la fecha local como UTC para no desfasar
-      const localDate = new Date(newDateStr);
-      // Evitar desfase de zona horaria añadiendo el offset
+      const localDate = new Date(editForm.fechaStr);
       localDate.setMinutes(localDate.getMinutes() + localDate.getTimezoneOffset());
       const isoDate = localDate.toISOString();
       
       const updates = [];
       if (tx.pagoId) {
-        updates.push(updatePago(tx.pagoId, { fecha_pago: isoDate }));
+        updates.push(updatePago(tx.pagoId, { fecha_pago: isoDate, concepto: editForm.concepto }));
       }
       if (tx.deudaId) {
-        updates.push(updateDeuda(tx.deudaId, { fecha: isoDate }));
+        updates.push(updateDeuda(tx.deudaId, { fecha: isoDate, concepto: editForm.concepto }));
       }
       await Promise.all(updates);
-      setEditingDateKey(null);
+      setEditingKey(null);
       await cargarFinanzas();
     } catch (e: any) {
-      alert("Error actualizando la fecha: " + e.message);
+      alert("Error actualizando: " + e.message);
     }
   };
 
@@ -310,37 +318,41 @@ export default function PagosView({ paciente }: PagosViewProps) {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${tx.deuda > 0 && tx.abono > 0 ? 'bg-indigo-100 text-indigo-600' : tx.abono > 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
                     {tx.deuda > 0 && tx.abono > 0 ? <Receipt className="w-5 h-5" /> : tx.abono > 0 ? <ArrowDownCircle className="w-5 h-5" /> : <ArrowUpCircle className="w-5 h-5" />}
                   </div>
-                  <div className="min-w-0 pr-8 md:pr-0">
-                    <h4 className="font-bold text-gray-900 break-words">{tx.concepto}</h4>
-                    <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-1">
-                      {editingDateKey === tx.key ? (
+                  <div className="min-w-0 pr-8 md:pr-0 w-full">
+                    {editingKey === tx.key ? (
+                      <div className="flex flex-col gap-2 w-full pr-12 md:pr-0">
                         <input
-                          type="date"
-                          autoFocus
-                          defaultValue={tx.fecha.toISOString().split('T')[0]}
-                          onBlur={(e) => handleSaveDate(tx.key, tx, e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveDate(tx.key, tx, e.currentTarget.value);
-                            if (e.key === 'Escape') setEditingDateKey(null);
-                          }}
-                          className="px-2 py-0.5 text-xs rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-accent"
+                          type="text"
+                          value={editForm.concepto}
+                          onChange={(e) => setEditForm({ ...editForm, concepto: e.target.value })}
+                          className="w-full px-2 py-1 text-sm font-bold border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-accent"
+                          placeholder="Concepto..."
                         />
-                      ) : (
-                        <span 
-                          onClick={() => setEditingDateKey(tx.key)}
-                          className="cursor-pointer hover:underline decoration-dashed decoration-gray-400 hover:text-accent"
-                          title="Haz clic para editar la fecha"
-                        >
-                          {tx.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </span>
-                      )}
-                      {tx.metodo_pago && (
-                        <span className="flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-md">
-                          {renderIconoMetodo(tx.metodo_pago)}
-                          {tx.metodo_pago}
-                        </span>
-                      )}
-                    </div>
+                        <div className="flex gap-2">
+                          <input
+                            type="date"
+                            value={editForm.fechaStr}
+                            onChange={(e) => setEditForm({ ...editForm, fechaStr: e.target.value })}
+                            className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-accent"
+                          />
+                          <button onClick={() => handleSaveEdit(tx)} className="text-emerald-600 bg-emerald-50 px-2 py-1 rounded hover:bg-emerald-100 text-xs font-bold">Guardar</button>
+                          <button onClick={() => setEditingKey(null)} className="text-gray-500 bg-gray-100 px-2 py-1 rounded hover:bg-gray-200 text-xs font-bold">Cancelar</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h4 className="font-bold text-gray-900 break-words">{tx.concepto}</h4>
+                        <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-1">
+                          <span>{tx.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                          {tx.metodo_pago && (
+                            <span className="flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-md">
+                              {renderIconoMetodo(tx.metodo_pago)}
+                              {tx.metodo_pago}
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 
@@ -358,13 +370,24 @@ export default function PagosView({ paciente }: PagosViewProps) {
                   </span>
                 </div>
                 
-                <button 
-                  onClick={() => deleteItem(tx.deudaId, tx.pagoId)}
-                  className="absolute right-4 top-5 md:top-1/2 md:-translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 sm:opacity-0 group-hover:opacity-100 transition-all border border-transparent hover:border-red-100"
-                  title="Eliminar este asiento contable"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="absolute right-4 top-5 md:top-1/2 md:-translate-y-1/2 flex gap-1 sm:opacity-0 group-hover:opacity-100 transition-all">
+                  {editingKey !== tx.key && (
+                    <button 
+                      onClick={() => startEditing(tx)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 border border-transparent hover:border-blue-100"
+                      title="Editar este registro"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => deleteItem(tx.deudaId, tx.pagoId)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100"
+                    title="Eliminar este asiento contable"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
