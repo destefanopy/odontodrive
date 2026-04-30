@@ -45,7 +45,7 @@ export default function PacienteAvatar({ pacienteId, nombres, initialFotoUrl, on
   };
 
   return (
-    <div className="relative group w-16 h-16 md:w-20 md:h-20 rounded-full shadow-md bg-teal-50 border-2 md:border-4 border-white flex-shrink-0">
+    <div className="relative group w-12 h-12 md:w-20 md:h-20 rounded-full shadow-md bg-teal-50 border-2 md:border-4 border-white flex-shrink-0">
       {fotoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img 

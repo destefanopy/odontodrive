@@ -71,8 +71,8 @@ export default function PacientePerfilPage({ params }: PageProps) {
       </Link>
 
       {/* Header del Paciente */}
-      <div className="bg-white rounded-2xl md:rounded-3xl p-4 md:p-6 border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="bg-white rounded-2xl md:rounded-3xl p-3 md:p-6 border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4">
+        <div className="flex items-center gap-3 md:gap-4">
           <PacienteAvatar 
             pacienteId={paciente.id} 
             nombres={paciente.nombres_apellidos} 
@@ -80,30 +80,36 @@ export default function PacientePerfilPage({ params }: PageProps) {
             onUploadSuccess={loadData}
           />
           <div>
-            <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight leading-tight">
               {paciente.nombres_apellidos}
             </h1>
-            <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs md:text-sm text-gray-700 font-medium">
-              <span className="flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
+            <div className="flex flex-wrap items-center gap-1.5 md:gap-2 mt-1 md:mt-1.5 text-[11px] md:text-sm text-gray-700 font-medium">
+              <span className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full border border-gray-100">
                 <Phone className="w-3 h-3" />
                 {paciente.telefono_celular || "Sin teléfono"}
               </span>
-              <span className="flex items-center gap-1 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
+              <span className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full border border-gray-100">
                 <Calendar className="w-3 h-3" />
                 Alta: {fechaAlta}
               </span>
             </div>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <ExportarFichaBoton 
-            paciente={paciente}
-            antecedentes={initialAntecedentes}
-            initialOdontograma={initialOdontograma}
-            finalOdontograma={finalOdontograma}
-          />
-          <EliminarPacienteBoton pacienteId={paciente.id} nombrePaciente={paciente.nombres_apellidos} />
-          <AgendarCitaBoton paciente={paciente} />
+        <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
+          <div className="col-span-1 w-full">
+            <ExportarFichaBoton 
+              paciente={paciente}
+              antecedentes={initialAntecedentes}
+              initialOdontograma={initialOdontograma}
+              finalOdontograma={finalOdontograma}
+            />
+          </div>
+          <div className="col-span-1 w-full">
+            <EliminarPacienteBoton pacienteId={paciente.id} nombrePaciente={paciente.nombres_apellidos} />
+          </div>
+          <div className="col-span-2 sm:col-span-1 w-full">
+            <AgendarCitaBoton paciente={paciente} />
+          </div>
         </div>
       </div>
 
