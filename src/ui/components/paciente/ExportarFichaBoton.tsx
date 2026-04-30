@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import { useReactToPrint } from "react-to-print";
-import { Download } from "lucide-react";
+import { useRef, useState } from "react";
+import { Download, Loader2 } from "lucide-react";
 import FichaImprimible from "./FichaImprimible";
 import { Paciente, AntecedentesMedicos } from "@/core/api";
 
@@ -20,26 +19,50 @@ export default function ExportarFichaBoton({
   finalOdontograma,
 }: ExportarFichaBotonProps) {
   const componentRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-    documentTitle: `Ficha_${paciente.nombres_apellidos.replace(/\s+/g, "_")}`,
-    removeAfterPrint: true,
-  });
+  const handleExport = async () => {
+    if (!componentRef.current) return;
+    setIsExporting(true);
+
+    try {
+      // Importamos html2pdf dinámicamente para que no rompa el server-side rendering
+      const html2pdf = (await import("html2pdf.js")).default;
+      const element = componentRef.current;
+
+      const opt = {
+        margin:       10,
+        filename:     `Ficha_${paciente.nombres_apellidos.replace(/\s+/g, "_")}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // html2pdf renderiza el elemento tal cual está, incluso si está fuera de la pantalla (position: absolute)
+      await html2pdf().set(opt).from(element).save();
+
+    } catch (error) {
+      console.error("Error al exportar PDF:", error);
+      alert("Hubo un error al generar el PDF.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <>
       <button
-        onClick={handlePrint}
-        className="px-4 py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl border border-gray-200 shadow-sm text-sm hover:bg-gray-200 transition-all flex items-center gap-2"
+        onClick={handleExport}
+        disabled={isExporting}
+        className="px-4 py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl border border-gray-200 shadow-sm text-sm hover:bg-gray-200 transition-all flex items-center gap-2 disabled:opacity-50"
         title="Exportar a PDF"
       >
-        <Download className="w-4 h-4" />
-        <span className="hidden sm:inline">Exportar Ficha</span>
+        {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+        <span className="hidden sm:inline">{isExporting ? "Generando..." : "Exportar Ficha"}</span>
       </button>
 
-      {/* Componente oculto que se usará sólo para imprimir */}
-      <div style={{ position: "absolute", top: "-9999px", left: "-9999px" }}>
+      {/* Componente oculto que se usará sólo para generar el PDF */}
+      <div style={{ position: "absolute", top: "-9999px", left: "-9999px", width: "1000px" }}>
         <FichaImprimible
           ref={componentRef}
           paciente={paciente}
