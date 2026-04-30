@@ -90,7 +90,7 @@ export default function ExportarFichaBoton({
         title="Exportar a PDF"
       >
         {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-        <span className="hidden sm:inline">{isExporting ? "Generando..." : "Exportar Ficha"}</span>
+        <span className="inline-block sm:inline">{isExporting ? "Generando..." : "Exportar Ficha"}</span>
       </button>
 
       {/* Componente oculto que se usará sólo para generar el PDF */}

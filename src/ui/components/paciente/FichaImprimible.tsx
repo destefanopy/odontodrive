@@ -77,7 +77,7 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
       <section className="mb-10 page-break-before" style={{ pageBreakBefore: 'always', paddingTop: '20px' }}>
         <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">3. Estado Inicial</h2>
         <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-6 overflow-hidden">
-          <div style={{ transform: "scale(0.75)", transformOrigin: "top center", width: "133.33%", height: "420px" }}>
+          <div style={{ transform: "scale(0.60)", transformOrigin: "top center", width: "166.66%", height: "350px" }}>
             <OdontogramaVisual 
               pacienteId={paciente.id} 
               initialOdontograma={initialOdontograma} 
@@ -92,7 +92,7 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
       <section className="mb-10 page-break-before" style={{ pageBreakBefore: 'always', paddingTop: '20px' }}>
         <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">4. Evolución / Final</h2>
         <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-6 overflow-hidden">
-          <div style={{ transform: "scale(0.75)", transformOrigin: "top center", width: "133.33%", height: "420px" }}>
+          <div style={{ transform: "scale(0.60)", transformOrigin: "top center", width: "166.66%", height: "350px" }}>
             <OdontogramaVisual 
               pacienteId={paciente.id} 
               initialOdontograma={finalOdontograma} 
