@@ -73,41 +73,42 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
         </div>
       </section>
 
-      {/* Odontogramas */}
-      <section className="mb-10" style={{ pageBreakInside: 'avoid', pageBreakBefore: 'auto' }}>
-        <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">3. Estado Dental (Odontogramas)</h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="border border-gray-200 rounded-2xl bg-white flex flex-col items-center py-4">
-            <h3 className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Estado Inicial</h3>
-            <div className="scale-[0.45] sm:scale-[0.50] origin-top h-[220px]">
-              <OdontogramaVisual 
-                pacienteId={paciente.id} 
-                initialOdontograma={initialOdontograma} 
-                tipo="inicial" 
-                readOnly={true} 
-              />
-            </div>
-          </div>
-          
-          <div className="border border-gray-200 rounded-2xl bg-white flex flex-col items-center py-4">
-            <h3 className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Evolución / Final</h3>
-            <div className="scale-[0.45] sm:scale-[0.50] origin-top h-[220px]">
-              <OdontogramaVisual 
-                pacienteId={paciente.id} 
-                initialOdontograma={finalOdontograma} 
-                tipo="final" 
-                readOnly={true} 
-              />
-            </div>
+      {/* Odontograma Inicial (PÁGINA 2) */}
+      <section className="mb-10 page-break-before" style={{ pageBreakBefore: 'always', paddingTop: '20px' }}>
+        <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">3. Estado Inicial</h2>
+        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-6 px-4">
+          {/* Al quitar scale() y usar w-full max-w-2xl, el SVG se redimensiona naturalmente y html2pdf lo capta perfecto */}
+          <div className="w-full max-w-2xl mx-auto">
+            <OdontogramaVisual 
+              pacienteId={paciente.id} 
+              initialOdontograma={initialOdontograma} 
+              tipo="inicial" 
+              readOnly={true} 
+            />
           </div>
         </div>
       </section>
 
-      {/* Tratamientos */}
+      {/* Odontograma Final (PÁGINA 3) */}
+      <section className="mb-10 page-break-before" style={{ pageBreakBefore: 'always', paddingTop: '20px' }}>
+        <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">4. Evolución / Final</h2>
+        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-6 px-4">
+          <div className="w-full max-w-2xl mx-auto">
+            <OdontogramaVisual 
+              pacienteId={paciente.id} 
+              initialOdontograma={finalOdontograma} 
+              tipo="final" 
+              readOnly={true} 
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Tratamientos (PÁGINA 4) */}
       {timeline && timeline.length > 0 && (
-        <section style={{ pageBreakInside: 'auto', pageBreakBefore: 'auto' }}>
+        <section className="page-break-before" style={{ pageBreakBefore: 'always', paddingTop: '20px' }}>
           <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider" style={{ pageBreakAfter: 'avoid' }}>
-            4. Historial de Tratamientos Realizados
+            5. Tratamientos Realizados
           </h2>
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             <table className="w-full text-sm text-left">
