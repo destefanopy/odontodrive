@@ -223,7 +223,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
               </div>
               <div>
                 <span className="font-bold text-gray-900 uppercase text-[10px]">Horario:</span>
-                <p>{selectedEvent.start.toLocaleString()} - {selectedEvent.end.toLocaleString()}</p>
+                <p>{selectedEvent.start?.toLocaleString()} - {selectedEvent.end ? selectedEvent.end.toLocaleString() : "No definido"}</p>
               </div>
             </div>
 
