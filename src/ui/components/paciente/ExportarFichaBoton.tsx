@@ -86,7 +86,7 @@ export default function ExportarFichaBoton({
       <button
         onClick={handleExport}
         disabled={isExporting}
-        className="px-4 py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl border border-gray-200 shadow-sm text-sm hover:bg-gray-200 transition-all flex items-center gap-2 disabled:opacity-50"
+        className="px-4 py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl border border-gray-200 shadow-sm text-sm hover:bg-gray-200 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
         title="Exportar a PDF"
       >
         {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
