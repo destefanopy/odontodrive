@@ -47,7 +47,7 @@ export default function LandingTemplate({
             <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-cyan-600 transition-colors">
               Iniciar Sesión
             </Link>
-            <Link href="/login" className="text-sm font-bold bg-cyan-500 text-white px-5 py-2.5 rounded-full shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)] hover:bg-cyan-400 transition-all transform hover:-translate-y-0.5">
+            <Link href="https://odontodrive.com/register" className="text-sm font-bold bg-cyan-500 text-white px-5 py-2.5 rounded-full shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)] hover:bg-cyan-400 transition-all transform hover:-translate-y-0.5">
               Regístrate
             </Link>
           </div>
@@ -73,7 +73,7 @@ export default function LandingTemplate({
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/login" className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 group text-lg">
+          <Link href="https://odontodrive.com/register" className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 group text-lg">
             Empieza ahora
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
@@ -85,7 +85,7 @@ export default function LandingTemplate({
         {/* Hero Mockup Preview */}
         <div className="mt-20 block w-full aspect-video rounded-3xl bg-slate-900 shadow-2xl overflow-hidden border-8 border-slate-800 relative group">
           <div className="absolute inset-0 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-            <Link href="/login" className="px-6 py-3 bg-cyan-500 text-white font-bold rounded-full shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:scale-105 transition-transform">Probar Demo Real</Link>
+            <Link href="https://odontodrive.com/register" className="px-6 py-3 bg-cyan-500 text-white font-bold rounded-full shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:scale-105 transition-transform">Probar Demo Real</Link>
           </div>
           
           {/* Custom Promotional Image */}
@@ -170,7 +170,7 @@ export default function LandingTemplate({
                   ))}
                 </ul>
                 
-                <Link href="/login" className={`block w-full py-4 font-bold rounded-2xl transition-all text-sm ${plan.isPopular ? 'bg-cyan-500 text-white shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:bg-cyan-400 hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)]' : 'bg-slate-900 text-white hover:bg-black shadow-sm'}`}>
+                <Link href="https://odontodrive.com/register" className={`block w-full py-4 font-bold rounded-2xl transition-all text-sm ${plan.isPopular ? 'bg-cyan-500 text-white shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:bg-cyan-400 hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)]' : 'bg-slate-900 text-white hover:bg-black shadow-sm'}`}>
                   Seleccionar {plan.name}
                 </Link>
               </div>
