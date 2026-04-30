@@ -2,18 +2,28 @@ import React, { forwardRef } from "react";
 import { Paciente, AntecedentesMedicos } from "@/core/api";
 import OdontogramaVisual from "./OdontogramaVisual";
 
+export interface MovimientoFinanciero {
+  key: string;
+  concepto: string;
+  fecha: Date;
+  deuda: number;
+  abono: number;
+}
+
 interface FichaImprimibleProps {
   paciente: Paciente;
   antecedentes?: AntecedentesMedicos | null;
   initialOdontograma: Record<number, any>;
   finalOdontograma: Record<number, any>;
+  timeline?: MovimientoFinanciero[];
 }
 
 const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
   paciente,
   antecedentes,
   initialOdontograma,
-  finalOdontograma
+  finalOdontograma,
+  timeline
 }, ref) => {
   const edad = new Date().getFullYear() - new Date(paciente.fecha_nacimiento).getFullYear();
   const fechaActual = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -66,28 +76,67 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
       {/* Odontograma Inicial */}
       <section className="mb-10" style={{ pageBreakInside: 'avoid', pageBreakBefore: 'auto' }}>
         <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">3. Odontograma Inicial (Estado al Ingreso)</h2>
-        <div className="border border-gray-200 rounded-2xl bg-white scale-90 origin-top-left -ml-4">
-          <OdontogramaVisual 
-            pacienteId={paciente.id} 
-            initialOdontograma={initialOdontograma} 
-            tipo="inicial" 
-            readOnly={true} 
-          />
+        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-4">
+          <div className="scale-[0.65] sm:scale-75 origin-top h-[300px]">
+            <OdontogramaVisual 
+              pacienteId={paciente.id} 
+              initialOdontograma={initialOdontograma} 
+              tipo="inicial" 
+              readOnly={true} 
+            />
+          </div>
         </div>
       </section>
 
       {/* Odontograma Final */}
-      <section style={{ pageBreakInside: 'avoid', pageBreakBefore: 'auto' }}>
+      <section className="mb-10" style={{ pageBreakInside: 'avoid', pageBreakBefore: 'auto' }}>
         <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">4. Odontograma Final / Evolución</h2>
-        <div className="border border-gray-200 rounded-2xl bg-white scale-90 origin-top-left -ml-4">
-          <OdontogramaVisual 
-            pacienteId={paciente.id} 
-            initialOdontograma={finalOdontograma} 
-            tipo="final" 
-            readOnly={true} 
-          />
+        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-4">
+          <div className="scale-[0.65] sm:scale-75 origin-top h-[300px]">
+            <OdontogramaVisual 
+              pacienteId={paciente.id} 
+              initialOdontograma={finalOdontograma} 
+              tipo="final" 
+              readOnly={true} 
+            />
+          </div>
         </div>
       </section>
+
+      {/* Tratamientos */}
+      {timeline && timeline.length > 0 && (
+        <section style={{ pageBreakInside: 'auto', pageBreakBefore: 'auto' }}>
+          <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">5. Tratamientos Realizados</h2>
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-gray-50 border-b border-gray-200 text-gray-700">
+                <tr>
+                  <th className="px-4 py-3 font-bold">Fecha</th>
+                  <th className="px-4 py-3 font-bold">Tratamiento / Concepto</th>
+                  <th className="px-4 py-3 font-bold text-right">Costo</th>
+                  <th className="px-4 py-3 font-bold text-right">Abono</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {timeline.map((tx, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50">
+                    <td className="px-4 py-2 text-gray-500 whitespace-nowrap">
+                      {tx.fecha.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </td>
+                    <td className="px-4 py-2 font-medium text-gray-900">{tx.concepto}</td>
+                    <td className="px-4 py-2 text-right text-gray-600">
+                      {tx.deuda > 0 ? `Gs. ${tx.deuda.toLocaleString("es-ES")}` : '-'}
+                    </td>
+                    <td className="px-4 py-2 text-right font-bold text-emerald-600">
+                      {tx.abono > 0 ? `Gs. ${tx.abono.toLocaleString("es-ES")}` : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {/* Firmas */}
       <div className="mt-24 flex justify-between px-10" style={{ pageBreakInside: 'avoid' }}>

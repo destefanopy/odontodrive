@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import FichaImprimible from "./FichaImprimible";
-import { Paciente, AntecedentesMedicos } from "@/core/api";
+import { Paciente, AntecedentesMedicos, getPagos, getDeudas } from "@/core/api";
+import { MovimientoFinanciero } from "./FichaImprimible";
 
 interface ExportarFichaBotonProps {
   paciente: Paciente;
@@ -20,13 +21,44 @@ export default function ExportarFichaBoton({
 }: ExportarFichaBotonProps) {
   const componentRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [timeline, setTimeline] = useState<MovimientoFinanciero[]>([]);
 
   const handleExport = async () => {
     if (!componentRef.current) return;
     setIsExporting(true);
 
     try {
-      // Importamos html2pdf dinámicamente para que no rompa el server-side rendering
+      // 1. Obtener datos financieros
+      const [pData, dData] = await Promise.all([
+        getPagos(paciente.id),
+        getDeudas(paciente.id)
+      ]);
+
+      const mergedEntries = new Map<string, any>();
+      dData.forEach(d => {
+        const fechaStr = new Date(d.fecha).toLocaleDateString();
+        const key = `${d.concepto}_${fechaStr}`;
+        if (!mergedEntries.has(key)) {
+          mergedEntries.set(key, { key, concepto: d.concepto, fecha: new Date(d.fecha), deuda: 0, abono: 0 });
+        }
+        mergedEntries.get(key).deuda += Number(d.monto);
+      });
+      pData.forEach(p => {
+        const fechaStr = new Date(p.fecha_pago).toLocaleDateString();
+        const key = `${p.concepto}_${fechaStr}`;
+        if (!mergedEntries.has(key)) {
+          mergedEntries.set(key, { key, concepto: p.concepto, fecha: new Date(p.fecha_pago), deuda: 0, abono: 0 });
+        }
+        mergedEntries.get(key).abono += Number(p.monto);
+      });
+      
+      const newTimeline = Array.from(mergedEntries.values()).sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+      setTimeline(newTimeline);
+
+      // 2. Esperar a que React renderice el componente con el timeline
+      await new Promise(r => setTimeout(r, 500));
+
+      // 3. Exportar PDF
       const html2pdf = (await import("html2pdf.js")).default;
       const element = componentRef.current;
 
@@ -38,7 +70,6 @@ export default function ExportarFichaBoton({
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      // html2pdf renderiza el elemento tal cual está, incluso si está fuera de la pantalla (position: absolute)
       await html2pdf().set(opt).from(element).save();
 
     } catch (error) {
@@ -62,13 +93,14 @@ export default function ExportarFichaBoton({
       </button>
 
       {/* Componente oculto que se usará sólo para generar el PDF */}
-      <div style={{ position: "absolute", top: "-9999px", left: "-9999px", width: "1000px" }}>
+      <div style={{ position: "absolute", top: "-9999px", left: "-9999px", width: "794px" }}>
         <FichaImprimible
           ref={componentRef}
           paciente={paciente}
           antecedentes={antecedentes}
           initialOdontograma={initialOdontograma}
           finalOdontograma={finalOdontograma}
+          timeline={timeline}
         />
       </div>
     </>
