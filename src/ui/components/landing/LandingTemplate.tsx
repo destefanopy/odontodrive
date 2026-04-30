@@ -48,7 +48,7 @@ export default function LandingTemplate({
               Iniciar Sesión
             </Link>
             <Link href="/login" className="text-sm font-bold bg-cyan-500 text-white px-5 py-2.5 rounded-full shadow-[0_4px_14px_0_rgba(6,182,212,0.4)] hover:shadow-[0_6px_20px_rgba(6,182,212,0.25)] hover:bg-cyan-400 transition-all transform hover:-translate-y-0.5">
-              Prueba Gratis
+              Regístrate
             </Link>
           </div>
         </div>
