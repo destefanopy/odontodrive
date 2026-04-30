@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 
 export default function ParaguayLandingPage() {
   const paraguayPlans: PricingPlan[] = [
+    { name: "Gratis", price: "0", storage: "500 MB", features: ["Hasta 50 pacientes", "Historia clínica básica", "Agenda clínica"] },
     { name: "Básico", price: "30.000", storage: "1 GB", features: ["Fichas de pacientes", "Presupuestos rápidos", "Soporte por correo"] },
     { name: "Estándar", price: "75.000", storage: "5 GB", features: ["Odontogramas", "Recetas con tu logo", "Gestión de cobros"] },
     { name: "Avanzado", price: "150.000", storage: "20 GB", features: ["Inteligencia Artificial", "Múltiples sucursales", "Soporte vía WhatsApp"], isPopular: true },

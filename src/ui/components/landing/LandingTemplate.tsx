@@ -137,11 +137,11 @@ export default function LandingTemplate({
           <h2 className="text-4xl font-black text-slate-900 mb-4">Inversión Inteligente</h2>
           <p className="text-slate-600 text-lg mb-12">Escala a medida que tu clínica crece. Sin contratos obligatorios.</p>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-6xl">
+          <div className="flex flex-wrap justify-center gap-6 w-full max-w-[1400px]">
             {plans.map((plan, index) => (
               <div 
                 key={index} 
-                className={`bg-white rounded-3xl p-8 relative flex flex-col items-center text-center transition-all duration-300 ${plan.isPopular ? 'border-2 border-cyan-400 shadow-[0_8px_30px_rgb(6,182,212,0.2)] scale-105 z-10' : 'border border-slate-200 shadow-sm hover:shadow-xl hover:border-cyan-200'}`}
+                className={`w-full md:w-[calc(50%-12px)] ${plans.length === 5 ? 'lg:w-[calc(33.333%-16px)] xl:w-[calc(20%-19.2px)]' : 'lg:w-[calc(25%-18px)]'} bg-white rounded-3xl p-8 relative flex flex-col items-center text-center transition-all duration-300 ${plan.isPopular ? 'border-2 border-cyan-400 shadow-[0_8px_30px_rgb(6,182,212,0.2)] lg:scale-105 z-10' : 'border border-slate-200 shadow-sm hover:shadow-xl hover:border-cyan-200'}`}
               >
                 {plan.isPopular && (
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-cyan-400 to-teal-400 text-white px-6 py-1.5 rounded-full text-xs font-black shadow-lg shadow-cyan-500/30 tracking-wider border border-cyan-300/50">

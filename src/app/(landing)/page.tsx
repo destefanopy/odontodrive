@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 
 export default function GlobalLandingPage() {
   const globalPlans: PricingPlan[] = [
+    { name: "Gratis", price: "0", storage: "500 MB", features: ["Hasta 50 pacientes", "Historia clínica básica", "Agenda clínica"] },
     { name: "Básico", price: "4", storage: "1 GB", features: ["Gestión pacientes básica", "Presupuestos estándar", "Soporte por correo"] },
     { name: "Estándar", price: "10", storage: "5 GB", features: ["Odontogramas interactivos", "Recetario digital", "Recordatorios de pago"] },
     { name: "Avanzado", price: "20", storage: "20 GB", features: ["Análisis fotográfico IA", "Múltiples doctores", "Soporte prioritario"], isPopular: true },
