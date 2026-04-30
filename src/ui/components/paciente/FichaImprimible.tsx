@@ -73,32 +73,32 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
         </div>
       </section>
 
-      {/* Odontograma Inicial */}
+      {/* Odontogramas */}
       <section className="mb-10" style={{ pageBreakInside: 'avoid', pageBreakBefore: 'auto' }}>
-        <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">3. Odontograma Inicial (Estado al Ingreso)</h2>
-        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-4">
-          <div className="scale-[0.65] sm:scale-75 origin-top h-[300px]">
-            <OdontogramaVisual 
-              pacienteId={paciente.id} 
-              initialOdontograma={initialOdontograma} 
-              tipo="inicial" 
-              readOnly={true} 
-            />
+        <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">3. Estado Dental (Odontogramas)</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="border border-gray-200 rounded-2xl bg-white flex flex-col items-center py-4">
+            <h3 className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Estado Inicial</h3>
+            <div className="scale-[0.45] sm:scale-[0.50] origin-top h-[220px]">
+              <OdontogramaVisual 
+                pacienteId={paciente.id} 
+                initialOdontograma={initialOdontograma} 
+                tipo="inicial" 
+                readOnly={true} 
+              />
+            </div>
           </div>
-        </div>
-      </section>
-
-      {/* Odontograma Final */}
-      <section className="mb-10" style={{ pageBreakInside: 'avoid', pageBreakBefore: 'auto' }}>
-        <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">4. Odontograma Final / Evolución</h2>
-        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-4">
-          <div className="scale-[0.65] sm:scale-75 origin-top h-[300px]">
-            <OdontogramaVisual 
-              pacienteId={paciente.id} 
-              initialOdontograma={finalOdontograma} 
-              tipo="final" 
-              readOnly={true} 
-            />
+          
+          <div className="border border-gray-200 rounded-2xl bg-white flex flex-col items-center py-4">
+            <h3 className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Evolución / Final</h3>
+            <div className="scale-[0.45] sm:scale-[0.50] origin-top h-[220px]">
+              <OdontogramaVisual 
+                pacienteId={paciente.id} 
+                initialOdontograma={finalOdontograma} 
+                tipo="final" 
+                readOnly={true} 
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -106,7 +106,9 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
       {/* Tratamientos */}
       {timeline && timeline.length > 0 && (
         <section style={{ pageBreakInside: 'auto', pageBreakBefore: 'auto' }}>
-          <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">5. Tratamientos Realizados</h2>
+          <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider" style={{ pageBreakAfter: 'avoid' }}>
+            4. Historial de Tratamientos Realizados
+          </h2>
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50 border-b border-gray-200 text-gray-700">
