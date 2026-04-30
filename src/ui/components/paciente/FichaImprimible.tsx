@@ -76,9 +76,8 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
       {/* Odontograma Inicial (PÁGINA 2) */}
       <section className="mb-10 page-break-before" style={{ pageBreakBefore: 'always', paddingTop: '20px' }}>
         <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">3. Estado Inicial</h2>
-        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-6 px-4">
-          {/* Al quitar scale() y usar w-full max-w-2xl, el SVG se redimensiona naturalmente y html2pdf lo capta perfecto */}
-          <div className="w-full max-w-2xl mx-auto">
+        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-6 overflow-hidden">
+          <div style={{ transform: "scale(0.75)", transformOrigin: "top center", width: "133.33%", height: "420px" }}>
             <OdontogramaVisual 
               pacienteId={paciente.id} 
               initialOdontograma={initialOdontograma} 
@@ -92,8 +91,8 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
       {/* Odontograma Final (PÁGINA 3) */}
       <section className="mb-10 page-break-before" style={{ pageBreakBefore: 'always', paddingTop: '20px' }}>
         <h2 className="text-lg font-bold bg-gray-100 p-2 border-l-4 border-gray-800 mb-4 uppercase tracking-wider">4. Evolución / Final</h2>
-        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-6 px-4">
-          <div className="w-full max-w-2xl mx-auto">
+        <div className="border border-gray-200 rounded-2xl bg-white flex justify-center py-6 overflow-hidden">
+          <div style={{ transform: "scale(0.75)", transformOrigin: "top center", width: "133.33%", height: "420px" }}>
             <OdontogramaVisual 
               pacienteId={paciente.id} 
               initialOdontograma={finalOdontograma} 
