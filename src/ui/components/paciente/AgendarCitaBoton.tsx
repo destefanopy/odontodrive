@@ -12,7 +12,7 @@ export default function AgendarCitaBoton({ paciente }: { paciente: Paciente }) {
     <>
       <button 
         onClick={() => setOpen(true)}
-        className="w-full px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl shadow-md text-sm hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
+        className="w-full px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl shadow-md text-sm hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 whitespace-nowrap"
       >
         <Calendar className="w-4 h-4" />
         Agendar Próxima Cita

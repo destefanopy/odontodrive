@@ -34,7 +34,7 @@ export default function EliminarPacienteBoton({ pacienteId, nombrePaciente }: { 
     <button
       onClick={handleDelete}
       disabled={isDeleting}
-      className="flex items-center justify-center gap-2 bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm border border-red-200 hover:bg-red-100 transition-all disabled:opacity-70 w-full"
+      className="flex items-center justify-center gap-2 bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm border border-red-200 hover:bg-red-100 transition-all disabled:opacity-70 w-full whitespace-nowrap"
     >
       <Trash2 className="w-4 h-4" />
       {isDeleting ? "Borrando..." : "Eliminar Paciente"}
