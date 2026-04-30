@@ -29,11 +29,12 @@ interface OdontogramaVisualProps {
   initialOdontograma: Record<number, any>;
   tipo?: 'inicial' | 'final';
   onUpdate?: () => void;
+  readOnly?: boolean;
 }
 
 type ToolType = "healthy" | "caries" | "treated" | "extracted" | "to_extract" | "absent";
 
-export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo = 'inicial', onUpdate }: OdontogramaVisualProps) {
+export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo = 'inicial', onUpdate, readOnly = false }: OdontogramaVisualProps) {
   // Manejo de migración desde el formato antiguo (string) al nuevo formato (ToothSurfaces)
   const migrateInitial = (data: Record<number, any>) => {
     const migrated: Record<number, ToothSurfaces> = {};
@@ -57,6 +58,7 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
   const [isPending, setIsPending] = useState(false);
 
   const handleSurfaceClick = (toothId: number, surface: keyof ToothSurfaces) => {
+    if (readOnly) return;
     setTeethData((prev) => {
       const currentTooth = prev[toothId] || { ...DEFAULT_TOOTH };
       const newActiveTool = activeTool;
@@ -205,29 +207,31 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto p-4 mb-24">
+    <div className={`space-y-6 max-w-5xl mx-auto p-4 ${readOnly ? 'mb-4' : 'mb-24'}`}>
       {/* Selector de Herramientas UI */}
-      <div className="flex flex-col sm:flex-row items-center justify-between bg-white border border-gray-100 p-4 rounded-3xl shadow-sm gap-4">
-        <div className="flex bg-gray-100 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto gap-2 preserve-3d">
-          <ToolButton name="Caries" tool="caries" current={activeTool} setTool={setActiveTool} colorClass="bg-red-500" />
-          <ToolButton name="Restaurado" tool="treated" current={activeTool} setTool={setActiveTool} colorClass="bg-blue-500" />
-          <ToolButton name="Sano" tool="healthy" current={activeTool} setTool={setActiveTool} colorClass="bg-white border border-gray-300" />
-          <ToolButton name="Extraído (X Azul)" tool="extracted" current={activeTool} setTool={setActiveTool} colorClass="bg-blue-600" />
-          <ToolButton name="A Extraer (X Roja)" tool="to_extract" current={activeTool} setTool={setActiveTool} colorClass="bg-red-600" />
-          <ToolButton name="Ausente (X Negra)" tool="absent" current={activeTool} setTool={setActiveTool} colorClass="bg-black" />
+      {!readOnly && (
+        <div className="flex flex-col sm:flex-row items-center justify-between bg-white border border-gray-100 p-4 rounded-3xl shadow-sm gap-4 print:hidden">
+          <div className="flex bg-gray-100 p-1.5 rounded-2xl w-full sm:w-auto overflow-x-auto gap-2 preserve-3d">
+            <ToolButton name="Caries" tool="caries" current={activeTool} setTool={setActiveTool} colorClass="bg-red-500" />
+            <ToolButton name="Restaurado" tool="treated" current={activeTool} setTool={setActiveTool} colorClass="bg-blue-500" />
+            <ToolButton name="Sano" tool="healthy" current={activeTool} setTool={setActiveTool} colorClass="bg-white border border-gray-300" />
+            <ToolButton name="Extraído (X Azul)" tool="extracted" current={activeTool} setTool={setActiveTool} colorClass="bg-blue-600" />
+            <ToolButton name="A Extraer (X Roja)" tool="to_extract" current={activeTool} setTool={setActiveTool} colorClass="bg-red-600" />
+            <ToolButton name="Ausente (X Negra)" tool="absent" current={activeTool} setTool={setActiveTool} colorClass="bg-black" />
+          </div>
+
+          <button
+            onClick={handleSave}
+            disabled={isPending}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold shadow-md hover:bg-emerald-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            <Save className="w-5 h-5" />
+            {isPending ? "Guardando..." : "Guardar Odontograma"}
+          </button>
         </div>
+      )}
 
-        <button
-          onClick={handleSave}
-          disabled={isPending}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold shadow-md hover:bg-emerald-700 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-          <Save className="w-5 h-5" />
-          {isPending ? "Guardando..." : "Guardar Odontograma"}
-        </button>
-      </div>
-
-      <div className="bg-gray-50 border border-gray-100 rounded-3xl p-2 sm:p-6 lg:p-10 shadow-inner overflow-x-auto min-h-[400px] flex items-start justify-center">
+      <div className={`bg-gray-50 border border-gray-100 rounded-3xl p-2 sm:p-6 lg:p-10 shadow-inner overflow-x-auto ${readOnly ? 'min-h-0' : 'min-h-[400px]'} flex items-start justify-center print:border-none print:shadow-none print:bg-transparent`}>
         <div className="flex flex-col gap-8 min-w-max items-center mx-auto scale-[0.85] sm:scale-95 md:scale-100 origin-top mt-4">
           
           {/* MAXILAR SUPERIOR */}
@@ -267,10 +271,12 @@ export default function OdontogramaVisual({ pacienteId, initialOdontograma, tipo
         </div>
       </div>
       
-      <div className="flex items-center gap-2 text-gray-800 text-sm justify-center">
-        <AlertCircle className="w-4 h-4" />
-        <p>Selecciona una herramienta y dibuja sobre corona o raíz de la pieza dental.</p>
-      </div>
+      {!readOnly && (
+        <div className="flex items-center gap-2 text-gray-800 text-sm justify-center print:hidden">
+          <AlertCircle className="w-4 h-4" />
+          <p>Selecciona una herramienta y dibuja sobre corona o raíz de la pieza dental.</p>
+        </div>
+      )}
     </div>
   );
 }

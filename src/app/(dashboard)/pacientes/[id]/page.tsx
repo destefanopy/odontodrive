@@ -6,6 +6,7 @@ import { ArrowLeft, Phone, Calendar, Loader2 } from "lucide-react";
 import Link from "next/link";
 import AgendarCitaBoton from "@/ui/components/paciente/AgendarCitaBoton";
 import EliminarPacienteBoton from "@/ui/components/paciente/EliminarPacienteBoton";
+import ExportarFichaBoton from "@/ui/components/paciente/ExportarFichaBoton";
 import { useRouter } from "next/navigation";
 
 import PacienteAvatar from "@/ui/components/paciente/PacienteAvatar";
@@ -95,6 +96,12 @@ export default function PacientePerfilPage({ params }: PageProps) {
           </div>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <ExportarFichaBoton 
+            paciente={paciente}
+            antecedentes={initialAntecedentes}
+            initialOdontograma={initialOdontograma}
+            finalOdontograma={finalOdontograma}
+          />
           <EliminarPacienteBoton pacienteId={paciente.id} nombrePaciente={paciente.nombres_apellidos} />
           <AgendarCitaBoton paciente={paciente} />
         </div>
