@@ -39,7 +39,7 @@ export default function ExportarFichaBoton({
       </button>
 
       {/* Componente oculto que se usará sólo para imprimir */}
-      <div style={{ display: "none" }}>
+      <div style={{ position: "absolute", top: "-9999px", left: "-9999px" }}>
         <FichaImprimible
           ref={componentRef}
           paciente={paciente}
