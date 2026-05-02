@@ -47,6 +47,7 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
             registro: user.user_metadata.clinic_reg_prof || '',
             ciudad: user.user_metadata.clinic_city || '',
             pais: user.user_metadata.clinic_country || 'Paraguay',
+            logo: user.user_metadata.clinic_logo_url || null,
           });
         }
       });
@@ -281,6 +282,22 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
           {/* Hidden container used just for the PDF rendering to ensure it's clean and always mounted */}
           <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
              <div ref={documentRef} className="text-left font-serif" style={{ fontSize: '14px', lineHeight: '1.6' }}>
+               
+               {/* Cabecera / Membrete */}
+               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '30px' }}>
+                 <div style={{ flex: 1 }}>
+                   <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0, color: '#111827' }}>{doctorData.nombre}</h2>
+                   {doctorData.registro && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#4b5563' }}>Registro Profesional: {doctorData.registro}</p>}
+                   <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#4b5563' }}>{doctorData.ciudad}, {doctorData.pais}</p>
+                 </div>
+                 {doctorData.logo && (
+                   <div style={{ width: '80px', height: '80px', flexShrink: 0, marginLeft: '20px' }}>
+                     {/* eslint-disable-next-line @next/next/no-img-element */}
+                     <img src={doctorData.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} crossOrigin="anonymous" />
+                   </div>
+                 )}
+               </div>
+
                <h1 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
                  {CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES].title}
                </h1>
@@ -292,16 +309,12 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
                  }} />
                ))}
                
-               <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={{ width: '40%', textAlign: 'center' }}>
-                     <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '40px' }} id="signature-container"></div>
-                     <p style={{ margin: 0, fontSize: '12px' }}>Firma del Paciente</p>
-                     <p style={{ margin: 0, fontSize: '12px' }}>Aclaración: {paciente.nombres_apellidos}</p>
-                  </div>
-                  <div style={{ width: '40%', textAlign: 'center' }}>
-                     <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '40px' }}></div>
-                     <p style={{ margin: 0, fontSize: '12px' }}>Firma del Profesional</p>
-                     <p style={{ margin: 0, fontSize: '12px' }}>Aclaración: {doctorData.nombre}</p>
+               <div style={{ marginTop: '60px', display: 'flex', justifyContent: 'center' }}>
+                  <div style={{ width: '50%', textAlign: 'center' }}>
+                     <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '50px' }} id="signature-container"></div>
+                     <p style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>Firma del Paciente</p>
+                     <p style={{ margin: 0, fontSize: '12px', color: '#4b5563' }}>Aclaración: {paciente.nombres_apellidos}</p>
+                     {paciente.documento_identidad && <p style={{ margin: 0, fontSize: '12px', color: '#4b5563' }}>Doc: {paciente.documento_identidad}</p>}
                   </div>
                </div>
              </div>

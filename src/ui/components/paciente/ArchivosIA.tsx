@@ -62,7 +62,9 @@ export default function ArchivosIA({ paciente }: ArchivosIAProps) {
   const cargarArchivos = async () => {
     try {
       const data = await getPacienteFiles(pacienteId);
-      setArchivos(data);
+      // Filtrar consentimientos para que solo aparezcan en su propia pestaña
+      const archivosFiltrados = data.filter(d => d.tipo_archivo !== 'consentimiento_informado');
+      setArchivos(archivosFiltrados);
     } catch (err) {
       console.error(err);
     } finally {
