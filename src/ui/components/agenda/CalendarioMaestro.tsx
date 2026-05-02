@@ -34,15 +34,18 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
     }
   };
 
-  const events = citas.map((cita) => ({
-    id: cita.id,
-    title: cita.nombre_paciente,
-    extendedProps: { motivo: cita.motivo, paciente_id: cita.paciente_id, realCita: cita },
-    start: cita.fecha_inicio,
-    end: cita.fecha_fin,
-    backgroundColor: "#10b981", 
-    borderColor: "#059669", 
-  }));
+  const events = citas.map((cita) => {
+    const isTarea = !cita.paciente_id;
+    return {
+      id: cita.id,
+      title: cita.nombre_paciente,
+      extendedProps: { motivo: cita.motivo, paciente_id: cita.paciente_id, realCita: cita, isTarea },
+      start: cita.fecha_inicio,
+      end: cita.fecha_fin,
+      backgroundColor: isTarea ? "#f97316" : "#10b981", 
+      borderColor: isTarea ? "#ea580c" : "#059669", 
+    };
+  });
 
   const handleDateClick = (arg: { date: Date }) => {
     setEditCitaInfo(null);
@@ -117,7 +120,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           eventResize={handleEventChange}
           height="100%"
           eventContent={(eventInfo) => (
-            <div className="p-0.5 overflow-hidden flex flex-col h-full rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] relative pl-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#31b8b3] bg-[#e6f7fa] text-[#1e7e7a]">
+            <div className={`p-0.5 overflow-hidden flex flex-col h-full rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] relative pl-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 ${eventInfo.event.extendedProps.isTarea ? 'before:bg-orange-500 bg-orange-50 text-orange-900' : 'before:bg-[#31b8b3] bg-[#e6f7fa] text-[#1e7e7a]'}`}>
               <div className="font-extrabold text-[9px] sm:text-[10px] leading-tight truncate px-0.5">{eventInfo.event.title}</div>
               <div className="text-[8px] sm:text-[9px] opacity-80 font-medium truncate px-0.5 hidden sm:block">{eventInfo.timeText}</div>
             </div>
@@ -211,10 +214,10 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setIsEventModalOpen(false)} />
           <div className="relative bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
-            <h2 className="text-xl font-black text-gray-900 mb-2">Detalles de la Cita</h2>
+            <h2 className="text-xl font-black text-gray-900 mb-2">{selectedEvent.extendedProps?.isTarea ? "Detalles de la Tarea" : "Detalles de la Cita"}</h2>
             <div className="space-y-4 mb-6 text-sm text-gray-700">
               <div>
-                <span className="font-bold text-gray-900 uppercase text-[10px]">Paciente:</span>
+                <span className="font-bold text-gray-900 uppercase text-[10px]">{selectedEvent.extendedProps?.isTarea ? "Tarea:" : "Paciente:"}</span>
                 <p className="font-medium">{selectedEvent.title}</p>
               </div>
               <div>
@@ -228,6 +231,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
             </div>
 
             {(() => {
+              if (selectedEvent.extendedProps?.isTarea) return null;
               const pacienteData = pacientes.find(p => p.id === selectedEvent.extendedProps.paciente_id);
               if (pacienteData && pacienteData.telefono_celular) {
                 const phone = pacienteData.telefono_celular.replace(/\D/g, "");
@@ -273,7 +277,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
                 disabled={isDeleting}
                 className="flex-1 py-3 px-2 sm:px-4 bg-red-50 text-red-600 border border-red-200 text-xs sm:text-sm font-bold rounded-xl hover:bg-red-100 hover:border-red-300 disabled:opacity-50"
               >
-                {isDeleting ? "Cancelando" : "Cancelar Cita"}
+                {isDeleting ? "Cancelando" : (selectedEvent.extendedProps?.isTarea ? "Eliminar Tarea" : "Cancelar Cita")}
               </button>
             </div>
           </div>

@@ -39,7 +39,7 @@ export const uploadProfilePicture = async (pacienteId: string, file: File): Prom
 
 export interface Cita {
   id?: string;
-  paciente_id: string;
+  paciente_id?: string | null;
   nombre_paciente: string;
   motivo: string;
   fecha_inicio: string; // ISO String

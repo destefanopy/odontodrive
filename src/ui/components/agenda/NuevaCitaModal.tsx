@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { X, Calendar, Clock, User, FileText, ChevronDown } from "lucide-react";
-import { Paciente, Cita, createCita, updateCita } from "@/core/api";
+import { X, Calendar, Clock, User, FileText, ChevronDown, Plus, UserPlus, ListTodo } from "lucide-react";
+import { Paciente, Cita, createCita, updateCita, createPaciente } from "@/core/api";
 import { useRouter } from "next/navigation";
 
 interface NuevaCitaModalProps {
@@ -18,25 +18,38 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
 
+  const [tipoEvento, setTipoEvento] = useState<'cita' | 'tarea'>('cita');
+  const [isNuevoPaciente, setIsNuevoPaciente] = useState(false);
+  const [nuevoPacienteNombre, setNuevoPacienteNombre] = useState("");
+
   // Buscador de pacientes
   const [searchTerm, setSearchTerm] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedPacienteId, setSelectedPacienteId] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Inicializar paciente seleccionado
+  // Inicializar paciente seleccionado y tipo de evento
   useEffect(() => {
-    let initialId = null;
-    if (existingCita?.paciente_id) {
-      initialId = existingCita.paciente_id;
-    } else if (pacientes.length === 1) {
-      initialId = pacientes[0].id;
-    }
-    
-    if (initialId) {
-      setSelectedPacienteId(initialId);
-      const px = pacientes.find(p => p.id === initialId);
-      if (px) setSearchTerm(px.nombres_apellidos);
+    if (existingCita) {
+      if (!existingCita.paciente_id) {
+        setTipoEvento('tarea');
+      } else {
+        setTipoEvento('cita');
+        setSelectedPacienteId(existingCita.paciente_id);
+        const px = pacientes.find(p => p.id === existingCita.paciente_id);
+        if (px) setSearchTerm(px.nombres_apellidos);
+      }
+    } else {
+      let initialId = null;
+      if (pacientes.length === 1) {
+        initialId = pacientes[0].id;
+      }
+      
+      if (initialId) {
+        setSelectedPacienteId(initialId);
+        const px = pacientes.find(p => p.id === initialId);
+        if (px) setSearchTerm(px.nombres_apellidos);
+      }
     }
   }, [existingCita, pacientes]);
 
@@ -72,32 +85,56 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
 
     try {
       const formData = new FormData(e.currentTarget);
-      const pacienteId = formData.get("paciente_id")?.toString();
-      const nombrePaciente = formData.get("nombre_paciente")?.toString();
-      const motivo = formData.get("motivo")?.toString() || "Consulta Métrica";
+      const motivo = formData.get("motivo")?.toString() || "Consulta";
       const fecha = formData.get("fecha")?.toString();
       const horaInicio = formData.get("hora_inicio")?.toString();
       const horaFin = formData.get("hora_fin")?.toString();
 
-      if (!pacienteId || !fecha || !horaInicio || !horaFin) {
-        throw new Error("Faltan datos obligatorios o debes seleccionar un paciente de la lista.");
+      if (!fecha || !horaInicio || !horaFin) {
+        throw new Error("Las fechas y horas son obligatorias.");
       }
 
       const fechaInicioStr = `${fecha}T${horaInicio}:00-03:00`;
       const fechaFinStr = `${fecha}T${horaFin}:00-03:00`;
 
+      let finalPacienteId: string | null = null;
+      let finalNombrePaciente: string = "";
+
+      if (tipoEvento === 'cita') {
+        if (isNuevoPaciente) {
+          if (!nuevoPacienteNombre.trim()) {
+            throw new Error("El nombre del nuevo paciente es obligatorio.");
+          }
+          // Crear paciente on the fly
+          const nuevo = await createPaciente({ nombres_apellidos: nuevoPacienteNombre.trim(), telefono_celular: null });
+          if (!nuevo) throw new Error("Error al crear el nuevo paciente");
+          finalPacienteId = nuevo.id;
+          finalNombrePaciente = nuevo.nombres_apellidos;
+        } else {
+          if (!selectedPacienteId) {
+            throw new Error("Debes seleccionar un paciente de la lista o crear uno nuevo.");
+          }
+          finalPacienteId = selectedPacienteId;
+          finalNombrePaciente = searchTerm;
+        }
+      } else {
+        // Tarea
+        finalPacienteId = null;
+        finalNombrePaciente = `Tarea: ${motivo}`;
+      }
+
       if (existingCita) {
         await updateCita(existingCita.id!, {
-          paciente_id: pacienteId,
-          nombre_paciente: nombrePaciente || existingCita.nombre_paciente,
+          paciente_id: finalPacienteId,
+          nombre_paciente: finalNombrePaciente || existingCita.nombre_paciente,
           motivo,
           fecha_inicio: new Date(fechaInicioStr).toISOString(),
           fecha_fin: new Date(fechaFinStr).toISOString(),
         });
       } else {
         await createCita({
-          paciente_id: pacienteId,
-          nombre_paciente: nombrePaciente || "Paciente",
+          paciente_id: finalPacienteId,
+          nombre_paciente: finalNombrePaciente || "Evento",
           motivo,
           fecha_inicio: new Date(fechaInicioStr).toISOString(),
           fecha_fin: new Date(fechaFinStr).toISOString(),
@@ -108,7 +145,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
       router.refresh();
       onClose();
     } catch (err: any) {
-      setErrorMsg(err.message || "Error al procesar la cita.");
+      setErrorMsg(err.message || "Error al procesar el evento.");
     } finally {
       setIsPending(false);
     }
@@ -121,7 +158,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-xl font-bold text-gray-900">{existingCita ? "Editar Cita" : "Agendar Nueva Cita"}</h2>
+          <h2 className="text-xl font-bold text-gray-900">{existingCita ? "Editar Evento" : "Agendar Evento"}</h2>
           <button onClick={onClose} className="text-gray-800 hover:text-gray-800 bg-white shadow-sm p-2 rounded-full transition-all">
             <X className="w-5 h-5" />
           </button>
@@ -134,70 +171,126 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
             </div>
           )}
 
-          <div className="space-y-2 relative" ref={dropdownRef}>
-            <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-              <User className="w-4 h-4 text-[#31b8b3]" />
-              Paciente
-            </label>
-            
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar paciente por nombre..."
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setIsDropdownOpen(true);
-                  if (selectedPacienteId) {
-                    const match = pacientes.find(p => p.id === selectedPacienteId);
-                    if (match && match.nombres_apellidos !== e.target.value) {
-                      setSelectedPacienteId(null);
-                    }
-                  }
-                }}
-                onFocus={() => setIsDropdownOpen(true)}
-                className="w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
-              />
+          {!existingCita && (
+            <div className="flex bg-gray-100 p-1 rounded-xl">
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                onClick={() => setTipoEvento('cita')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all ${
+                  tipoEvento === 'cita' ? "bg-white text-[#31b8b3] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
               >
-                <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+                <User className="w-4 h-4" /> Cita Médica
+              </button>
+              <button
+                type="button"
+                onClick={() => setTipoEvento('tarea')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-bold rounded-lg transition-all ${
+                  tipoEvento === 'tarea' ? "bg-white text-orange-500 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <ListTodo className="w-4 h-4" /> Tarea
               </button>
             </div>
+          )}
 
-            {isDropdownOpen && (
-              <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-56 overflow-y-auto animate-in fade-in slide-in-from-top-2">
-                {pacientesFiltrados.length === 0 ? (
-                  <div className="p-4 text-center text-sm font-medium text-gray-500">
-                    No se encontraron resultados
-                  </div>
-                ) : (
-                  <div className="py-2">
-                    {pacientesFiltrados.map((p) => (
-                      <div
-                        key={p.id}
-                        onClick={() => {
-                          setSelectedPacienteId(p.id);
-                          setSearchTerm(p.nombres_apellidos);
-                          setIsDropdownOpen(false);
-                        }}
-                        className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors hover:bg-[#e6f7fa] hover:text-[#1e7e7a] ${
-                          selectedPacienteId === p.id ? "bg-[#e6f7fa] text-[#1e7e7a] font-bold" : "text-gray-700"
-                        }`}
-                      >
-                        {p.nombres_apellidos}
-                      </div>
-                    ))}
-                  </div>
-                )}
+          {tipoEvento === 'cita' && (
+            <div className="space-y-3" ref={dropdownRef}>
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                  <User className="w-4 h-4 text-[#31b8b3]" />
+                  Paciente
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsNuevoPaciente(!isNuevoPaciente)}
+                  className="text-xs font-bold text-[#31b8b3] flex items-center gap-1 hover:text-[#1e7e7a]"
+                >
+                  {isNuevoPaciente ? "Seleccionar Existente" : <><UserPlus className="w-3 h-3" /> Nuevo Paciente</>}
+                </button>
               </div>
-            )}
-            
-            <input type="hidden" name="paciente_id" value={selectedPacienteId || ""} />
-            <input type="hidden" name="nombre_paciente" id="nombre_paciente_hidden" value={searchTerm} />
-          </div>
+              
+              {isNuevoPaciente ? (
+                <div className="animate-in fade-in slide-in-from-top-2">
+                  <input
+                    type="text"
+                    placeholder="Nombres y Apellidos del paciente..."
+                    value={nuevoPacienteNombre}
+                    onChange={(e) => setNuevoPacienteNombre(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-[#31b8b3]/30 bg-[#e6f7fa]/30 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
+                    autoFocus
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1 ml-1">Se creará un nuevo perfil de paciente automáticamente.</p>
+                </div>
+              ) : (
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Buscar paciente por nombre..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setIsDropdownOpen(true);
+                      if (selectedPacienteId) {
+                        const match = pacientes.find(p => p.id === selectedPacienteId);
+                        if (match && match.nombres_apellidos !== e.target.value) {
+                          setSelectedPacienteId(null);
+                        }
+                      }
+                    }}
+                    onFocus={() => setIsDropdownOpen(true)}
+                    className="w-full px-4 py-3 pr-10 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  >
+                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-xl max-h-56 overflow-y-auto animate-in fade-in slide-in-from-top-2">
+                      {pacientesFiltrados.length === 0 ? (
+                        <div className="p-4 text-center text-sm font-medium text-gray-500 flex flex-col items-center gap-2">
+                          <span>No se encontraron resultados</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsNuevoPaciente(true);
+                              setNuevoPacienteNombre(searchTerm);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="text-xs bg-[#e6f7fa] text-[#1e7e7a] px-3 py-1.5 rounded-lg font-bold"
+                          >
+                            Crear paciente "{searchTerm}"
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="py-2">
+                          {pacientesFiltrados.map((p) => (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                setSelectedPacienteId(p.id);
+                                setSearchTerm(p.nombres_apellidos);
+                                setIsDropdownOpen(false);
+                              }}
+                              className={`px-4 py-2.5 cursor-pointer text-sm font-medium transition-colors hover:bg-[#e6f7fa] hover:text-[#1e7e7a] ${
+                                selectedPacienteId === p.id ? "bg-[#e6f7fa] text-[#1e7e7a] font-bold" : "text-gray-700"
+                              }`}
+                            >
+                              {p.nombres_apellidos}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -247,13 +340,13 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
 
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-[#31b8b3]" />
-              Motivo de Consulta
+              <FileText className={`w-4 h-4 ${tipoEvento === 'tarea' ? 'text-orange-500' : 'text-[#31b8b3]'}`} />
+              {tipoEvento === 'tarea' ? 'Título de la Tarea' : 'Motivo de Consulta'}
             </label>
             <input
               type="text"
               name="motivo"
-              placeholder="Ej. Diagnóstico, Limpieza..."
+              placeholder={tipoEvento === 'tarea' ? 'Ej. Ir de compras, Laboratorio...' : 'Ej. Diagnóstico, Limpieza...'}
               defaultValue={existingCita?.motivo || ""}
               required
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none"
@@ -271,9 +364,11 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
             <button
               type="submit"
               disabled={isPending}
-              className="px-5 py-2.5 rounded-xl text-sm font-bold bg-[#31b8b3] text-white shadow-md hover:bg-[#279490] disabled:opacity-70 transition-all"
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-md transition-all disabled:opacity-70 ${
+                tipoEvento === 'tarea' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#31b8b3] hover:bg-[#279490]'
+              }`}
             >
-              {isPending ? "Procesando..." : existingCita ? "Guardar Cambios" : "Confirmar Cita"}
+              {isPending ? "Procesando..." : existingCita ? "Guardar Cambios" : "Confirmar Evento"}
             </button>
           </div>
         </form>
