@@ -722,3 +722,43 @@ export async function updateReceta(id: string, data: Partial<Omit<RecetaDB, 'id'
   return updatedRecord as RecetaDB;
 }
 
+// -----------------------------------------------------
+// PLANTILLAS DE CONSENTIMIENTO
+// -----------------------------------------------------
+
+export interface ConsentTemplateDB {
+  id: string;
+  clave: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getConsentTemplates() {
+  const { data, error } = await supabase.from('plantillas_consentimiento').select('*').order('created_at', { ascending: true });
+  if (error) {
+    console.error("Error obteniendo plantillas:", error.message);
+    return [];
+  }
+  return (data || []) as ConsentTemplateDB[];
+}
+
+export async function adminCreateConsentTemplate(template: { clave: string; title: string; content: string }) {
+  const { data, error } = await supabase.from('plantillas_consentimiento').insert(template).select().single();
+  if (error) throw new Error(error.message);
+  return data as ConsentTemplateDB;
+}
+
+export async function adminUpdateConsentTemplate(id: string, updates: { title?: string; content?: string; clave?: string; updated_at?: string }) {
+  updates.updated_at = new Date().toISOString();
+  const { data, error } = await supabase.from('plantillas_consentimiento').update(updates).eq('id', id).select().single();
+  if (error) throw new Error(error.message);
+  return data as ConsentTemplateDB;
+}
+
+export async function adminDeleteConsentTemplate(id: string) {
+  const { error } = await supabase.from('plantillas_consentimiento').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return true;
+}

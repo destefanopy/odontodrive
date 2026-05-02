@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, FileText, Printer, PenTool, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/infrastructure/supabase';
-import { CONSENT_TEMPLATES } from '@/core/constants/consentTemplates';
+import { getConsentTemplates, ConsentTemplateDB } from '@/core/api';
 import { LienzoFirma } from './LienzoFirma';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -27,6 +27,8 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
   const [doctorData, setDoctorData] = useState<any>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [dbTemplates, setDbTemplates] = useState<ConsentTemplateDB[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
 
   const addLog = (msg: string) => {
     console.log(msg);
@@ -54,6 +56,16 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
           });
         }
       });
+      
+      // Fetch templates
+      setIsLoadingTemplates(true);
+      getConsentTemplates().then(data => {
+        setDbTemplates(data);
+        if (data.length > 0) {
+          setSelectedTemplateKey(data[0].clave);
+        }
+        setIsLoadingTemplates(false);
+      });
     }
   }, [isOpen]);
 
@@ -71,7 +83,7 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
   };
 
   const generatePreview = () => {
-    const template = CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES];
+    const template = dbTemplates.find(t => t.clave === selectedTemplateKey);
     if (!template) return;
 
     const today = new Date();
@@ -311,7 +323,7 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
                </div>
 
                <h1 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
-                 {CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES].title}
+                 {dbTemplates.find(t => t.clave === selectedTemplateKey)?.title}
                </h1>
                {/* Render the replaced text properly, preserving line breaks */}
                {previewText.split('\n').map((paragraph, idx) => (
@@ -336,11 +348,15 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
             <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
               <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest mb-4">Seleccionar Plantilla</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {Object.entries(CONSENT_TEMPLATES).map(([key, template]) => (
+                {isLoadingTemplates ? (
+                  <div className="col-span-full py-10 text-center text-gray-500 flex items-center justify-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" /> Cargando plantillas...
+                  </div>
+                ) : dbTemplates.map((template) => (
                   <button
-                    key={key}
-                    onClick={() => setSelectedTemplateKey(key)}
-                    className={`p-4 text-left border-2 rounded-xl transition-all ${selectedTemplateKey === key ? 'border-accent bg-accent/5 ring-4 ring-accent/10' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                    key={template.clave}
+                    onClick={() => setSelectedTemplateKey(template.clave)}
+                    className={`p-4 text-left border-2 rounded-xl transition-all ${selectedTemplateKey === template.clave ? 'border-accent bg-accent/5 ring-4 ring-accent/10' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
                   >
                     <div className="font-bold text-gray-900">{template.title}</div>
                     <p className="text-xs text-gray-500 mt-1 line-clamp-2">{template.content.substring(0, 100)}...</p>
@@ -376,7 +392,7 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
                 {/* Visible preview */}
                 <div className="prose prose-sm max-w-none text-gray-700 font-serif">
                   <h3 className="text-center font-bold text-gray-900 mb-4">
-                    {CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES].title}
+                    {dbTemplates.find(t => t.clave === selectedTemplateKey)?.title}
                   </h3>
                   {previewText.split('\n').map((paragraph, idx) => (
                     <p key={idx} dangerouslySetInnerHTML={{ 
