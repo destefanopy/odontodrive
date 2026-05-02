@@ -38,7 +38,7 @@ export function LienzoFirma({ onSignatureSave, onCancel }: LienzoFirmaProps) {
     }
     
     try {
-      const dataUrl = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
+      const dataUrl = sigCanvas.current.getCanvas().toDataURL('image/png');
       onSignatureSave(dataUrl);
     } catch (err) {
       alert("Error capturando la firma: " + err);
