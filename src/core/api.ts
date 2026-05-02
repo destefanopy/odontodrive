@@ -444,9 +444,13 @@ export async function deletePacienteFile(id: string, storagePath: string) {
     // Intentamos obtener el tamaño antes de borrar
     const pathParts = storagePath.split('/');
     if (pathParts.length > 1) {
-       const { data: fileInfo } = await supabase.storage.from('pacientes_archivos').list(pathParts[0], { search: pathParts[1] });
+       const { data: fileInfo, error: listError } = await supabase.storage.from('pacientes_archivos').list(pathParts[0], { search: pathParts[1] });
+       console.log("Storage list result:", fileInfo, listError);
        if (fileInfo && fileInfo.length > 0) {
           sizeInBytes = fileInfo[0].metadata?.size || 0;
+          console.log("File size found:", sizeInBytes);
+       } else {
+          console.log("File not found in list. Searched for:", pathParts[1], "in dir:", pathParts[0]);
        }
     }
     await supabase.storage.from('pacientes_archivos').remove([storagePath]);
@@ -460,7 +464,11 @@ export async function deletePacienteFile(id: string, storagePath: string) {
       const { data: perfil } = await supabase.from('perfiles').select('storage_usado_bytes').eq('id', authData.user.id).single();
       const currentStorage = perfil?.storage_usado_bytes || 0;
       const newStorage = Math.max(0, currentStorage - sizeInBytes);
-      await supabase.from('perfiles').update({ storage_usado_bytes: newStorage }).eq('id', authData.user.id);
+      console.log(`Updating storage from ${currentStorage} to ${newStorage} for user ${authData.user.id}`);
+      const { error: updateError } = await supabase.from('perfiles').update({ storage_usado_bytes: newStorage }).eq('id', authData.user.id);
+      if (updateError) console.error("Error updating profile storage:", updateError);
+  } else {
+      console.log("sizeInBytes is 0, skipping storage update.");
   }
 
   return true;

@@ -248,6 +248,12 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
       }
       addLog("Registro insertado exitosamente.");
 
+      addLog("Actualizando espacio de almacenamiento...");
+      const fileSize = file.size;
+      const { data: perfil } = await supabase.from('perfiles').select('storage_usado_bytes').eq('id', authData.user.id).single();
+      const newStorage = (perfil?.storage_usado_bytes || 0) + fileSize;
+      await supabase.from('perfiles').update({ storage_usado_bytes: newStorage }).eq('id', authData.user.id);
+      
       addLog("Finalizado. Cerrando modal.");
       onSuccess();
       onClose();
