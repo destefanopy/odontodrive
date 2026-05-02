@@ -107,7 +107,6 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
       let signatureImg: HTMLImageElement | null = null;
       if (signatureDataUrl) {
          signatureImg = document.createElement('img');
-         signatureImg.src = signatureDataUrl;
          signatureImg.style.maxHeight = '100px';
          signatureImg.style.marginTop = '20px';
          
@@ -116,8 +115,12 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
            signatureImg!.onerror = resolve;
          });
          
+         signatureImg.src = signatureDataUrl;
          document.getElementById('signature-container')?.appendChild(signatureImg);
-         await loadPromise;
+         
+         if (!signatureImg.complete) {
+           await loadPromise;
+         }
       }
       
       // Permitir que React renderice el estado 'processing' antes de bloquear el hilo
