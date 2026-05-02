@@ -259,7 +259,7 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
 
                <button 
                  onClick={(e) => { e.stopPropagation(); handleDelete(doc.id, doc.url_archivo); }}
-                 className="absolute top-6 right-6 p-2 bg-white text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 shadow-sm border border-red-100"
+                 className="absolute top-6 right-6 p-2 bg-white text-red-500 rounded-lg transition-opacity hover:bg-red-50 shadow-sm border border-red-100"
                  title="Eliminar Documento"
                >
                  <Trash2 className="w-4 h-4" />

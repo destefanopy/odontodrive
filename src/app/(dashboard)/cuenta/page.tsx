@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Lock, Phone, Mail, HelpCircle, AlertCircle, CheckCircle2, Crown, Image as ImageIcon, UploadCloud, Loader2 } from "lucide-react";
+import { Lock, Phone, Mail, HelpCircle, AlertCircle, CheckCircle2, Crown, Image as ImageIcon, UploadCloud, Loader2, User } from "lucide-react";
 import { supabase } from "@/infrastructure/supabase";
 
 export default function MiCuentaPage() {
@@ -10,7 +10,7 @@ export default function MiCuentaPage() {
   const [email, setEmail] = useState<string>("");
   const [telefono, setTelefono] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
-  
+  const [fullName, setFullName] = useState<string>("");
   const [clinicName, setClinicName] = useState("");
   const [clinicAddress, setClinicAddress] = useState("");
   const [clinicPhone, setClinicPhone] = useState("");
@@ -44,6 +44,7 @@ export default function MiCuentaPage() {
       if (user) {
         setEmail(user.email || "");
         setTelefono(user.user_metadata?.phone || "");
+        setFullName(user.user_metadata?.full_name || user.user_metadata?.name || "");
         setClinicName(user.user_metadata?.clinic_name || "");
         setClinicAddress(user.user_metadata?.clinic_address || "");
         setClinicPhone(user.user_metadata?.clinic_phone || "");
@@ -160,6 +161,7 @@ export default function MiCuentaPage() {
       }
 
       updates.data = { 
+        full_name: fullName,
         phone: telefono,
         clinic_name: clinicName,
         clinic_address: clinicAddress,
@@ -304,6 +306,23 @@ export default function MiCuentaPage() {
                   />
                 </div>
                 <p className="mt-2 text-xs text-gray-500">El correo de acceso no puede ser modificado desde este panel.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Nombre Completo del Profesional</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
+                    placeholder="Ej. Juan Pérez"
+                  />
+                </div>
+                <p className="mt-2 text-xs text-gray-500">Tu nombre personal (se usará en los consentimientos y membretes).</p>
               </div>
 
               <div>

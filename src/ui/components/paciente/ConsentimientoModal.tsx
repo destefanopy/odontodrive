@@ -44,7 +44,7 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
         if (user && user.user_metadata) {
           const fullName = user.user_metadata.full_name || user.user_metadata.name || '';
           setDoctorData({
-            nombre: fullName,
+            nombre: user.user_metadata.clinic_name || fullName,
             titulo: user.user_metadata.clinic_title || '',
             registro: user.user_metadata.clinic_reg_prof || '',
             ciudad: user.user_metadata.clinic_city || '',
