@@ -44,7 +44,8 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
         if (user && user.user_metadata) {
           const fullName = user.user_metadata.full_name || user.user_metadata.name || '';
           setDoctorData({
-            nombre: user.user_metadata.clinic_title ? `${user.user_metadata.clinic_title} ${fullName}` : fullName,
+            nombre: fullName,
+            titulo: user.user_metadata.clinic_title || '',
             registro: user.user_metadata.clinic_reg_prof || '',
             ciudad: user.user_metadata.clinic_city || '',
             pais: user.user_metadata.clinic_country || 'Paraguay',
@@ -294,6 +295,7 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '30px' }}>
                  <div style={{ flex: 1 }}>
                    <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0, color: '#111827' }}>{doctorData.nombre}</h2>
+                   {doctorData.titulo && <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#374151', fontWeight: '500' }}>{doctorData.titulo}</p>}
                    {doctorData.registro && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#4b5563' }}>Registro Profesional: {doctorData.registro}</p>}
                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#4b5563' }}>{doctorData.ciudad}, {doctorData.pais}</p>
                  </div>
