@@ -107,7 +107,12 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
       setStep('processing');
       addLog("Cambiando estilos temporales para html2canvas");
       // Temporarily ensure the element is visible and properly styled for rendering
-      const originalStyle = documentRef.current.getAttribute('style');
+      const originalWidth = documentRef.current.style.width;
+      const originalPadding = documentRef.current.style.padding;
+      const originalBg = documentRef.current.style.backgroundColor;
+      const originalColor = documentRef.current.style.color;
+      const originalDisplay = documentRef.current.style.display;
+
       documentRef.current.style.width = '800px';
       documentRef.current.style.padding = '40px';
       documentRef.current.style.backgroundColor = 'white';
@@ -149,12 +154,12 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
       });
       addLog("html2canvas finalizado.");
 
-      // Restore
-      if (originalStyle) {
-        documentRef.current.setAttribute('style', originalStyle);
-      } else {
-        documentRef.current.removeAttribute('style');
-      }
+      // Restore safely to avoid React hydration/unmount errors
+      documentRef.current.style.width = originalWidth;
+      documentRef.current.style.padding = originalPadding;
+      documentRef.current.style.backgroundColor = originalBg;
+      documentRef.current.style.color = originalColor;
+      documentRef.current.style.display = originalDisplay;
       
       if (signatureImg && signatureImg.parentNode) {
         signatureImg.parentNode.removeChild(signatureImg);
