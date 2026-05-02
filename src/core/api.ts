@@ -436,11 +436,33 @@ export const getPacienteFiles = async (pacienteId: string): Promise<DocumentoPac
 }
 
 export async function deletePacienteFile(id: string, storagePath: string) {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
+  let sizeInBytes = 0;
   if (!storagePath.startsWith('http')) {
+    // Intentamos obtener el tamaño antes de borrar
+    const pathParts = storagePath.split('/');
+    if (pathParts.length > 1) {
+       const { data: fileInfo } = await supabase.storage.from('pacientes_archivos').list(pathParts[0], { search: pathParts[1] });
+       if (fileInfo && fileInfo.length > 0) {
+          sizeInBytes = fileInfo[0].metadata?.size || 0;
+       }
+    }
     await supabase.storage.from('pacientes_archivos').remove([storagePath]);
   }
+  
   const { error } = await supabase.from('documentos_paciente').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  
+  // Restamos el uso
+  if (sizeInBytes > 0) {
+      const { data: perfil } = await supabase.from('perfiles').select('storage_usado_bytes').eq('id', authData.user.id).single();
+      const currentStorage = perfil?.storage_usado_bytes || 0;
+      const newStorage = Math.max(0, currentStorage - sizeInBytes);
+      await supabase.from('perfiles').update({ storage_usado_bytes: newStorage }).eq('id', authData.user.id);
+  }
+
   return true;
 }
 

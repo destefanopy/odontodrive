@@ -42,8 +42,9 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
       // Fetch doctor data from auth session
       supabase.auth.getUser().then(({ data: { user } }) => {
         if (user && user.user_metadata) {
+          const fullName = user.user_metadata.full_name || user.user_metadata.name || '';
           setDoctorData({
-            nombre: user.user_metadata.clinic_title ? `${user.user_metadata.clinic_title} ${user.user_metadata.name || ''}` : (user.user_metadata.name || ''),
+            nombre: user.user_metadata.clinic_title ? `${user.user_metadata.clinic_title} ${fullName}` : fullName,
             registro: user.user_metadata.clinic_reg_prof || '',
             ciudad: user.user_metadata.clinic_city || '',
             pais: user.user_metadata.clinic_country || 'Paraguay',

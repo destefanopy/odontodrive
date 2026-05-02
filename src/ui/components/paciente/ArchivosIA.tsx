@@ -135,8 +135,8 @@ export default function ArchivosIA({ paciente }: ArchivosIAProps) {
     if (!confirm("¿Seguro que deseas eliminar esta imagen clínicamente?")) return;
     try {
       await deletePacienteFile(id, path);
-      // Aquí se debería idealmente restar el tamaño, pero dejaremos que el contador se ajuste periódicamente o asumiremos una resta fija
       await cargarArchivos();
+      await cargarStorage();
     } catch (err: any) {
       alert("Error: " + err.message);
     }

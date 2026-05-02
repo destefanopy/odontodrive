@@ -118,6 +118,7 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
     try {
       await deletePacienteFile(id, path);
       await cargarArchivos();
+      await cargarStorage();
     } catch (err: any) {
       alert("Error: " + err.message);
     }
