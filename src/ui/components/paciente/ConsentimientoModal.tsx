@@ -1,0 +1,350 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { X, FileText, Printer, PenTool, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { supabase } from '@/infrastructure/supabase';
+import { CONSENT_TEMPLATES } from '@/core/constants/consentTemplates';
+import { LienzoFirma } from './LienzoFirma';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+
+interface PacienteData {
+  id: string;
+  nombres_apellidos: string;
+  documento_identidad?: string | null;
+  lugar_residencia?: string | null;
+}
+
+interface ConsentimientoModalProps {
+  paciente: PacienteData;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void; // Triggered when a signed document is saved
+}
+
+export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: ConsentimientoModalProps) {
+  const [step, setStep] = useState<'select' | 'preview' | 'sign' | 'processing'>('select');
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState<string>('general');
+  const [previewText, setPreviewText] = useState('');
+  const [doctorData, setDoctorData] = useState<any>({});
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const documentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setStep('select');
+      setErrorMsg(null);
+      // Fetch doctor data from auth session
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user && user.user_metadata) {
+          setDoctorData({
+            nombre: user.user_metadata.clinic_title ? `${user.user_metadata.clinic_title} ${user.user_metadata.name || ''}` : (user.user_metadata.name || ''),
+            registro: user.user_metadata.clinic_reg_prof || '',
+            ciudad: user.user_metadata.clinic_city || '',
+            pais: user.user_metadata.clinic_country || 'Paraguay',
+          });
+        }
+      });
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (selectedTemplateKey && step === 'preview') {
+      generatePreview();
+    }
+  }, [selectedTemplateKey, step, doctorData]);
+
+  if (!isOpen) return null;
+
+  const getMonthName = (month: number) => {
+    const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    return months[month];
+  };
+
+  const generatePreview = () => {
+    const template = CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES];
+    if (!template) return;
+
+    const today = new Date();
+    
+    let text = template.content;
+    text = text.replace(/{{paciente_nombre}}/g, paciente.nombres_apellidos || '___________________');
+    text = text.replace(/{{paciente_documento}}/g, paciente.documento_identidad || '___________________');
+    text = text.replace(/{{paciente_direccion}}/g, paciente.lugar_residencia || '___________________');
+    
+    text = text.replace(/{{doctor_nombre}}/g, doctorData.nombre || '___________________');
+    text = text.replace(/{{doctor_registro}}/g, doctorData.registro || '___________________');
+    text = text.replace(/{{ciudad}}/g, doctorData.ciudad || '___________________');
+    text = text.replace(/{{pais}}/g, doctorData.pais || '___________________');
+    
+    text = text.replace(/{{fecha_dia}}/g, today.getDate().toString());
+    text = text.replace(/{{fecha_mes}}/g, getMonthName(today.getMonth()));
+    text = text.replace(/{{fecha_anio}}/g, today.getFullYear().toString());
+
+    setPreviewText(text);
+
+    // Validate critical data
+    if (!doctorData.registro || !doctorData.ciudad) {
+      setErrorMsg("Faltan datos en tu perfil (Registro Profesional o Ciudad) para que el documento tenga validez legal. Puedes imprimirlos y llenarlos a mano, pero te recomendamos configurar tu perfil.");
+    } else {
+      setErrorMsg(null);
+    }
+  };
+
+  const generatePDF = async (signatureDataUrl?: string) => {
+    if (!documentRef.current) return null;
+    
+    try {
+      setStep('processing');
+      // Temporarily ensure the element is visible and properly styled for rendering
+      const originalStyle = documentRef.current.getAttribute('style');
+      documentRef.current.style.width = '800px';
+      documentRef.current.style.padding = '40px';
+      documentRef.current.style.backgroundColor = 'white';
+      documentRef.current.style.color = 'black';
+      documentRef.current.style.display = 'block';
+
+      // If signature is provided, append an image to the document temporarily
+      let signatureImg: HTMLImageElement | null = null;
+      if (signatureDataUrl) {
+         signatureImg = document.createElement('img');
+         signatureImg.src = signatureDataUrl;
+         signatureImg.style.maxHeight = '100px';
+         signatureImg.style.marginTop = '20px';
+         document.getElementById('signature-container')?.appendChild(signatureImg);
+      }
+
+      const canvas = await html2canvas(documentRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+
+      // Restore
+      if (originalStyle) {
+        documentRef.current.setAttribute('style', originalStyle);
+      } else {
+        documentRef.current.removeAttribute('style');
+      }
+      
+      if (signatureImg && signatureImg.parentNode) {
+        signatureImg.parentNode.removeChild(signatureImg);
+      }
+
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      return pdf;
+    } catch (err) {
+      console.error("Error generating PDF:", err);
+      setStep('preview');
+      return null;
+    }
+  };
+
+  const handlePrint = async () => {
+    const pdf = await generatePDF();
+    if (pdf) {
+      // Instead of direct print which can be buggy, output blob url and open in new tab
+      const blobUrl = pdf.output('bloburl');
+      window.open(blobUrl, '_blank');
+      setStep('preview');
+      onClose();
+    }
+  };
+
+  const handleSaveSignature = async (signatureDataUrl: string) => {
+    try {
+      const pdf = await generatePDF(signatureDataUrl);
+      if (!pdf) throw new Error("Fallo al generar el PDF");
+
+      const pdfBlob = pdf.output('blob');
+      const file = new File([pdfBlob], `Consentimiento_${paciente.nombres_apellidos.replace(/\s+/g, '_')}.pdf`, { type: 'application/pdf' });
+
+      // Upload to Supabase Storage
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) throw new Error("No autenticado");
+
+      const filePath = `${paciente.id}/${Date.now()}-consentimiento.pdf`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('pacientes_archivos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Insert into documentos_paciente
+      const { error: dbError } = await supabase
+        .from('documentos_paciente')
+        .insert({
+          paciente_id: paciente.id,
+          url_archivo: filePath,
+          tipo_archivo: 'consentimiento_informado',
+          fase_clinica: 'antes',
+          user_id: authData.user.id
+        });
+
+      if (dbError) throw dbError;
+
+      onSuccess();
+      onClose();
+    } catch (error: any) {
+      console.error(error);
+      alert("Error al guardar: " + error.message);
+      setStep('sign');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col overflow-hidden max-h-[90vh]">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Consentimiento Informado</h2>
+              <p className="text-xs text-gray-500 font-medium">Paciente: {paciente.nombres_apellidos}</p>
+            </div>
+          </div>
+          <button onClick={onClose} disabled={step === 'processing'} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {step === 'select' && (
+            <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
+              <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest mb-4">Seleccionar Plantilla</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {Object.entries(CONSENT_TEMPLATES).map(([key, template]) => (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedTemplateKey(key)}
+                    className={`p-4 text-left border-2 rounded-xl transition-all ${selectedTemplateKey === key ? 'border-accent bg-accent/5 ring-4 ring-accent/10' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}`}
+                  >
+                    <div className="font-bold text-gray-900">{template.title}</div>
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{template.content.substring(0, 100)}...</p>
+                  </button>
+                ))}
+              </div>
+              
+              <div className="pt-6 flex justify-end">
+                <button
+                  onClick={() => setStep('preview')}
+                  className="px-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-colors"
+                >
+                  Continuar
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 'preview' && (
+            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+              {errorMsg && (
+                <div className="bg-amber-50 text-amber-800 p-4 rounded-xl border border-amber-200 flex items-start gap-3 text-sm">
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  <p className="font-medium">{errorMsg}</p>
+                </div>
+              )}
+
+              <div className="bg-gray-50 p-6 rounded-xl border border-gray-200 overflow-hidden relative">
+                <div className="absolute top-0 right-0 bg-gray-200 text-gray-600 text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-widest">
+                  Vista Previa
+                </div>
+                
+                {/* Hidden container used just for the PDF rendering to ensure it's clean */}
+                <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+                   <div ref={documentRef} className="text-left font-serif" style={{ fontSize: '14px', lineHeight: '1.6' }}>
+                     <h1 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
+                       {CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES].title}
+                     </h1>
+                     {/* Render the replaced text properly, preserving line breaks */}
+                     {previewText.split('\\n').map((paragraph, idx) => (
+                       <p key={idx} style={{ marginBottom: '10px' }} dangerouslySetInnerHTML={{ 
+                         // Simple bold markdown replacement for preview
+                         __html: paragraph.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>') 
+                       }} />
+                     ))}
+                     
+                     <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between' }}>
+                        <div style={{ width: '40%', textAlign: 'center' }}>
+                           <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '40px' }} id="signature-container"></div>
+                           <p style={{ margin: 0, fontSize: '12px' }}>Firma del Paciente</p>
+                           <p style={{ margin: 0, fontSize: '12px' }}>Aclaración: {paciente.nombres_apellidos}</p>
+                        </div>
+                        <div style={{ width: '40%', textAlign: 'center' }}>
+                           <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '40px' }}></div>
+                           <p style={{ margin: 0, fontSize: '12px' }}>Firma del Profesional</p>
+                           <p style={{ margin: 0, fontSize: '12px' }}>Aclaración: {doctorData.nombre}</p>
+                        </div>
+                     </div>
+                   </div>
+                </div>
+
+                {/* Visible preview */}
+                <div className="prose prose-sm max-w-none text-gray-700 font-serif">
+                  <h3 className="text-center font-bold text-gray-900 mb-4">
+                    {CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES].title}
+                  </h3>
+                  {previewText.split('\\n').map((paragraph, idx) => (
+                    <p key={idx} dangerouslySetInnerHTML={{ 
+                      __html: paragraph.replace(/\\*\\*(.*?)\\*\\*/g, '<strong class="text-gray-900">$1</strong>') 
+                    }} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
+                <button
+                  onClick={() => setStep('select')}
+                  className="px-4 py-3 bg-white border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors order-3 sm:order-1"
+                >
+                  Atrás
+                </button>
+                <div className="flex-1"></div>
+                <button
+                  onClick={handlePrint}
+                  className="px-6 py-3 bg-white border-2 border-gray-900 text-gray-900 font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 order-2"
+                >
+                  <Printer className="w-5 h-5" />
+                  Descargar / Imprimir
+                </button>
+                <button
+                  onClick={() => setStep('sign')}
+                  className="px-6 py-3 bg-accent text-white font-bold rounded-xl hover:bg-accent/90 shadow-lg shadow-accent/20 transition-all flex items-center justify-center gap-2 order-1 sm:order-3"
+                >
+                  <PenTool className="w-5 h-5" />
+                  Firmar en Pantalla
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 'sign' && (
+            <LienzoFirma 
+              onCancel={() => setStep('preview')} 
+              onSignatureSave={handleSaveSignature} 
+            />
+          )}
+
+          {step === 'processing' && (
+            <div className="flex flex-col items-center justify-center py-12 space-y-4 animate-in fade-in duration-300">
+              <Loader2 className="w-12 h-12 text-accent animate-spin" />
+              <h3 className="text-lg font-bold text-gray-900">Procesando Documento...</h3>
+              <p className="text-gray-500 text-center max-w-sm">
+                Estamos generando el PDF con la firma y guardándolo de forma segura en la nube.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

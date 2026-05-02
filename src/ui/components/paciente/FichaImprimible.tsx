@@ -25,7 +25,7 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
   finalOdontograma,
   timeline
 }, ref) => {
-  const edad = new Date().getFullYear() - new Date(paciente.fecha_nacimiento).getFullYear();
+  const edad = paciente.fecha_nacimiento ? new Date().getFullYear() - new Date(paciente.fecha_nacimiento).getFullYear() : 0;
   const fechaActual = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
@@ -49,11 +49,11 @@ const FichaImprimible = forwardRef<HTMLDivElement, FichaImprimibleProps>(({
         <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
           <div><span className="font-bold">Nombres y Apellidos:</span> {paciente.nombres_apellidos}</div>
           <div><span className="font-bold">Documento (DNI/CI):</span> {paciente.documento_identidad || 'No registrado'}</div>
-          <div><span className="font-bold">Fecha de Nacimiento:</span> {new Date(paciente.fecha_nacimiento).toLocaleDateString()} ({edad} años)</div>
+          <div><span className="font-bold">Fecha de Nacimiento:</span> {paciente.fecha_nacimiento ? new Date(paciente.fecha_nacimiento).toLocaleDateString() : 'No registrado'} ({edad} años)</div>
           <div><span className="font-bold">Teléfono Celular:</span> {paciente.telefono_celular || 'No registrado'}</div>
-          <div className="col-span-2"><span className="font-bold">Correo Electrónico:</span> {paciente.email || 'No registrado'}</div>
-          <div className="col-span-2"><span className="font-bold">Dirección:</span> {paciente.direccion || 'No registrado'}</div>
-          <div className="col-span-2"><span className="font-bold">Ocupación / Motivo Consulta:</span> {paciente.ocupacion || 'No registrado'}</div>
+          <div className="col-span-2"><span className="font-bold">Correo Electrónico:</span> No registrado</div>
+          <div className="col-span-2"><span className="font-bold">Dirección:</span> {paciente.lugar_residencia || 'No registrado'}</div>
+          <div className="col-span-2"><span className="font-bold">Ocupación / Motivo Consulta:</span> {paciente.profesion || 'No registrado'}</div>
         </div>
       </section>
 

@@ -150,7 +150,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
         {activeTab === "pagos" && <PagosView paciente={paciente} />}
 
         {activeTab === "archivos" && (
-          <ArchivosIA pacienteId={paciente.id} />
+          <ArchivosIA paciente={paciente} />
         )}
 
         {activeTab === "ia" && (

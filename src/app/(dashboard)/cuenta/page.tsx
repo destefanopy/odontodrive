@@ -17,6 +17,8 @@ export default function MiCuentaPage() {
   const [clinicLogoUrl, setClinicLogoUrl] = useState("");
   const [clinicTitle, setClinicTitle] = useState("Odontólogo/a");
   const [clinicRegProf, setClinicRegProf] = useState("");
+  const [clinicCity, setClinicCity] = useState("");
+  const [clinicCountry, setClinicCountry] = useState("Paraguay");
   const [clinicColor, setClinicColor] = useState("#e8701a");
   const [currencySymbol, setCurrencySymbol] = useState("Gs.");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -48,6 +50,8 @@ export default function MiCuentaPage() {
         setClinicLogoUrl(user.user_metadata?.clinic_logo_url || "");
         setClinicTitle(user.user_metadata?.clinic_title || "Odontólogo/a");
         setClinicRegProf(user.user_metadata?.clinic_reg_prof || "");
+        setClinicCity(user.user_metadata?.clinic_city || "");
+        setClinicCountry(user.user_metadata?.clinic_country || "Paraguay");
         setClinicColor(user.user_metadata?.clinic_color || "#e8701a");
         setCurrencySymbol(user.user_metadata?.currency_symbol || "Gs.");
         
@@ -163,6 +167,8 @@ export default function MiCuentaPage() {
         clinic_logo_url: clinicLogoUrl,
         clinic_title: clinicTitle,
         clinic_reg_prof: clinicRegProf,
+        clinic_city: clinicCity,
+        clinic_country: clinicCountry,
         clinic_color: clinicColor,
         currency_symbol: currencySymbol,
       };
@@ -432,6 +438,29 @@ export default function MiCuentaPage() {
                       className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
                       placeholder="Av. Principal 123"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">Ciudad</label>
+                      <input
+                        type="text"
+                        value={clinicCity}
+                        onChange={(e) => setClinicCity(e.target.value)}
+                        className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
+                        placeholder="Ej. Asunción"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 mb-2">País</label>
+                      <input
+                        type="text"
+                        value={clinicCountry}
+                        onChange={(e) => setClinicCountry(e.target.value)}
+                        className="block w-full px-3 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm transition-all"
+                        placeholder="Ej. Paraguay"
+                      />
+                    </div>
                   </div>
 
                   <div>
