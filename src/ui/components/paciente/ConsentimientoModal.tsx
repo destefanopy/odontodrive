@@ -26,6 +26,12 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
   const [previewText, setPreviewText] = useState('');
   const [doctorData, setDoctorData] = useState<any>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+
+  const addLog = (msg: string) => {
+    console.log(msg);
+    setDebugLogs(prev => [...prev, `${new Date().toLocaleTimeString()} - ${msg}`]);
+  };
 
   const documentRef = useRef<HTMLDivElement>(null);
 
@@ -91,10 +97,15 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
   };
 
   const generatePDF = async (signatureDataUrl?: string) => {
-    if (!documentRef.current) return null;
+    addLog("Generando PDF... Buscando referencia del contenedor");
+    if (!documentRef.current) {
+      addLog("ERROR: Contenedor documentRef no encontrado");
+      return null;
+    }
     
     try {
       setStep('processing');
+      addLog("Cambiando estilos temporales para html2canvas");
       // Temporarily ensure the element is visible and properly styled for rendering
       const originalStyle = documentRef.current.getAttribute('style');
       documentRef.current.style.width = '800px';
@@ -106,6 +117,7 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
       // If signature is provided, append an image to the document temporarily
       let signatureImg: HTMLImageElement | null = null;
       if (signatureDataUrl) {
+         addLog("Insertando imagen de firma base64");
          signatureImg = document.createElement('img');
          signatureImg.style.maxHeight = '100px';
          signatureImg.style.marginTop = '20px';
@@ -119,18 +131,23 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
          document.getElementById('signature-container')?.appendChild(signatureImg);
          
          if (!signatureImg.complete) {
+           addLog("Esperando carga de la imagen de firma...");
            await loadPromise;
          }
+         addLog("Imagen de firma cargada.");
       }
       
+      addLog("Esperando timeout (150ms) para render de UI...");
       // Permitir que React renderice el estado 'processing' antes de bloquear el hilo
       await new Promise(r => setTimeout(r, 150));
 
+      addLog("Ejecutando html2canvas...");
       const canvas = await html2canvas(documentRef.current, {
         scale: 2,
         useCORS: true,
         logging: false
       });
+      addLog("html2canvas finalizado.");
 
       // Restore
       if (originalStyle) {
@@ -143,14 +160,18 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
         signatureImg.parentNode.removeChild(signatureImg);
       }
 
+      addLog("Convirtiendo canvas a JPEG...");
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      addLog("Instanciando jsPDF...");
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+      addLog("PDF creado exitosamente.");
       return pdf;
-    } catch (err) {
+    } catch (err: any) {
+      addLog("Error en generatePDF: " + err.message);
       console.error("Error generating PDF:", err);
       setStep('preview');
       return null;
@@ -167,26 +188,34 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
   };
 
   const handleSaveSignature = async (signatureDataUrl: string) => {
+    addLog("--- INICIANDO GUARDADO ---");
+    setDebugLogs(prev => prev.slice(-5)); // keep it short
     try {
       const pdf = await generatePDF(signatureDataUrl);
-      if (!pdf) throw new Error("Fallo al generar el PDF");
+      if (!pdf) throw new Error("Fallo al generar el PDF. Verifica los logs anteriores.");
 
+      addLog("Generando BLOB del PDF...");
       const pdfBlob = pdf.output('blob');
       const file = new File([pdfBlob], `Consentimiento_${paciente.nombres_apellidos.replace(/\s+/g, '_')}.pdf`, { type: 'application/pdf' });
 
-      // Upload to Supabase Storage
+      addLog("Obteniendo usuario autenticado (Supabase)...");
       const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user) throw new Error("No autenticado");
+      if (!authData.user) throw new Error("No estás autenticado en Supabase.");
 
       const filePath = `${paciente.id}/${Date.now()}-consentimiento.pdf`;
       
+      addLog("Subiendo al bucket pacientes_archivos: " + filePath);
       const { error: uploadError } = await supabase.storage
         .from('pacientes_archivos')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        addLog("ERROR UPLOAD: " + uploadError.message);
+        throw uploadError;
+      }
+      addLog("Subida exitosa.");
 
-      // Insert into documentos_paciente
+      addLog("Insertando registro en base de datos (documentos_paciente)...");
       const { error: dbError } = await supabase
         .from('documentos_paciente')
         .insert({
@@ -197,11 +226,17 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
           user_id: authData.user.id
         });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        addLog("ERROR DB: " + dbError.message);
+        throw dbError;
+      }
+      addLog("Registro insertado exitosamente.");
 
+      addLog("Finalizado. Cerrando modal.");
       onSuccess();
       onClose();
     } catch (error: any) {
+      addLog("EXCEPCIÓN ATRAPADA: " + error.message);
       console.error(error);
       alert("Error al guardar: " + error.message);
       setStep('sign');
@@ -349,9 +384,15 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
             <div className="flex flex-col items-center justify-center py-12 space-y-4 animate-in fade-in duration-300">
               <Loader2 className="w-12 h-12 text-accent animate-spin" />
               <h3 className="text-lg font-bold text-gray-900">Procesando Documento...</h3>
-              <p className="text-gray-500 text-center max-w-sm">
+              <p className="text-gray-500 text-center max-w-sm mb-6">
                 Estamos generando el PDF con la firma y guardándolo de forma segura en la nube.
               </p>
+              
+              <div className="w-full max-w-md bg-gray-900 p-4 rounded-xl text-left font-mono text-[10px] text-green-400 overflow-y-auto max-h-32 border border-gray-700 shadow-inner">
+                {debugLogs.length === 0 ? "Iniciando proceso..." : debugLogs.map((log, i) => (
+                  <div key={i}>{log}</div>
+                ))}
+              </div>
             </div>
           )}
         </div>

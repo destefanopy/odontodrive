@@ -28,10 +28,20 @@ export function LienzoFirma({ onSignatureSave, onCancel }: LienzoFirmaProps) {
   };
 
   const save = () => {
-    if (sigCanvas.current && !sigCanvas.current.isEmpty() && agreed) {
-      // Trim removes whitespace around the signature
+    if (!agreed) {
+      alert("Debes aceptar los términos y condiciones antes de continuar.");
+      return;
+    }
+    if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
+      alert("Debes proveer una firma antes de continuar.");
+      return;
+    }
+    
+    try {
       const dataUrl = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
       onSignatureSave(dataUrl);
+    } catch (err) {
+      alert("Error capturando la firma: " + err);
     }
   };
 
@@ -84,8 +94,7 @@ export function LienzoFirma({ onSignatureSave, onCancel }: LienzoFirmaProps) {
         </button>
         <button
           onClick={save}
-          disabled={!hasSignature || !agreed}
-          className="px-6 py-2 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-6 py-2 bg-gray-900 text-white font-bold rounded-xl hover:bg-black transition-colors flex items-center gap-2"
         >
           <Check className="w-4 h-4" />
           Confirmar y Guardar
