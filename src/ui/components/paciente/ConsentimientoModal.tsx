@@ -218,6 +218,35 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
+          {/* Hidden container used just for the PDF rendering to ensure it's clean and always mounted */}
+          <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
+             <div ref={documentRef} className="text-left font-serif" style={{ fontSize: '14px', lineHeight: '1.6' }}>
+               <h1 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
+                 {CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES].title}
+               </h1>
+               {/* Render the replaced text properly, preserving line breaks */}
+               {previewText.split('\n').map((paragraph, idx) => (
+                 <p key={idx} style={{ marginBottom: '10px' }} dangerouslySetInnerHTML={{ 
+                   // Simple bold markdown replacement for preview
+                   __html: paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+                 }} />
+               ))}
+               
+               <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ width: '40%', textAlign: 'center' }}>
+                     <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '40px' }} id="signature-container"></div>
+                     <p style={{ margin: 0, fontSize: '12px' }}>Firma del Paciente</p>
+                     <p style={{ margin: 0, fontSize: '12px' }}>Aclaración: {paciente.nombres_apellidos}</p>
+                  </div>
+                  <div style={{ width: '40%', textAlign: 'center' }}>
+                     <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '40px' }}></div>
+                     <p style={{ margin: 0, fontSize: '12px' }}>Firma del Profesional</p>
+                     <p style={{ margin: 0, fontSize: '12px' }}>Aclaración: {doctorData.nombre}</p>
+                  </div>
+               </div>
+             </div>
+          </div>
+
           {step === 'select' && (
             <div className="space-y-4 animate-in fade-in zoom-in-95 duration-300">
               <h3 className="text-sm font-bold text-gray-700 uppercase tracking-widest mb-4">Seleccionar Plantilla</h3>
@@ -259,41 +288,12 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
                   Vista Previa
                 </div>
                 
-                {/* Hidden container used just for the PDF rendering to ensure it's clean */}
-                <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-                   <div ref={documentRef} className="text-left font-serif" style={{ fontSize: '14px', lineHeight: '1.6' }}>
-                     <h1 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
-                       {CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES].title}
-                     </h1>
-                     {/* Render the replaced text properly, preserving line breaks */}
-                     {previewText.split('\\n').map((paragraph, idx) => (
-                       <p key={idx} style={{ marginBottom: '10px' }} dangerouslySetInnerHTML={{ 
-                         // Simple bold markdown replacement for preview
-                         __html: paragraph.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>') 
-                       }} />
-                     ))}
-                     
-                     <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between' }}>
-                        <div style={{ width: '40%', textAlign: 'center' }}>
-                           <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '40px' }} id="signature-container"></div>
-                           <p style={{ margin: 0, fontSize: '12px' }}>Firma del Paciente</p>
-                           <p style={{ margin: 0, fontSize: '12px' }}>Aclaración: {paciente.nombres_apellidos}</p>
-                        </div>
-                        <div style={{ width: '40%', textAlign: 'center' }}>
-                           <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '40px' }}></div>
-                           <p style={{ margin: 0, fontSize: '12px' }}>Firma del Profesional</p>
-                           <p style={{ margin: 0, fontSize: '12px' }}>Aclaración: {doctorData.nombre}</p>
-                        </div>
-                     </div>
-                   </div>
-                </div>
-
                 {/* Visible preview */}
                 <div className="prose prose-sm max-w-none text-gray-700 font-serif">
                   <h3 className="text-center font-bold text-gray-900 mb-4">
                     {CONSENT_TEMPLATES[selectedTemplateKey as keyof typeof CONSENT_TEMPLATES].title}
                   </h3>
-                  {previewText.split('\\n').map((paragraph, idx) => (
+                  {previewText.split('\n').map((paragraph, idx) => (
                     <p key={idx} dangerouslySetInnerHTML={{ 
                       __html: paragraph.replace(/\\*\\*(.*?)\\*\\*/g, '<strong class="text-gray-900">$1</strong>') 
                     }} />
