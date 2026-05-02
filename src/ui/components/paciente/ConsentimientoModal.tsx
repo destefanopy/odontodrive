@@ -186,9 +186,18 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
   const handlePrint = async () => {
     const pdf = await generatePDF();
     if (pdf) {
-      pdf.save(`Consentimiento_${paciente.nombres_apellidos.replace(/\s+/g, '_')}.pdf`);
+      const blob = pdf.output('blob');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Consentimiento_${paciente.nombres_apellidos.replace(/\s+/g, '_')}.pdf`;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
       setStep('preview');
-      onClose();
+      // No cerramos el modal para que el usuario pueda seguir viendo la vista previa
     }
   };
 
