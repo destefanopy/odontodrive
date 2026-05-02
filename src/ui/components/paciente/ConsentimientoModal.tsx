@@ -110,8 +110,18 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
          signatureImg.src = signatureDataUrl;
          signatureImg.style.maxHeight = '100px';
          signatureImg.style.marginTop = '20px';
+         
+         const loadPromise = new Promise((resolve) => {
+           signatureImg!.onload = resolve;
+           signatureImg!.onerror = resolve;
+         });
+         
          document.getElementById('signature-container')?.appendChild(signatureImg);
+         await loadPromise;
       }
+      
+      // Permitir que React renderice el estado 'processing' antes de bloquear el hilo
+      await new Promise(r => setTimeout(r, 150));
 
       const canvas = await html2canvas(documentRef.current, {
         scale: 2,
@@ -147,9 +157,7 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
   const handlePrint = async () => {
     const pdf = await generatePDF();
     if (pdf) {
-      // Instead of direct print which can be buggy, output blob url and open in new tab
-      const blobUrl = pdf.output('bloburl');
-      window.open(blobUrl, '_blank');
+      pdf.save(`Consentimiento_${paciente.nombres_apellidos.replace(/\s+/g, '_')}.pdf`);
       setStep('preview');
       onClose();
     }
