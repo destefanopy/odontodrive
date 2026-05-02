@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { User, Activity, CreditCard, FolderOpen, Video, FileText, Wallet, ClipboardList, BrainCircuit, ChevronRight, ChevronLeft } from "lucide-react";
+import { User, Activity, CreditCard, FolderOpen, Video, FileText, Wallet, ClipboardList, BrainCircuit, ChevronRight, ChevronLeft, FileSignature } from "lucide-react";
 import { cn } from "@/lib/utils";
 import FichaClinicaForm from "./paciente/FichaClinicaForm";
 import OdontogramaVisual from "./paciente/OdontogramaVisual";
@@ -11,9 +11,10 @@ import ArchivosIA from "./paciente/ArchivosIA";
 import OdontologoIA from "./paciente/OdontologoIA";
 import PagosView from "./paciente/PagosView";
 import RecetarioView from "./paciente/RecetarioView";
+import ConsentimientosView from "./paciente/ConsentimientosView";
 import { AntecedentesMedicos, Paciente } from "@/core/api";
 
-type TabValue = "datos" | "ficha" | "odontograma" | "presupuestos" | "archivos" | "pagos" | "recetario" | "ia";
+type TabValue = "datos" | "ficha" | "consentimientos" | "odontograma" | "presupuestos" | "archivos" | "pagos" | "recetario" | "ia";
 
 interface PatientTabsProps {
   paciente: Paciente;
@@ -31,6 +32,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
   const tabs = [
     { id: "datos", label: "Datos Personales", icon: User },
     { id: "ficha", label: "Historia Médica", icon: FileText },
+    { id: "consentimientos", label: "Consentimientos", icon: FileSignature },
     { id: "odontograma", label: "Odontograma", icon: Activity },
     { id: "presupuestos", label: "Presupuestos", icon: CreditCard },
     { id: "pagos", label: "Tratamientos y Cobros", icon: Wallet },
@@ -117,6 +119,8 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
         {activeTab === "datos" && <DatosPersonalesForm paciente={paciente} onUpdate={onUpdate} />}
         
         {activeTab === "ficha" && <FichaClinicaForm pacienteId={paciente.id} initialData={initialAntecedentes} onUpdate={onUpdate} />}
+        
+        {activeTab === "consentimientos" && <ConsentimientosView paciente={paciente} />}
 
         {activeTab === "odontograma" && (
           <div className="space-y-6">

@@ -7,7 +7,6 @@ import { supabase } from "@/infrastructure/supabase";
 import { cn } from "@/lib/utils";
 import StorageProgressBar from "@/ui/components/StorageProgressBar";
 import Link from "next/link";
-import { ConsentimientoModal } from "./ConsentimientoModal";
 
 interface ArchivosIAProps {
   paciente: any;
@@ -16,7 +15,6 @@ interface ArchivosIAProps {
 export default function ArchivosIA({ paciente }: ArchivosIAProps) {
   const pacienteId = paciente.id;
   const [archivos, setArchivos] = useState<DocumentoPaciente[]>([]);
-  const [showConsentModal, setShowConsentModal] = useState(false);
   const [loading, setLoading] = useState(true);
   
   // Storage State
@@ -193,13 +191,6 @@ export default function ArchivosIA({ paciente }: ArchivosIAProps) {
             <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
               <HardDrive className="w-5 h-5 text-accent" /> Gabinete de Archivos
             </h2>
-            <button 
-              onClick={() => setShowConsentModal(true)}
-              className="px-4 py-2 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
-            >
-              <FileText className="w-4 h-4" />
-              Nuevo Consentimiento
-            </button>
           </div>
           <p className="text-sm text-gray-600 font-medium mt-2">Sube todas las historias clínicas y radiografías bajo una infraestructura en la nube segura. Tus herramientas analíticas funcionarán a la perfección gracias a OdontólogoIA.</p>
         </div>
@@ -401,15 +392,6 @@ export default function ArchivosIA({ paciente }: ArchivosIAProps) {
           <img src={viewerUrl} alt="Visor Clínico" className="max-w-full max-h-screen object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300" />
         </div>
       )}
-
-      <ConsentimientoModal 
-        isOpen={showConsentModal}
-        onClose={() => setShowConsentModal(false)}
-        paciente={paciente}
-        onSuccess={() => {
-          cargarArchivos();
-        }}
-      />
     </div>
   );
 }
