@@ -438,7 +438,7 @@ function GaleriaThumbnail({ doc, onViewer, onDelete, onMove, onAI }: { doc: Docu
          </button>
          
          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-           <p className="text-[10px] text-white font-bold truncate">{doc.url_archivo.split('/').pop()}</p>
+           <p className="text-[10px] text-white font-bold truncate">{doc.url_archivo.split('/').pop()?.replace(/^\d+_/, '')?.replace(/_/g, ' ')}</p>
            <p className="text-[9px] text-white/80">{new Date(doc.fecha_subida).toLocaleDateString()}</p>
          </div>
       </div>

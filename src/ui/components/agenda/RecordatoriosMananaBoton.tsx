@@ -7,14 +7,18 @@ import { MessageCircle, Bell, X, PhoneMissed } from "lucide-react";
 export default function RecordatoriosMananaBoton({ citas, pacientes }: { citas: Cita[], pacientes: Paciente[] }) {
   const [isOpen, setIsOpen] = useState(false);
 
+  const getLocalDateStr = (d: Date) => {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+
   // Calcular las citas de mañana
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split("T")[0];
+  const tomorrowStr = getLocalDateStr(tomorrow);
 
   const citasManana = citas.filter((c) => {
     if (!c.fecha_inicio) return false;
-    const citaDateStr = new Date(c.fecha_inicio).toISOString().split("T")[0];
+    const citaDateStr = getLocalDateStr(new Date(c.fecha_inicio));
     return citaDateStr === tomorrowStr;
   });
 

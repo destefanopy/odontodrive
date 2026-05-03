@@ -7,6 +7,7 @@ import { supabase } from "@/infrastructure/supabase";
 import { cn } from "@/lib/utils";
 import StorageProgressBar from "@/ui/components/StorageProgressBar";
 import { ConsentimientoModal } from "./ConsentimientoModal";
+import { useRouter } from "next/navigation";
 
 interface ConsentimientosViewProps {
   paciente: any;
@@ -21,6 +22,8 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
   // Storage State
   const [userPlan, setUserPlan] = useState<string>("free");
   const [storageUsed, setStorageUsed] = useState<number>(0);
+  const [consentimientosCount, setConsentimientosCount] = useState<number>(0);
+  const router = useRouter();
   const planLimits: Record<string, number> = {
     free: 100 * 1024 * 1024,
     basico: 1024 * 1024 * 1024,
@@ -47,6 +50,13 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
         setUserPlan(perfil.plan || 'free');
         setStorageUsed(perfil.storage_usado_bytes || 0);
       }
+      
+      const { count } = await supabase.from('documentos_paciente')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', data.user.id)
+        .eq('tipo_archivo', 'consentimiento_informado');
+        
+      if (count !== null) setConsentimientosCount(count);
     }
   };
 
@@ -88,6 +98,12 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
   const handleUpload = async () => {
     if (!selectedFile) return;
 
+    if (userPlan === 'free' && consentimientosCount >= 15) {
+      alert("Has alcanzado el límite de 15 consentimientos gratuitos. Por favor, actualiza tu plan para subir más documentos.");
+      router.push('/cuenta');
+      return;
+    }
+
     if (storageUsed + selectedFile.size > limitBytes) {
       alert(`No puedes subir este archivo. Excede tu límite de ${userPlan.toUpperCase()}. Por favor, mejora tu plan.`);
       return;
@@ -106,6 +122,7 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
 
       setSelectedFile(null);
       await cargarArchivos();
+      await cargarStorage(); // Asegurar que el contador de la UI se actualice
     } catch (err: any) {
       alert("Error subiendo archivo: " + err.message);
     } finally {
@@ -143,7 +160,14 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
               <FileSignature className="w-5 h-5 text-accent" /> Documentos Legales
             </h2>
             <button 
-              onClick={() => setShowConsentModal(true)}
+              onClick={() => {
+                if (userPlan === 'free' && consentimientosCount >= 15) {
+                  alert("Has alcanzado el límite de 15 consentimientos gratuitos. Por favor, actualiza tu plan a Básico o Pro.");
+                  router.push('/cuenta');
+                  return;
+                }
+                setShowConsentModal(true);
+              }}
               className="px-5 py-2.5 bg-gray-900 hover:bg-black text-white text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-2"
             >
               <FileText className="w-4 h-4" />
@@ -153,6 +177,12 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
           <p className="text-sm text-gray-600 font-medium mt-2">
             Gestiona los consentimientos informados firmados por el paciente. Todos los documentos están asegurados de forma inmutable en la nube.
           </p>
+          {userPlan === 'free' && (
+            <div className="mt-3 flex items-center gap-2 text-sm font-bold bg-amber-50 text-amber-800 px-3 py-1.5 rounded-lg border border-amber-200 w-fit">
+              <span>Consentimientos Gratuitos: {consentimientosCount} / 15</span>
+              {consentimientosCount >= 15 && <span className="text-red-600 ml-1">(Límite alcanzado)</span>}
+            </div>
+          )}
         </div>
         <div>
           <StorageProgressBar planName={userPlan} planLimitBytes={limitBytes} usedBytes={storageUsed} />
@@ -250,7 +280,7 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
                
                <div className="flex-1">
                  <p className="text-xs font-bold text-gray-900 line-clamp-2" title={doc.url_archivo.split('/').pop()}>
-                   {doc.url_archivo.split('/').pop()?.replace(/_/g, ' ')}
+                   {doc.url_archivo.split('/').pop()?.replace(/^\d+_/, '')?.replace(/_/g, ' ')}
                  </p>
                  <p className="text-[10px] text-gray-500 font-medium mt-1">
                    {new Date(doc.fecha_subida).toLocaleDateString()} • {new Date(doc.fecha_subida).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -275,6 +305,7 @@ export default function ConsentimientosView({ paciente }: ConsentimientosViewPro
         paciente={paciente}
         onSuccess={() => {
           cargarArchivos();
+          cargarStorage(); // Para actualizar el contador
         }}
       />
     </div>

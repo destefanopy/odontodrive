@@ -367,8 +367,8 @@ export const uploadPacienteFile = async (
   tipo: string, 
   fase: string
 ): Promise<DocumentoPaciente> => {
-  const fileExt = file.name.split('.').pop();
-  const filePath = `${pacienteId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+  const sanitizedName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+  const filePath = `${pacienteId}/${Date.now()}_${sanitizedName}`;
 
   // 1. Upload to storage
   const { error: uploadError } = await supabase.storage

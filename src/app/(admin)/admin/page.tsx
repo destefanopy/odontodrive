@@ -22,6 +22,8 @@ interface Profile {
   num_tratamientos?: number;
   num_usos_ia?: number;
   num_dientes_odontograma?: number;
+  num_consentimientos?: number;
+  num_tareas?: number;
   metadata?: {
     clinic_name?: string;
     clinic_phone?: string;
@@ -226,6 +228,12 @@ export default function AdminConsole() {
                           </span>
                           <span className="text-[10px] font-bold text-gray-700 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-md px-2 py-0.5 w-max">
                             {u.num_dientes_odontograma || 0} Dientes Marcados
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-orange-50 text-orange-700 border border-orange-100 rounded-md px-2 py-0.5 w-max">
+                            {u.num_consentimientos || 0} Consentimientos
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-700 bg-pink-50 text-pink-700 border border-pink-100 rounded-md px-2 py-0.5 w-max">
+                            {u.num_tareas || 0} Tareas
                           </span>
                           <span className="text-[10px] font-bold text-gray-700 bg-gray-100 rounded-md px-2 py-0.5 w-max">
                             {((u.espacio_usado_bytes || 0) / (1024 * 1024)).toFixed(2)} MB Usados

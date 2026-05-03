@@ -20,8 +20,8 @@ export const metadata: Metadata = {
 
 export default function GlobalLandingPage() {
   const globalPlans: PricingPlan[] = [
-    { name: "Gratis", price: "0", storage: "500 MB", features: ["Gestión de pacientes", "Odontograma interactivo", "Historia clínica digital", "Agenda de turnos", "Emisión de presupuestos", "Sin tarjeta de crédito"] },
-    { name: "Básico", price: "4", storage: "1 GB", features: ["Todo lo de Gratis", "Manejo avanzado de pacientes", "Soporte por correo"] },
+    { name: "Gratis", price: "0", storage: "500 MB", features: ["Gestión de pacientes", "Odontograma interactivo", "15 Consentimientos gratuitos", "Agenda de turnos", "Sin tarjeta de crédito"] },
+    { name: "Básico", price: "4", storage: "1 GB", features: ["Todo lo de Gratis", "Manejo avanzado de pacientes", "Consentimientos ilimitados", "Soporte por correo"] },
     { name: "Estándar", price: "10", storage: "5 GB", features: ["Todo lo de Básico", "Odontogramas avanzados", "Recetario digital"] },
     { name: "Avanzado", price: "20", storage: "20 GB", features: ["Todo lo de Estándar", "Análisis fotográfico IA", "Múltiples doctores"], isPopular: true },
     { name: "Premium", price: "30", storage: "40 GB", features: ["Todo lo de Avanzado", "Onboarding completo", "Almacenamiento ultra"] },

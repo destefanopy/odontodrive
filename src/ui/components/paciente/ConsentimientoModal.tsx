@@ -232,6 +232,18 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
       const { data: authData } = await supabase.auth.getUser();
       if (!authData.user) throw new Error("No estás autenticado en Supabase.");
 
+      addLog("Verificando límites del plan...");
+      const { data: perfilLimit } = await supabase.from('perfiles').select('plan').eq('id', authData.user.id).single();
+      if (!perfilLimit || perfilLimit.plan === 'free') {
+        const { count } = await supabase.from('documentos_paciente')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', authData.user.id)
+          .eq('tipo_archivo', 'consentimiento_informado');
+        if (count !== null && count >= 15) {
+          throw new Error("Has alcanzado el límite de 15 consentimientos gratuitos. Por favor, actualiza tu plan en Configuración.");
+        }
+      }
+
       const filePath = `${paciente.id}/${Date.now()}-consentimiento.pdf`;
       
       addLog("Subiendo al bucket pacientes_archivos: " + filePath);

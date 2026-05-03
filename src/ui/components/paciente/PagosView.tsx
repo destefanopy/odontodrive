@@ -21,7 +21,10 @@ export default function PagosView({ paciente }: PagosViewProps) {
     costo: "",
     entrega: "",
     metodo: "Efectivo",
-    fecha: new Date().toISOString().split('T')[0]
+    fecha: (() => {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    })()
   });
 
   useEffect(() => {

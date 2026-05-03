@@ -70,12 +70,17 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
 
   const formatDateForInput = (date: Date | null) => {
     if (!date) return "";
-    return date.toISOString().split("T")[0];
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   };
 
   const formatTimeForInput = (date: Date | null) => {
     if (!date) return "";
-    return date.toTimeString().slice(0, 5);
+    const hh = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${hh}:${min}`;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -94,8 +99,19 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
         throw new Error("Las fechas y horas son obligatorias.");
       }
 
-      const fechaInicioStr = `${fecha}T${horaInicio}:00-03:00`;
-      const fechaFinStr = `${fecha}T${horaFin}:00-03:00`;
+      const [yyyy, mm, dd] = fecha.split('-');
+      const [hh, min] = horaInicio.split(':');
+      const startDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(min));
+      
+      const [hhFin, minFin] = horaFin.split(':');
+      const endDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hhFin), Number(minFin));
+
+      if (endDate <= startDate) {
+        throw new Error("La hora de fin debe ser posterior a la hora de inicio.");
+      }
+
+      const finalFechaInicioStr = startDate.toISOString();
+      const finalFechaFinStr = endDate.toISOString();
 
       let finalPacienteId: string | null = null;
       let finalNombrePaciente: string = "";
@@ -128,16 +144,16 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
           paciente_id: finalPacienteId,
           nombre_paciente: finalNombrePaciente || existingCita.nombre_paciente,
           motivo,
-          fecha_inicio: new Date(fechaInicioStr).toISOString(),
-          fecha_fin: new Date(fechaFinStr).toISOString(),
+          fecha_inicio: finalFechaInicioStr,
+          fecha_fin: finalFechaFinStr,
         });
       } else {
         await createCita({
           paciente_id: finalPacienteId,
           nombre_paciente: finalNombrePaciente || "Evento",
           motivo,
-          fecha_inicio: new Date(fechaInicioStr).toISOString(),
-          fecha_fin: new Date(fechaFinStr).toISOString(),
+          fecha_inicio: finalFechaInicioStr,
+          fecha_fin: finalFechaFinStr,
         });
       }
 

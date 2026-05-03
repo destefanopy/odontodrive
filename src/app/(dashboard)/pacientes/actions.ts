@@ -110,15 +110,19 @@ export async function crearCitaAction(formData: FormData) {
       return { error: "Faltan datos obligatorios para agendar la cita.", success: false };
     }
 
-    const fechaInicioStr = `${fecha}T${horaInicio}:00-03:00`;
-    const fechaFinStr = `${fecha}T${horaFin}:00-03:00`;
+    const [yyyy, mm, dd] = fecha.split('-');
+    const [hh, min] = horaInicio.split(':');
+    const startDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(min));
+
+    const [hhFin, minFin] = horaFin.split(':');
+    const endDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hhFin), Number(minFin));
 
     const nuevaCita = {
       paciente_id: pacienteId,
       nombre_paciente: nombrePaciente || "Paciente",
       motivo,
-      fecha_inicio: new Date(fechaInicioStr).toISOString(),
-      fecha_fin: new Date(fechaFinStr).toISOString(),
+      fecha_inicio: startDate.toISOString(),
+      fecha_fin: endDate.toISOString(),
     };
 
     await createCita(nuevaCita);

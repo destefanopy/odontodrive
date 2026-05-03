@@ -82,9 +82,19 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
 
   const handleEventChange = async (changeInfo: any) => {
     try {
+      let newEnd = changeInfo.event.end;
+      if (!newEnd) {
+        const oldStart = changeInfo.oldEvent.start;
+        const oldEnd = changeInfo.oldEvent.end || changeInfo.oldEvent.start;
+        const durationMs = oldEnd.getTime() - oldStart.getTime();
+        // Fallback a 1 hora si la duración original era 0
+        const finalDurationMs = durationMs > 0 ? durationMs : 60 * 60000;
+        newEnd = new Date(changeInfo.event.start.getTime() + finalDurationMs);
+      }
+
       await updateCita(changeInfo.event.id, {
         fecha_inicio: changeInfo.event.start.toISOString(),
-        fecha_fin: changeInfo.event.end ? changeInfo.event.end.toISOString() : changeInfo.event.start.toISOString(),
+        fecha_fin: newEnd.toISOString(),
       });
       await fetchUpdatedCitas();
     } catch (error) {
