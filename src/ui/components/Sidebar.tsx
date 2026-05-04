@@ -68,7 +68,8 @@ export default function Sidebar() {
     { name: "Configuración", href: "/cuenta", icon: Settings },
     ...(isAdmin ? [
       { name: "Admin Usuarios", href: "/admin", icon: Shield },
-      { name: "Admin Documentos", href: "/admin/documentos", icon: FileText }
+      { name: "Admin Documentos", href: "/admin/documentos", icon: FileText },
+      { name: "Admin Noticias", href: "/admin/noticias", icon: FileText }
     ] : [])
   ];
 

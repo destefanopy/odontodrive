@@ -44,6 +44,9 @@ export default function LandingTemplate({
             <span className="text-xl font-black tracking-tight text-slate-900">Odonto<span className="text-cyan-600">Drive</span></span>
           </div>
           <div className="flex items-center gap-4">
+            <Link href="/blog" className="text-sm font-bold text-slate-600 hover:text-cyan-600 transition-colors hidden md:block">
+              Blog / Noticias
+            </Link>
             <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-cyan-600 transition-colors">
               Iniciar Sesión
             </Link>
@@ -196,6 +199,7 @@ export default function LandingTemplate({
                </svg>
              </div>
              <span className="text-lg font-bold text-white tracking-tight">Odonto<span className="text-cyan-500">Drive</span></span>
+             <Link href="/blog" className="text-sm font-medium text-slate-400 hover:text-cyan-400 ml-4 transition-colors">Blog</Link>
           </div>
           <p className="font-medium text-sm">© 2026 OdontoDrive. Todos los derechos reservados. Diseñado para optimizar tu tiempo.</p>
         </div>
