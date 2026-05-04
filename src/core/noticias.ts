@@ -56,14 +56,14 @@ export const noticiasService = {
     const filePath = `noticias/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
-      .from('pacientes_archivos')
-      .upload(filePath, file, { upsert: true });
+      .from('blog_images')
+      .upload(fileName, file, { upsert: true });
 
     if (uploadError) throw new Error(uploadError.message);
 
     const { data } = await supabase.storage
-      .from('pacientes_archivos')
-      .getPublicUrl(filePath);
+      .from('blog_images')
+      .getPublicUrl(fileName);
 
     return data.publicUrl;
   }
