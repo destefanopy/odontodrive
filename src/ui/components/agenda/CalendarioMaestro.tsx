@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -24,6 +24,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editCitaInfo, setEditCitaInfo] = useState<Cita | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const calendarRef = useRef<FullCalendar>(null);
 
   const fetchUpdatedCitas = async () => {
     try {
@@ -47,19 +48,46 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
     };
   });
 
-  const handleDateClick = (arg: { date: Date }) => {
-    setEditCitaInfo(null);
-    setSelectedDate(arg.date);
-    setIsModalOpen(true);
+  const handleDateClick = (arg: any) => {
+    if (arg.view.type === "dayGridMonth") {
+      setTimeout(() => {
+        const calendarApi = calendarRef.current?.getApi();
+        if (calendarApi) {
+          calendarApi.changeView("timeGridDay", arg.date);
+        }
+      }, 10);
+    } else {
+      setEditCitaInfo(null);
+      setSelectedDate(arg.date);
+      setIsModalOpen(true);
+    }
   };
 
   const handleSelect = (info: any) => {
-    setEditCitaInfo(null);
-    setSelectedDate(info.start);
-    setIsModalOpen(true);
+    if (info.view.type === "dayGridMonth") {
+      setTimeout(() => {
+        const calendarApi = calendarRef.current?.getApi();
+        if (calendarApi) {
+          calendarApi.changeView("timeGridDay", info.start);
+        }
+      }, 10);
+    } else {
+      setEditCitaInfo(null);
+      setSelectedDate(info.start);
+      setIsModalOpen(true);
+    }
   };
 
   const handleEventClick = (info: any) => {
+    if (info.view.type === "dayGridMonth") {
+      setTimeout(() => {
+        const calendarApi = calendarRef.current?.getApi();
+        if (calendarApi && info.event.start) {
+          calendarApi.changeView("timeGridDay", info.event.start);
+        }
+      }, 10);
+      return;
+    }
     setSelectedEvent(info.event);
     setIsEventModalOpen(true);
   };
@@ -107,6 +135,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
     <>
       <div className="h-full w-full calendarmacro">
         <FullCalendar
+          ref={calendarRef}
           plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
           initialView="timeGridDay"
           headerToolbar={{
