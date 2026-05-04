@@ -186,21 +186,16 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
       addLog("Instanciando jsPDF...");
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      let imgHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
-        heightLeft -= pageHeight;
+      // Forzar que entre en una página
+      if (imgHeight > pdfHeight) {
+        addLog("El contenido excede el largo, ajustando a 1 página...");
+        imgHeight = pdfHeight - 10; // Dejar un pequeño margen inferior
       }
+
+      pdf.addImage(imgData, 'JPEG', 0, 5, pdfWidth, imgHeight);
       
       addLog("PDF creado exitosamente.");
       return pdf;
@@ -327,43 +322,43 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
         <div className="flex-1 overflow-y-auto p-6">
           {/* Hidden container used just for the PDF rendering to ensure it's clean and always mounted */}
           <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-             <div ref={documentRef} className="text-left font-serif" style={{ fontSize: '14px', lineHeight: '1.6' }}>
+             <div ref={documentRef} className="text-left font-serif" style={{ fontSize: '10px', lineHeight: '1.2', textAlign: 'justify' }}>
                
                {/* Cabecera / Membrete */}
-               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px solid #f3f4f6', paddingBottom: '20px', marginBottom: '30px' }}>
+               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e5e7eb', paddingBottom: '10px', marginBottom: '15px' }}>
                  <div style={{ flex: 1 }}>
-                   <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0, color: '#111827' }}>{doctorData.clinica}</h2>
-                   <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#374151', fontWeight: '500' }}>
+                   <h2 style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, color: '#111827' }}>{doctorData.clinica}</h2>
+                   <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#374151', fontWeight: '500' }}>
                      {doctorData.titulo ? `${doctorData.titulo} ` : ''}{doctorData.nombre}
                    </p>
-                   {doctorData.registro && <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#4b5563' }}>Registro Profesional: {doctorData.registro}</p>}
-                   <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#4b5563' }}>{doctorData.ciudad}, {doctorData.pais}</p>
+                   {doctorData.registro && <p style={{ margin: '2px 0 0', fontSize: '9px', color: '#4b5563' }}>Registro Profesional: {doctorData.registro}</p>}
+                   <p style={{ margin: '2px 0 0', fontSize: '9px', color: '#4b5563' }}>{doctorData.ciudad}, {doctorData.pais}</p>
                  </div>
                  {doctorData.logo && (
-                   <div style={{ width: '80px', height: '80px', flexShrink: 0, marginLeft: '20px' }}>
+                   <div style={{ width: '60px', height: '60px', flexShrink: 0, marginLeft: '15px' }}>
                      {/* eslint-disable-next-line @next/next/no-img-element */}
                      <img src={doctorData.logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} crossOrigin="anonymous" />
                    </div>
                  )}
                </div>
 
-               <h1 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginBottom: '20px' }}>
+               <h1 style={{ fontSize: '14px', fontWeight: 'bold', textAlign: 'center', marginBottom: '10px' }}>
                  {dbTemplates.find(t => t.clave === selectedTemplateKey)?.title}
                </h1>
                {/* Render the replaced text properly, preserving line breaks */}
                {previewText.split('\n').map((paragraph, idx) => (
-                 <p key={idx} style={{ marginBottom: '10px' }} dangerouslySetInnerHTML={{ 
+                 <p key={idx} style={{ marginBottom: '4px' }} dangerouslySetInnerHTML={{ 
                    // Simple bold markdown replacement for preview
                    __html: paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
                  }} />
                ))}
                
-               <div style={{ marginTop: '60px', display: 'flex', justifyContent: 'center' }}>
+               <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
                   <div style={{ width: '50%', textAlign: 'center' }}>
-                     <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '50px' }} id="signature-container"></div>
-                     <p style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>Firma del Paciente</p>
-                     <p style={{ margin: 0, fontSize: '12px', color: '#4b5563' }}>Aclaración: {paciente.nombres_apellidos}</p>
-                     {paciente.documento_identidad && <p style={{ margin: 0, fontSize: '12px', color: '#4b5563' }}>Doc: {paciente.documento_identidad}</p>}
+                     <div style={{ borderBottom: '1px solid black', marginBottom: '5px', height: '40px' }} id="signature-container"></div>
+                     <p style={{ margin: 0, fontSize: '11px', fontWeight: 'bold' }}>Firma del Paciente</p>
+                     <p style={{ margin: 0, fontSize: '10px', color: '#4b5563' }}>Aclaración: {paciente.nombres_apellidos}</p>
+                     {paciente.documento_identidad && <p style={{ margin: 0, fontSize: '10px', color: '#4b5563' }}>Doc: {paciente.documento_identidad}</p>}
                   </div>
                </div>
              </div>
