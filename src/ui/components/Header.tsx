@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar, LogOut, Wallet, Camera, Loader2, Settings } from "lucide-react";
+import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar, LogOut, Wallet, Camera, Loader2, Settings, HardDrive } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { authService } from "@/core/auth";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/infrastructure/supabase";
 
 const navItems = [
   { name: "Calendario", href: "/agenda", icon: Calendar },
@@ -17,22 +18,54 @@ const navItems = [
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userData, setUserData] = useState<{name: string, email: string, avatarUrl: string | null} | null>(null);
+  const [userPlan, setUserPlan] = useState<string>("free");
+  const [storageUsed, setStorageUsed] = useState<number>(0);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const pathname = usePathname();
   const router = useRouter();
 
+  const planLimits: Record<string, number> = {
+    free: 100 * 1024 * 1024,
+    basico: 1024 * 1024 * 1024,
+    estandar: 5120 * 1024 * 1024,
+    avanzado: 20480 * 1024 * 1024,
+    premium: 40960 * 1024 * 1024,
+  };
+
   useEffect(() => {
-    authService.getUser().then(({ data: { user } }) => {
-      if (user) {
-        setUserData({
-          name: user.user_metadata?.full_name || "Odontólogo(a)",
-          email: user.email || "",
-          avatarUrl: user.user_metadata?.avatar_url || null
-        });
-      }
-    });
+    let isMounted = true;
+    
+    const loadProfile = () => {
+      authService.getUser().then(({ data: { user } }) => {
+        if (user && isMounted) {
+          setUserData({
+            name: user.user_metadata?.full_name || "Odontólogo(a)",
+            email: user.email || "",
+            avatarUrl: user.user_metadata?.avatar_url || null
+          });
+
+          supabase.from('perfiles').select('plan, storage_usado_bytes').eq('id', user.id).single()
+            .then(({ data: perfil }) => {
+              if (perfil && isMounted) {
+                setUserPlan(perfil.plan || 'free');
+                setStorageUsed(perfil.storage_usado_bytes || 0);
+              }
+            });
+        }
+      });
+    };
+
+    loadProfile();
+
+    const handlePlanUpdate = () => loadProfile();
+    window.addEventListener('planUpdated', handlePlanUpdate);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('planUpdated', handlePlanUpdate);
+    };
   }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,6 +89,17 @@ export default function Header() {
     router.push("/login");
   };
 
+  const limitBytes = planLimits[userPlan] || planLimits.free;
+  const percentage = Math.min(100, Math.round((storageUsed / limitBytes) * 100));
+  
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 MB';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
   return (
     <>
       <header className="h-16 lg:hidden bg-background flex items-center justify-between px-4 z-10 sticky top-0 border-b border-gray-200 shadow-sm">
@@ -72,9 +116,6 @@ export default function Header() {
             🦷
           </div>
         </div>
-
-
-
 
       </header>
 
@@ -126,25 +167,47 @@ export default function Header() {
               })}
             </nav>
             
-            <div className="mt-auto w-full mb-4">
+            <div className="mt-auto w-full mb-4 space-y-4">
               <div className="flex items-center gap-3 p-3 bg-white/40 rounded-xl">
-                <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm">
+                <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm flex-shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={userData?.avatarUrl || `https://api.dicebear.com/9.x/notionists/svg?seed=${userData?.name || 'Doctor'}&backgroundColor=e6f7fa`} alt="Profile" className="w-full h-full object-cover p-1 bg-white" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 w-0">
                   <Link href="/cuenta" onClick={() => setIsMobileMenuOpen(false)} className="block">
-                    <p className="text-xs font-bold text-gray-900 truncate pr-1 hover:text-accent transition-colors">{userData ? userData.name : "Cargando..."}</p>
-                    <p className="text-[10px] text-gray-900 hover:text-accent transition-colors">Ver Perfil</p>
+                    <p className="text-xs font-bold text-gray-900 truncate hover:text-accent transition-colors">{userData ? userData.name : "Cargando..."}</p>
+                    <p className="text-[10px] text-gray-900 truncate hover:text-accent transition-colors">Ver Perfil</p>
                   </Link>
                 </div>
                 <button 
                   onClick={handleLogout} 
-                  className="p-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shadow-sm"
+                  className="p-2 text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shadow-sm flex-shrink-0"
                   title="Cerrar sesión"
                 >
                   <LogOut className="w-5 h-5" />
                 </button>
+              </div>
+
+              {/* Plan Block */}
+              <div className="bg-white/60 border border-white/80 rounded-2xl p-4 text-center space-y-3 relative overflow-hidden group shadow-sm flex flex-col items-center">
+                <HardDrive className="w-6 h-6 text-accent mb-1" />
+                <h3 className="text-sm font-black text-gray-900 capitalize">Plan {userPlan}</h3>
+                
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
+                  <div 
+                    className={cn("h-2 rounded-full transition-all duration-1000", percentage > 85 ? "bg-red-500" : "bg-accent")} 
+                    style={{ width: `${percentage}%` }}
+                  ></div>
+                </div>
+                
+                <p className="text-[10px] text-gray-700 font-bold w-full flex justify-between">
+                  <span>{formatBytes(storageUsed)}</span>
+                  <span>{formatBytes(limitBytes)}</span>
+                </p>
+                
+                <Link href="/suscripcion" onClick={() => setIsMobileMenuOpen(false)} className="w-full block py-2 mt-2 bg-gray-900 text-white rounded-full text-xs font-bold hover:bg-black transition-all duration-300 shadow-md">
+                  Mejorar Plan
+                </Link>
               </div>
             </div>
           </aside>
@@ -153,3 +216,4 @@ export default function Header() {
     </>
   );
 }
+

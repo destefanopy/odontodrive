@@ -64,9 +64,11 @@ export default function LandingTemplate({
           <span>El Software Clínico #1 para Odontólogos {countryName ? `en ${countryName}` : 'de vanguardia'}</span>
         </div>
         
-        <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-tight mb-6 max-w-4xl mx-auto">
-          Gestiona tu clínica con <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-400 to-cyan-500 drop-shadow-sm">Inteligencia Artificial</span>
-        </h1>
+        <div className="relative max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tight leading-tight mb-6">
+            Gestiona tu clínica con <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-400 to-cyan-500 drop-shadow-sm">Inteligencia Artificial</span>
+          </h1>
+        </div>
         
         <p className="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
           Odontogramas inteligentes, presupuestos automáticos, historias clínicas en la nube y recordatorios de pago. Lleva tu práctica al siguiente nivel sin complicaciones técnicas.
@@ -123,11 +125,16 @@ export default function LandingTemplate({
       </section>
 
       {/* Testimonials / Trust */}
-      <section className="py-20 bg-cyan-900 text-white text-center">
-        <div className="max-w-4xl mx-auto px-4">
-          <Heart className="w-12 h-12 text-cyan-400 mx-auto mb-6 opacity-80" />
-          <h2 className="text-4xl font-black mb-6 leading-tight">"OdontoDrive cambió por completo la forma en la que gestiono mis pacientes."</h2>
-          <p className="text-cyan-200 text-lg uppercase tracking-widest font-bold">Dra. María Laura - Ortodoncista</p>
+      <section className="py-20 bg-cyan-900 text-white text-center relative overflow-hidden">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-center gap-12 relative z-10">
+          <div className="w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-8 border-cyan-800 shadow-2xl shrink-0 hover:scale-105 transition-transform duration-500">
+             <img src="/robot_1.jpg" alt="IA Assistant" className="w-full h-full object-cover" />
+          </div>
+          <div className="text-left max-w-2xl">
+            <Heart className="w-12 h-12 text-cyan-400 mb-6 opacity-80" />
+            <h2 className="text-4xl md:text-5xl font-black mb-6 leading-tight">"OdontoDrive cambió por completo la forma en la que gestiono mis pacientes."</h2>
+            <p className="text-cyan-200 text-lg uppercase tracking-widest font-bold">Dra. María Laura - Ortodoncista</p>
+          </div>
         </div>
       </section>
 
