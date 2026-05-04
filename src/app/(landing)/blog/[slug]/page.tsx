@@ -56,6 +56,27 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
 
   return (
     <div className="bg-white min-h-screen pt-32 pb-24">
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-cyan-100/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-cyan-600 rounded-lg flex items-center justify-center text-white shadow-sm md:w-10 md:h-10">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 md:w-6 md:h-6">
+                <path d="M15.5 3c-1.3 0-2.5.6-3.5 1.6-1-1-2.2-1.6-3.5-1.6C5.5 3 3 5.5 3 8.5c0 4 3 6 3.5 10 .3 1.5 1.5 2.5 3 2.5 1.5 0 2.5-.8 3-2l1-2.5 1 2.5c.5 1.2 1.5 2 3 2 1.5 0 2.7-1 3-2.5.5-4 3.5-6 3.5-10C24 5.5 21.5 3 18.5 3Z" />
+              </svg>
+            </div>
+            <span className="text-xl font-black tracking-tight text-slate-900">Odonto<span className="text-cyan-600">Drive</span></span>
+          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="text-sm font-bold text-slate-600 hover:text-cyan-600 transition-colors">
+              Volver a Inicio
+            </Link>
+            <Link href="/login" className="text-sm font-bold text-white bg-cyan-500 px-4 py-2 rounded-full hover:bg-cyan-400 transition-colors hidden md:block">
+              Acceder
+            </Link>
+          </div>
+        </div>
+      </nav>
+
       <article className="max-w-3xl mx-auto px-6">
         <Link href="/blog" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-accent transition-colors mb-8">
           <ArrowLeft className="w-4 h-4" /> Volver al blog
