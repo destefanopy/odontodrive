@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Lock, Phone, Mail, HelpCircle, AlertCircle, CheckCircle2, Crown, Image as ImageIcon, UploadCloud, Loader2, User } from "lucide-react";
+import { Lock, Phone, Mail, HelpCircle, AlertCircle, CheckCircle2, Crown, Image as ImageIcon, UploadCloud, Loader2, User, HardDrive } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/infrastructure/supabase";
 
 export default function MiCuentaPage() {
   const [userPlan, setUserPlan] = useState<string>("Cargando...");
+  const [storageUsed, setStorageUsed] = useState<number>(0);
   const [createdAt, setCreatedAt] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [telefono, setTelefono] = useState<string>("");
@@ -56,11 +59,12 @@ export default function MiCuentaPage() {
         setClinicColor(user.user_metadata?.clinic_color || "#e8701a");
         setCurrencySymbol(user.user_metadata?.currency_symbol || "Gs.");
         
-        supabase.from('perfiles').select('plan, created_at')
+        supabase.from('perfiles').select('plan, created_at, storage_usado_bytes')
           .eq('id', user.id).single()
           .then(({ data }) => {
             if (data) {
               setUserPlan(data.plan || "free");
+              setStorageUsed(data.storage_usado_bytes || 0);
               if (data.created_at) {
                 const date = new Date(data.created_at);
                 setCreatedAt(date.toLocaleDateString("es-ES", { year: 'numeric', month: 'long', day: 'numeric' }));
@@ -188,6 +192,25 @@ export default function MiCuentaPage() {
     }
   };
 
+  const planLimits: Record<string, number> = {
+    free: 100 * 1024 * 1024,
+    basico: 1024 * 1024 * 1024,
+    estandar: 5120 * 1024 * 1024,
+    avanzado: 20480 * 1024 * 1024,
+    premium: 40960 * 1024 * 1024,
+  };
+
+  const limitBytes = planLimits[userPlan] || planLimits.free;
+  const percentage = Math.min(100, Math.round((storageUsed / limitBytes) * 100));
+  
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 MB';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
   return (
     <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8 animate-in fade-in zoom-in-95 duration-500">
       <div className="mb-8">
@@ -212,8 +235,29 @@ export default function MiCuentaPage() {
             </div>
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-1">Plan Actual</h2>
             <p className="text-2xl font-black text-gray-900 capitalize mb-1">{userPlan}</p>
-            {createdAt && <p className="text-xs text-gray-500 font-medium bg-gray-50 px-3 py-1 rounded-full">Miembro desde: {createdAt}</p>}
+            {createdAt && <p className="text-xs text-gray-500 font-medium bg-gray-50 px-3 py-1 rounded-full mb-6">Miembro desde: {createdAt}</p>}
             
+            <div className="w-full bg-gray-50 rounded-xl p-4 mb-4 border border-gray-100">
+              <div className="flex items-center gap-2 mb-2 text-gray-700">
+                <HardDrive className="w-4 h-4 text-accent" />
+                <span className="text-xs font-bold uppercase tracking-wider">Almacenamiento</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
+                <div 
+                  className={cn("h-2 rounded-full transition-all duration-1000", percentage > 85 ? "bg-red-500" : "bg-accent")} 
+                  style={{ width: `${percentage}%` }}
+                ></div>
+              </div>
+              <p className="text-[10px] text-gray-500 font-bold w-full flex justify-between mt-2">
+                <span>{formatBytes(storageUsed)}</span>
+                <span>{formatBytes(limitBytes)}</span>
+              </p>
+            </div>
+
+            <Link href="/suscripcion" className="w-full block py-2.5 mb-2 bg-gray-900 text-white rounded-xl text-sm font-bold hover:bg-black transition-all duration-300 shadow-[0_4px_14px_0_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] transform hover:-translate-y-0.5">
+              Mejorar Plan
+            </Link>
+
             {userPlan !== 'free' && (
               <div className="mt-6 w-full pt-4 border-t border-gray-100">
                 {!showCancelConfirm ? (

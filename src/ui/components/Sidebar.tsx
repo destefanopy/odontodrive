@@ -120,7 +120,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="mt-auto w-full mb-4 space-y-4">
+      <div className="mt-auto w-full mb-4">
         {/* User Card */}
         <div className="flex items-center gap-3 px-3 py-2 bg-white/40 rounded-xl shadow-sm border border-white/60">
           <div className="w-10 h-10 rounded-full overflow-hidden shadow-sm flex-shrink-0">
@@ -140,28 +140,6 @@ export default function Sidebar() {
           >
             <LogOut className="w-4 h-4" />
           </button>
-        </div>
-
-        {/* Plan Block */}
-        <div className="bg-white/60 border border-white/80 rounded-2xl p-4 text-center space-y-3 relative overflow-hidden group shadow-sm flex flex-col items-center">
-          <HardDrive className="w-6 h-6 text-accent mb-1" />
-          <h3 className="text-sm font-black text-gray-900 capitalize">Plan {userPlan}</h3>
-          
-          <div className="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
-            <div 
-              className={cn("h-2 rounded-full transition-all duration-1000", percentage > 85 ? "bg-red-500" : "bg-accent")} 
-              style={{ width: `${percentage}%` }}
-            ></div>
-          </div>
-          
-          <p className="text-[10px] text-gray-700 font-bold w-full flex justify-between">
-            <span>{formatBytes(storageUsed)}</span>
-            <span>{formatBytes(limitBytes)}</span>
-          </p>
-          
-          <Link href="/suscripcion" className="w-full block py-2 mt-2 bg-gray-900 text-white rounded-full text-xs font-bold hover:bg-black transition-all duration-300 shadow-md">
-            Mejorar Plan
-          </Link>
         </div>
       </div>
     </aside>
