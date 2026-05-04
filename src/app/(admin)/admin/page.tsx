@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/core/auth";
-import { Shield, ShieldAlert, Star, Ban, CheckCircle, Search, RefreshCw } from "lucide-react";
+import { Shield, ShieldAlert, Star, Ban, CheckCircle, Search, RefreshCw, ArrowUp, ArrowDown } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface Profile {
   id: string;
@@ -31,7 +32,15 @@ interface Profile {
     clinic_title?: string;
     clinic_color?: string;
     phone?: string;
+    clinic_city?: string;
+    clinic_country?: string;
+    currency_symbol?: string;
   };
+}
+
+interface ChartData {
+  date: string;
+  count: number;
 }
 
 export default function AdminConsole() {
@@ -42,6 +51,9 @@ export default function AdminConsole() {
 
   const [configSoporte, setConfigSoporte] = useState({ telefono: "", email: "" });
   const [isSavingConfig, setIsSavingConfig] = useState(false);
+
+  const [growthData, setGrowthData] = useState<{ doctors: ChartData[], patients: ChartData[] }>({ doctors: [], patients: [] });
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'created_at', direction: 'desc' });
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -66,10 +78,82 @@ export default function AdminConsole() {
     } catch (err) {}
   };
 
+  const fetchGrowthData = async () => {
+    try {
+      const { data, error } = await authService.adminGetGrowthStats();
+      if (!error && data) {
+        let docTotal = 0;
+        const docs = (data.doctors || []).map((d: any) => ({ 
+          date: new Date(d.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', timeZone: 'UTC' }), 
+          count: (docTotal += d.count) 
+        }));
+        
+        let patTotal = 0;
+        const pats = (data.patients || []).map((d: any) => ({ 
+          date: new Date(d.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', timeZone: 'UTC' }), 
+          count: (patTotal += d.count) 
+        }));
+        
+        setGrowthData({ doctors: docs, patients: pats });
+      }
+    } catch (err) {}
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchConfig();
+    fetchGrowthData();
   }, []);
+
+  const sortedUsers = React.useMemo(() => {
+    let sortableItems = [...users];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        let aVal: any = a[sortConfig.key as keyof Profile];
+        let bVal: any = b[sortConfig.key as keyof Profile];
+
+        if (sortConfig.key === 'ultimo_login' || sortConfig.key === 'created_at') {
+           aVal = aVal ? new Date(aVal).getTime() : 0;
+           bVal = bVal ? new Date(bVal).getTime() : 0;
+        } else if (sortConfig.key === 'nombre') {
+           aVal = (aVal || a.email || "").toLowerCase();
+           bVal = (bVal || b.email || "").toLowerCase();
+        } else {
+           aVal = aVal || 0;
+           bVal = bVal || 0;
+        }
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [users, sortConfig]);
+
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const SortableHeader = ({ label, sortKey }: { label: string, sortKey: string }) => (
+    <th 
+      className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase cursor-pointer hover:bg-gray-100 transition-colors select-none" 
+      onClick={() => requestSort(sortKey)}
+    >
+      <div className="flex items-center gap-1">
+        {label}
+        {sortConfig?.key === sortKey && (
+          <span className="text-accent flex items-center">
+            {sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3"/> : <ArrowDown className="w-3 h-3"/>}
+          </span>
+        )}
+      </div>
+    </th>
+  );
 
   const handleSaveConfig = async () => {
     setIsSavingConfig(true);
@@ -138,6 +222,54 @@ export default function AdminConsole() {
         </button>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Crecimiento de Profesionales</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={growthData.doctors}>
+                <defs>
+                  <linearGradient id="colorDoctors" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Area type="monotone" dataKey="count" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorDoctors)" name="Total Doctores" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Crecimiento de Pacientes (Global)</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={growthData.patients}>
+                <defs>
+                  <linearGradient id="colorPatients" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Area type="monotone" dataKey="count" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorPatients)" name="Total Pacientes" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row gap-4 items-end">
         <div className="flex-1">
           <label className="block text-sm font-bold text-gray-700 mb-1">Teléfono de Soporte</label>
@@ -179,12 +311,12 @@ export default function AdminConsole() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
-                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Usuario</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Plan</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Estado</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Rol</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Métricas</th>
-                  <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase">Último Acceso</th>
+                  <SortableHeader label="Usuario" sortKey="nombre" />
+                  <SortableHeader label="Plan" sortKey="plan" />
+                  <SortableHeader label="Estado" sortKey="activo" />
+                  <SortableHeader label="Rol" sortKey="es_admin" />
+                  <SortableHeader label="Métricas" sortKey="num_pacientes" />
+                  <SortableHeader label="Último Acceso" sortKey="ultimo_login" />
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase text-right">Acciones</th>
                 </tr>
               </thead>
@@ -202,7 +334,7 @@ export default function AdminConsole() {
                     </td>
                   </tr>
                 ) : (
-                  users.map((u) => (
+                  sortedUsers.map((u) => (
                     <tr key={u.id} className={`transition-colors hover:bg-gray-50/50 ${!u.activo ? "opacity-60" : ""}`}>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-2">
@@ -225,11 +357,13 @@ export default function AdminConsole() {
                                <span className="text-xs text-gray-500 font-medium">{u.email}</span>
                              </div>
                            </div>
-                           {(u.metadata?.clinic_title || u.metadata?.clinic_name || u.metadata?.clinic_phone || u.metadata?.phone) && (
+                           {(u.metadata?.clinic_title || u.metadata?.clinic_name || u.metadata?.clinic_phone || u.metadata?.phone || u.metadata?.clinic_city || u.metadata?.clinic_country || u.metadata?.currency_symbol) && (
                              <div className="flex flex-col text-[11px] text-gray-600 font-medium bg-gray-50 p-2 rounded-lg border border-gray-100">
                                {u.metadata?.clinic_title && <span><b className="text-gray-800">Título:</b> {u.metadata.clinic_title}</span>}
                                {u.metadata?.clinic_name && <span><b className="text-gray-800">Clínica:</b> {u.metadata.clinic_name}</span>}
                                {(u.metadata?.clinic_phone || u.metadata?.phone) && <span><b className="text-gray-800">Telf:</b> {u.metadata.clinic_phone || u.metadata.phone}</span>}
+                               {(u.metadata?.clinic_city || u.metadata?.clinic_country) && <span><b className="text-gray-800">Ubicación:</b> {u.metadata.clinic_city} {u.metadata.clinic_country ? `, ${u.metadata.clinic_country}` : ''}</span>}
+                               {u.metadata?.currency_symbol && <span><b className="text-gray-800">Moneda:</b> {u.metadata.currency_symbol}</span>}
                              </div>
                            )}
                         </div>

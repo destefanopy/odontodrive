@@ -87,6 +87,10 @@ export const authService = {
     });
   },
 
+  async adminGetGrowthStats() {
+    return supabase.rpc('admin_get_growth_stats');
+  },
+
   async getSystemConfig() {
     return supabase.from('configuraciones_sistema').select('*').eq('id', 1).single();
   },
