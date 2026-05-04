@@ -42,6 +42,8 @@ export default function MiCuentaPage() {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelText, setCancelText] = useState("");
 
+  const [supportContact, setSupportContact] = useState({ telefono: "+595 962 122644", email: "destefanopy@gmail.com" });
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
@@ -71,6 +73,15 @@ export default function MiCuentaPage() {
               }
             }
           });
+      }
+    });
+
+    supabase.from('configuraciones_sistema').select('*').eq('id', 1).single().then(({ data, error }) => {
+      if (!error && data) {
+        setSupportContact({
+          telefono: data.soporte_telefono || "+595 962 122644",
+          email: data.soporte_email || "destefanopy@gmail.com"
+        });
       }
     });
   }, []);
@@ -314,13 +325,13 @@ export default function MiCuentaPage() {
               </p>
               
               <div className="space-y-4">
-                <a href="https://wa.me/595962122644" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-medium hover:text-accent transition-colors bg-white/10 p-3 rounded-xl">
+                <a href={`https://wa.me/${supportContact.telefono.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-sm font-medium hover:text-accent transition-colors bg-white/10 p-3 rounded-xl">
                   <Phone className="w-5 h-5 text-accent" />
-                  +595 962 122644
+                  {supportContact.telefono}
                 </a>
-                <a href="mailto:destefanopy@gmail.com" className="flex items-center gap-3 text-sm font-medium hover:text-accent transition-colors bg-white/10 p-3 rounded-xl overflow-hidden">
+                <a href={`mailto:${supportContact.email}`} className="flex items-center gap-3 text-sm font-medium hover:text-accent transition-colors bg-white/10 p-3 rounded-xl overflow-hidden">
                   <Mail className="w-5 h-5 text-accent flex-shrink-0" />
-                  <span className="truncate">destefanopy@gmail.com</span>
+                  <span className="truncate">{supportContact.email}</span>
                 </a>
               </div>
             </div>

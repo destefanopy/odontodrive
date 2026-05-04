@@ -85,5 +85,16 @@ export const authService = {
     return supabase.rpc('admin_eliminar_usuario', {
       target_user_id: userId
     });
+  },
+
+  async getSystemConfig() {
+    return supabase.from('configuraciones_sistema').select('*').eq('id', 1).single();
+  },
+
+  async updateSystemConfig(soporte_telefono: string, soporte_email: string) {
+    return supabase.from('configuraciones_sistema').update({
+      soporte_telefono,
+      soporte_email
+    }).eq('id', 1);
   }
 };

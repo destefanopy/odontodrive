@@ -40,6 +40,9 @@ export default function AdminConsole() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [configSoporte, setConfigSoporte] = useState({ telefono: "", email: "" });
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+
   const fetchUsers = async () => {
     setIsLoading(true);
     setError(null);
@@ -54,9 +57,32 @@ export default function AdminConsole() {
     }
   };
 
+  const fetchConfig = async () => {
+    try {
+      const { data, error } = await authService.getSystemConfig();
+      if (!error && data) {
+        setConfigSoporte({ telefono: data.soporte_telefono || "", email: data.soporte_email || "" });
+      }
+    } catch (err) {}
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchConfig();
   }, []);
+
+  const handleSaveConfig = async () => {
+    setIsSavingConfig(true);
+    try {
+      const { error } = await authService.updateSystemConfig(configSoporte.telefono, configSoporte.email);
+      if (error) throw error;
+      alert("Configuración de soporte actualizada exitosamente.");
+    } catch (err: any) {
+      alert("Error al actualizar: " + err.message);
+    } finally {
+      setIsSavingConfig(false);
+    }
+  };
 
   const handleUpgradePlan = async (userId: string, nuevoPlan: string) => {
     if (!confirm(`¿Deseas cambiar a este odontólogo al plan ${nuevoPlan.toUpperCase()}?`)) {
@@ -109,6 +135,36 @@ export default function AdminConsole() {
           className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm transition-all focus:ring-2 focus:ring-accent/50"
         >
           <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
+        </button>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row gap-4 items-end">
+        <div className="flex-1">
+          <label className="block text-sm font-bold text-gray-700 mb-1">Teléfono de Soporte</label>
+          <input 
+            type="text" 
+            value={configSoporte.telefono} 
+            onChange={(e) => setConfigSoporte({ ...configSoporte, telefono: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent outline-none text-sm"
+            placeholder="+595 962 122644"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm font-bold text-gray-700 mb-1">Email de Soporte</label>
+          <input 
+            type="email" 
+            value={configSoporte.email} 
+            onChange={(e) => setConfigSoporte({ ...configSoporte, email: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-accent outline-none text-sm"
+            placeholder="destefanopy@gmail.com"
+          />
+        </div>
+        <button 
+          onClick={handleSaveConfig}
+          disabled={isSavingConfig}
+          className="px-6 py-2 bg-gray-900 text-white rounded-lg font-bold text-sm hover:bg-black transition-colors disabled:opacity-50"
+        >
+          {isSavingConfig ? "Guardando..." : "Guardar Contacto"}
         </button>
       </div>
 
