@@ -30,10 +30,10 @@ export default function OnboardingTooltip({
   if (!isVisible) return null;
 
   const positionClasses = {
-    top: 'bottom-full mb-4 left-1/2 -translate-x-1/2',
-    bottom: 'top-full mt-4 left-1/2 -translate-x-1/2',
-    left: 'right-full mr-4 top-1/2 -translate-y-1/2',
-    right: 'left-full ml-4 top-1/2 -translate-y-1/2',
+    top: 'sm:bottom-full sm:mb-4 sm:left-1/2 sm:-translate-x-1/2',
+    bottom: 'sm:top-full sm:mt-4 sm:left-1/2 sm:-translate-x-1/2',
+    left: 'sm:right-full sm:mr-4 sm:top-1/2 sm:-translate-y-1/2',
+    right: 'sm:left-full sm:ml-4 sm:top-1/2 sm:-translate-y-1/2',
   };
 
   const arrowClasses = {
@@ -44,9 +44,9 @@ export default function OnboardingTooltip({
   };
 
   return (
-    <div className={`absolute z-50 animate-in fade-in zoom-in duration-300 w-72 ${positionClasses[position]} ${className}`}>
-      {/* Flecha del globo */}
-      <div className={`absolute w-0 h-0 border-[8px] ${arrowClasses[position]}`} />
+    <div className={`fixed bottom-4 left-4 right-4 z-50 sm:absolute sm:w-72 sm:bottom-auto sm:left-auto sm:right-auto sm:inset-auto animate-in fade-in zoom-in duration-300 ${positionClasses[position]} ${className}`}>
+      {/* Flecha del globo - solo visible en desktop */}
+      <div className={`hidden sm:block absolute w-0 h-0 border-[8px] ${arrowClasses[position]}`} />
       
       {/* Contenedor principal */}
       <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-4 relative overflow-hidden flex flex-col gap-3">
