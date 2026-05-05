@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar, LogOut, Wallet, Camera, Loader2, Settings, HardDrive } from "lucide-react";
+import { Search, Bell, ChevronDown, Menu, X, Home, Users, Calendar, LogOut, Wallet, Camera, Loader2, Settings, HardDrive, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { authService } from "@/core/auth";
@@ -12,7 +12,8 @@ const navItems = [
   { name: "Calendario", href: "/agenda", icon: Calendar },
   { name: "Pacientes", href: "/pacientes", icon: Users },
   { name: "Finanzas", href: "/finanzas", icon: Wallet },
-  { name: "Configuración", href: "/cuenta", icon: Settings }
+  { name: "Configuración", href: "/cuenta", icon: Settings },
+  { name: "Ayuda y FAQ", href: "/ayuda", icon: HelpCircle }
 ];
 
 export default function Header() {
