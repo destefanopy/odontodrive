@@ -25,6 +25,7 @@ interface Profile {
   num_dientes_odontograma?: number;
   num_consentimientos?: number;
   num_tareas?: number;
+  ultima_accion?: string;
   metadata?: {
     clinic_name?: string;
     clinic_phone?: string;
@@ -430,8 +431,17 @@ export default function AdminConsole() {
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-600">
-                        {u.ultimo_login ? new Date(u.ultimo_login).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Nunca"}
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-medium text-gray-600">
+                            {u.ultimo_login ? new Date(u.ultimo_login).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Nunca"}
+                          </span>
+                          {u.ultima_accion && (
+                            <span className="text-[10px] font-bold text-accent bg-accent/10 px-2 py-0.5 rounded-full w-max">
+                              {u.ultima_accion}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         {!u.es_admin && (
