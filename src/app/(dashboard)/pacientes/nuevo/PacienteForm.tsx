@@ -31,9 +31,14 @@ export default function PacienteForm() {
     }
 
     try {
-      await createPaciente({ nombres_apellidos, telefono_celular });
+      const nuevoPaciente = await createPaciente({ nombres_apellidos, telefono_celular });
       if (step === 1) nextStep(); // Avanza al paso 2 al crear el paciente
-      router.push("/pacientes");
+      
+      if (nuevoPaciente?.id) {
+        router.push(`/pacientes/${nuevoPaciente.id}`);
+      } else {
+        router.push("/pacientes");
+      }
       router.refresh();
     } catch (err: any) {
       setError(err.message || "No se pudo crear el paciente.");
