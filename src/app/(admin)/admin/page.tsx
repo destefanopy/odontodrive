@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/core/auth";
-import { Shield, ShieldAlert, Star, Ban, CheckCircle, Search, RefreshCw, ArrowUp, ArrowDown } from "lucide-react";
+import { Shield, ShieldAlert, Star, Ban, CheckCircle, Search, RefreshCw, ArrowUp, ArrowDown, Download, Loader2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface Profile {
@@ -55,6 +55,31 @@ export default function AdminConsole() {
 
   const [growthData, setGrowthData] = useState<{ doctors: ChartData[], patients: ChartData[] }>({ doctors: [], patients: [] });
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'created_at', direction: 'desc' });
+  const tableRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!tableRef.current) return;
+    setIsExporting(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const element = tableRef.current;
+      const opt = {
+        margin:       10,
+        filename:     `Reporte_Odontodrive_${new Date().toISOString().split('T')[0]}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak:    { mode: ['css', 'legacy'] }
+      };
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error("Error al exportar PDF:", error);
+      alert("Hubo un error al generar el PDF.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -215,12 +240,22 @@ export default function AdminConsole() {
             Gestión de Odontólogos, Suscripciones y Seguridad.
           </p>
         </div>
-        <button 
-          onClick={fetchUsers}
-          className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm transition-all focus:ring-2 focus:ring-accent/50"
-        >
-          <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={handleExportPDF}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-bold hover:bg-gray-50 shadow-sm transition-all focus:ring-2 focus:ring-accent/50 disabled:opacity-50"
+          >
+            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            <span className="hidden sm:inline">Exportar PDF</span>
+          </button>
+          <button 
+            onClick={fetchUsers}
+            className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 shadow-sm transition-all focus:ring-2 focus:ring-accent/50"
+          >
+            <RefreshCw className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`} />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -307,7 +342,7 @@ export default function AdminConsole() {
           <span className="font-medium text-sm">{error}</span>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div ref={tableRef} className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
