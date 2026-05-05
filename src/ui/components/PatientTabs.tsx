@@ -59,7 +59,6 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
           onNext={complete}
           onDismiss={complete}
           isLastStep={true}
-          className="sm:top-0 sm:-mt-2 sm:-translate-y-full sm:left-10"
         />
       )}
 

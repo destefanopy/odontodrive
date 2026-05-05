@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { X, ChevronRight, Check } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface OnboardingTooltipProps {
   message: string;
@@ -18,52 +19,52 @@ export default function OnboardingTooltip({
   isLastStep = false,
 }: OnboardingTooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Pequeño delay para que no aparezca de golpe al cargar la página
+    setMounted(true);
     const timer = setTimeout(() => setIsVisible(true), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  if (!isVisible) return null;
+  if (!mounted || !isVisible) return null;
 
-  return (
-    <div className={`fixed bottom-4 left-4 right-4 z-[9999] sm:absolute sm:w-72 sm:bottom-auto sm:left-auto sm:right-auto sm:top-auto sm:inset-auto sm:m-0 animate-in fade-in zoom-in duration-300 ${className}`}>
-
+  return createPortal(
+    <div className={`fixed bottom-4 left-4 right-4 z-[9999] sm:bottom-8 sm:right-8 sm:left-auto sm:w-[320px] sm:m-0 animate-in fade-in slide-in-from-bottom-8 duration-500 ${className}`}>
       
       {/* Contenedor principal */}
-      <div className="bg-white rounded-2xl shadow-2xl border border-blue-100 p-4 relative overflow-hidden flex flex-col gap-3">
+      <div className="bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-blue-100/50 p-5 relative overflow-hidden flex flex-col gap-3">
         {/* Decoración de fondo */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500" />
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500" />
         
         <button 
           onClick={onDismiss}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors bg-gray-50 rounded-full p-1"
           aria-label="Cerrar"
         >
-          <X size={16} />
+          <X size={14} />
         </button>
 
-        <div className="flex items-start gap-3 mt-1">
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex-shrink-0 flex items-center justify-center border border-blue-100 overflow-hidden shadow-sm">
+        <div className="flex items-start gap-4 mt-2">
+          <div className="w-14 h-14 rounded-full bg-blue-50/50 flex-shrink-0 flex items-center justify-center border border-blue-100 overflow-hidden shadow-sm">
             <Image 
               src="/robot_2.png" 
               alt="Asistente Odontodrive" 
-              width={48} 
-              height={48} 
+              width={56} 
+              height={56} 
               className="object-cover"
             />
           </div>
-          <div className="flex-1">
-            <h4 className="text-sm font-bold text-blue-900 mb-1">Odontodrive AI</h4>
-            <p className="text-sm text-gray-600 leading-snug">{message}</p>
+          <div className="flex-1 pr-4">
+            <h4 className="text-sm font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-700 mb-1">Odontodrive AI</h4>
+            <p className="text-sm text-gray-600 leading-snug font-medium">{message}</p>
           </div>
         </div>
 
-        <div className="flex justify-end mt-1">
+        <div className="flex justify-end mt-2">
           <button 
             onClick={onNext}
-            className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1.5 px-3 rounded-full transition-colors shadow-sm"
+            className="flex items-center gap-1.5 bg-gray-900 hover:bg-black text-white text-xs font-bold py-2 px-4 rounded-full transition-all shadow-md hover:shadow-lg active:scale-95"
           >
             {isLastStep ? (
               <>¡Entendido! <Check size={14} /></>
@@ -73,6 +74,7 @@ export default function OnboardingTooltip({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
