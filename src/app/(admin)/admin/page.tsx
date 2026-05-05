@@ -64,15 +64,33 @@ export default function AdminConsole() {
     try {
       const html2pdf = (await import("html2pdf.js")).default;
       const element = tableRef.current;
+      
+      // Ajuste temporal para evitar que la tabla se corte en el PDF
+      const originalOverflow = element.style.overflow;
+      const originalWidth = element.style.width;
+      const innerDiv = element.querySelector('.overflow-x-auto') as HTMLDivElement;
+      const originalInnerOverflow = innerDiv ? innerDiv.style.overflow : '';
+      
+      element.style.overflow = 'visible';
+      element.style.width = 'max-content';
+      if (innerDiv) innerDiv.style.overflow = 'visible';
+
       const opt = {
         margin:       10,
         filename:     `Reporte_Odontodrive_${new Date().toISOString().split('T')[0]}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        html2canvas:  { scale: 2, useCORS: true, windowWidth: element.scrollWidth },
+        jsPDF:        { unit: 'mm', format: 'a3', orientation: 'landscape' },
         pagebreak:    { mode: ['css', 'legacy'] }
       };
+
       await html2pdf().set(opt).from(element).save();
+
+      // Restaurar estilos
+      element.style.overflow = originalOverflow;
+      element.style.width = originalWidth;
+      if (innerDiv) innerDiv.style.overflow = originalInnerOverflow;
+
     } catch (error) {
       console.error("Error al exportar PDF:", error);
       alert("Hubo un error al generar el PDF.");
