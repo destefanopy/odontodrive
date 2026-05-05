@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Shield, Sparkles, TrendingUp, Mail, ChevronDown, ChevronUp, Bot } from 'lucide-react';
+import { Shield, Sparkles, TrendingUp, Mail, ChevronDown, ChevronUp, Bot, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function AyudaPage() {
@@ -36,6 +36,13 @@ export default function AyudaPage() {
       content: "¿Falta algo? ¿Ocurrió un error? ¡Escríbenos! Puedes enviar un correo directamente a soporte@odontodrive.com y nuestro equipo humano (yo solo soy el asistente 🤖) te atenderá a la brevedad.",
       color: "text-amber-500",
       bgColor: "bg-amber-50"
+    },
+    {
+      icon: CreditCard,
+      title: "Pagos y Transacciones",
+      content: "La tranquilidad financiera de tu clínica es clave. Trabajamos con procesadoras de pagos internacionales (como Stripe o MercadoPago) bajo la normativa PCI-DSS, lo que garantiza que todas tus transacciones son 100% seguras y encriptadas. Nosotros nunca almacenamos directamente los datos sensibles de tus tarjetas ni las de tus pacientes.",
+      color: "text-rose-500",
+      bgColor: "bg-rose-50"
     }
   ];
 
