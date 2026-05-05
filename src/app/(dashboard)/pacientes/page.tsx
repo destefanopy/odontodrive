@@ -105,8 +105,7 @@ export default function PacientesPage() {
                   message="¡Hola! Bienvenido a Odontodrive. Haz click aquí para crear tu primer paciente y empezar tu gestión."
                   onNext={nextStep}
                   onDismiss={nextStep}
-                  position="bottom"
-                  className="top-full mt-4 right-0 transform translate-x-1/4 sm:translate-x-0"
+                  className="sm:top-full sm:mt-4 sm:right-0 sm:origin-top-right"
                 />
               )}
             </div>

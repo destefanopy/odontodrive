@@ -62,8 +62,7 @@ export default function PacienteForm() {
                 message="No te preocupes por llenarlo todo ahora. Ingresa el nombre y luego dentro de la ficha podrás cargar lo más complejo."
                 onNext={nextStep}
                 onDismiss={nextStep}
-                position="top"
-                className="top-0 -mt-2 -translate-y-full left-0 translate-x-0"
+                className="sm:bottom-full sm:mb-2 sm:left-0 sm:origin-bottom-left"
               />
             )}
             <input

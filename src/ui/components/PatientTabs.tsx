@@ -58,9 +58,8 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
           message="¡Excelente! Esta es la ficha de tu paciente. Aquí tienes todo el control: historiales, presupuestos, IA, y consentimientos."
           onNext={complete}
           onDismiss={complete}
-          position="bottom"
           isLastStep={true}
-          className="top-10 left-10 md:left-20"
+          className="sm:top-0 sm:-mt-2 sm:-translate-y-full sm:left-10"
         />
       )}
 
