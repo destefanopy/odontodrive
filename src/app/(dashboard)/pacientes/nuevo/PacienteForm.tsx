@@ -6,11 +6,14 @@ import { AlertCircle, ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/ui/components/Card";
 import { useRouter } from "next/navigation";
+import { useOnboarding } from "@/lib/useOnboarding";
+import OnboardingTooltip from "@/ui/components/OnboardingTooltip";
 
 export default function PacienteForm() {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const router = useRouter();
+  const { step, nextStep, isClient } = useOnboarding();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,6 +32,7 @@ export default function PacienteForm() {
 
     try {
       await createPaciente({ nombres_apellidos, telefono_celular });
+      if (step === 1) nextStep(); // Avanza al paso 2 al crear el paciente
       router.push("/pacientes");
       router.refresh();
     } catch (err: any) {
@@ -49,10 +53,19 @@ export default function PacienteForm() {
         )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
+          <div className="space-y-2 relative">
             <label htmlFor="nombres_apellidos" className="text-sm font-bold text-gray-700">
               Nombres y Apellidos *
             </label>
+            {isClient && step === 1 && (
+              <OnboardingTooltip 
+                message="No te preocupes por llenarlo todo ahora. Ingresa el nombre y luego dentro de la ficha podrás cargar lo más complejo."
+                onNext={nextStep}
+                onDismiss={nextStep}
+                position="top"
+                className="top-0 -mt-2 -translate-y-full left-0 translate-x-0"
+              />
+            )}
             <input
               type="text"
               id="nombres_apellidos"

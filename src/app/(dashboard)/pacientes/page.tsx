@@ -4,12 +4,15 @@ import { getTodosLosPacientes, Paciente } from "@/core/api";
 import { Users, Plus, ChevronRight, Loader2, Search, Crown, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/infrastructure/supabase";
+import { useOnboarding } from "@/lib/useOnboarding";
+import OnboardingTooltip from "@/ui/components/OnboardingTooltip";
 
 export default function PacientesPage() {
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<string>("free");
+  const { step, nextStep, isClient, setSpecificStep } = useOnboarding();
 
   useEffect(() => {
     const loadData = async () => {
@@ -88,10 +91,25 @@ export default function PacientesPage() {
               Nuevo Paciente
             </button>
           ) : (
-            <Link href="/pacientes/nuevo" className="flex items-center justify-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition-colors shrink-0">
-              <Plus className="w-4 h-4" />
-              Nuevo Paciente
-            </Link>
+            <div className="relative shrink-0 flex">
+              <Link 
+                href="/pacientes/nuevo" 
+                onClick={() => { if(step === 0) nextStep(); }}
+                className="flex w-full items-center justify-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-bold shadow-md hover:bg-gray-800 transition-colors shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                Nuevo Paciente
+              </Link>
+              {isClient && step === 0 && pacientes.length === 0 && !loading && (
+                <OnboardingTooltip 
+                  message="¡Hola! Bienvenido a Odontodrive. Haz click aquí para crear tu primer paciente y empezar tu gestión."
+                  onNext={nextStep}
+                  onDismiss={nextStep}
+                  position="bottom"
+                  className="top-full mt-4 right-0 transform translate-x-1/4 sm:translate-x-0"
+                />
+              )}
+            </div>
           )}
         </div>
       </div>

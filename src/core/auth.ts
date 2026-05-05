@@ -100,5 +100,21 @@ export const authService = {
       soporte_telefono,
       soporte_email
     }).eq('id', 1);
+  },
+
+  async adminGetRegiones() {
+    return supabase.from('landing_regiones').select('*').order('created_at', { ascending: true });
+  },
+
+  async adminSaveRegion(region: any) {
+    if (region.id) {
+      return supabase.from('landing_regiones').update(region).eq('id', region.id);
+    } else {
+      return supabase.from('landing_regiones').insert(region);
+    }
+  },
+
+  async adminDeleteRegion(id: string) {
+    return supabase.from('landing_regiones').delete().eq('id', id);
   }
 };

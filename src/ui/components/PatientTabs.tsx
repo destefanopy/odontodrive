@@ -13,6 +13,8 @@ import PagosView from "./paciente/PagosView";
 import RecetarioView from "./paciente/RecetarioView";
 import ConsentimientosView from "./paciente/ConsentimientosView";
 import { AntecedentesMedicos, Paciente } from "@/core/api";
+import { useOnboarding } from "@/lib/useOnboarding";
+import OnboardingTooltip from "./OnboardingTooltip";
 
 type TabValue = "datos" | "ficha" | "consentimientos" | "odontograma" | "presupuestos" | "archivos" | "pagos" | "recetario" | "ia";
 
@@ -28,6 +30,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
   const [activeTab, setActiveTab] = useState<TabValue>("datos");
   const [odontoTipo, setOdontoTipo] = useState<"inicial" | "final">("inicial");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { step, complete, isClient } = useOnboarding();
 
   const tabs = [
     { id: "datos", label: "Datos Personales", icon: User },
@@ -48,8 +51,19 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
   };
 
   return (
-    <div className="mt-8 space-y-6">
+    <div className="mt-8 space-y-6 relative">
       
+      {isClient && step === 2 && (
+        <OnboardingTooltip 
+          message="¡Excelente! Esta es la ficha de tu paciente. Aquí tienes todo el control: historiales, presupuestos, IA, y consentimientos."
+          onNext={complete}
+          onDismiss={complete}
+          position="bottom"
+          isLastStep={true}
+          className="top-10 left-10 md:left-20"
+        />
+      )}
+
       {/* Vista Móvil: Interfaz de Carrusel Deslizable con flechas físicas */}
       <div className="md:hidden flex items-center gap-1.5 w-full bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
         <button 
