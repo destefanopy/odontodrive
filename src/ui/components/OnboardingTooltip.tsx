@@ -27,6 +27,16 @@ export default function OnboardingTooltip({
     return () => clearTimeout(timer);
   }, []);
 
+  const handleDismiss = () => {
+    setIsVisible(false);
+    if (onDismiss) onDismiss();
+  };
+
+  const handleNext = () => {
+    setIsVisible(false);
+    if (onNext) onNext();
+  };
+
   if (!mounted || !isVisible) return null;
 
   return createPortal(
@@ -38,7 +48,7 @@ export default function OnboardingTooltip({
         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500" />
         
         <button 
-          onClick={onDismiss}
+          onClick={handleDismiss}
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors bg-gray-50 rounded-full p-1"
           aria-label="Cerrar"
         >
@@ -63,7 +73,7 @@ export default function OnboardingTooltip({
 
         <div className="flex justify-end mt-2">
           <button 
-            onClick={onNext}
+            onClick={handleNext}
             className="flex items-center gap-1.5 bg-gray-900 hover:bg-black text-white text-xs font-bold py-2 px-4 rounded-full transition-all shadow-md hover:shadow-lg active:scale-95"
           >
             {isLastStep ? (

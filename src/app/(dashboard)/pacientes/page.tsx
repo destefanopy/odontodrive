@@ -40,6 +40,13 @@ export default function PacientesPage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    // Si no hay pacientes, reseteamos el tour de bienvenida para que siempre lo vea
+    if (!loading && isClient && pacientes.length === 0 && step !== 0) {
+      setSpecificStep(0);
+    }
+  }, [loading, isClient, pacientes.length, step, setSpecificStep]);
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4">
