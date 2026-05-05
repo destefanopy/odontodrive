@@ -9,6 +9,7 @@ interface OnboardingTooltipProps {
   onDismiss?: () => void;
   className?: string;
   isLastStep?: boolean;
+  buttonText?: string;
 }
 
 export default function OnboardingTooltip({
@@ -17,6 +18,7 @@ export default function OnboardingTooltip({
   onDismiss,
   className = '',
   isLastStep = false,
+  buttonText,
 }: OnboardingTooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -78,6 +80,8 @@ export default function OnboardingTooltip({
           >
             {isLastStep ? (
               <>¡Entendido! <Check size={14} /></>
+            ) : buttonText ? (
+              <>{buttonText} <ChevronRight size={14} /></>
             ) : (
               <>Siguiente <ChevronRight size={14} /></>
             )}

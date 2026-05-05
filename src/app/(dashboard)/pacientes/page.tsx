@@ -41,11 +41,15 @@ export default function PacientesPage() {
   }, []);
 
   useEffect(() => {
-    // Si no hay pacientes, reseteamos el tour de bienvenida para que siempre lo vea
-    if (!loading && isClient && pacientes.length === 0 && step !== 0) {
-      setSpecificStep(0);
+    // Si no hay pacientes AL CARGAR LA PÁGINA, reseteamos el tour de bienvenida para que siempre lo vea.
+    // Solo lo hacemos si estamos en el step distinto de 0 (para no ciclar)
+    if (!loading && isClient && pacientes.length === 0) {
+      if (step !== 0) {
+        setSpecificStep(0);
+      }
     }
-  }, [loading, isClient, pacientes.length, step, setSpecificStep]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, isClient, pacientes.length]);
 
   if (loading) {
     return (
@@ -109,9 +113,10 @@ export default function PacientesPage() {
               </Link>
               {isClient && step === 0 && pacientes.length === 0 && !loading && (
                 <OnboardingTooltip 
-                  message="¡Hola! Bienvenido a Odontodrive. Haz click aquí para crear tu primer paciente y empezar tu gestión."
+                  message="¡Hola! Bienvenido a Odontodrive. Haz click en 'Nuevo Paciente' para crear su ficha y empezar tu gestión."
                   onNext={nextStep}
                   onDismiss={nextStep}
+                  buttonText="Cerrar"
                 />
               )}
             </div>
