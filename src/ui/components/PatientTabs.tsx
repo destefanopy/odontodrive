@@ -55,7 +55,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
       
       {isClient && step === 2 && (
         <OnboardingTooltip 
-          message="¡Excelente! Esta es la ficha de tu paciente. Aquí tienes todo el control: historiales, presupuestos, IA, y consentimientos."
+          message="¡Excelente! Esta es la ficha de tu paciente. Desliza o haz click en la barra de menú superior para ver todas las opciones: historia médica, odontograma, presupuestos y más."
           onNext={complete}
           onDismiss={complete}
           isLastStep={true}
