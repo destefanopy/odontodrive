@@ -317,6 +317,7 @@ export default function AdminConsole() {
                   <SortableHeader label="Estado" sortKey="activo" />
                   <SortableHeader label="Rol" sortKey="es_admin" />
                   <SortableHeader label="Métricas" sortKey="num_pacientes" />
+                  <SortableHeader label="Registro" sortKey="created_at" />
                   <SortableHeader label="Último Acceso" sortKey="ultimo_login" />
                   <th className="px-6 py-4 text-xs font-bold text-gray-700 tracking-wider uppercase text-right">Acciones</th>
                 </tr>
@@ -324,13 +325,13 @@ export default function AdminConsole() {
               <tbody className="divide-y divide-gray-50">
                 {isLoading && users.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-800">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-800">
                       Cargando profesionales...
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-800">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-800">
                       No hay profesionales registrados aún.
                     </td>
                   </tr>
@@ -430,6 +431,11 @@ export default function AdminConsole() {
                             {((u.espacio_usado_bytes || 0) / (1024 * 1024)).toFixed(2)} MB Usados
                           </span>
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-gray-600">
+                          {u.created_at ? new Date(u.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Desconocido"}
+                        </span>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">

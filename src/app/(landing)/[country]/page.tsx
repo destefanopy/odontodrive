@@ -13,6 +13,14 @@ interface PageProps {
 // Generate static params if we want to pre-render the known routes (optional, but good for SEO)
 // Currently, we will just fetch dynamically. 
 
+export async function generateMetadata({ params }: PageProps): Promise<import('next').Metadata> {
+  return {
+    alternates: {
+      canonical: `/${params.country.toLowerCase()}`,
+    },
+  };
+}
+
 export default async function DynamicCountryLandingPage({ params }: PageProps) {
   const { country } = params;
 

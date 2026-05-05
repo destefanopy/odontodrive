@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "OdontoDrive | Sistema de Gestión Odontológica Premium con IA",
   description: "Descubre el Software Clínico diseñado por Odontólogos para Odontólogos. Historias clínicas, odontograma cruzado y gestión financiera sencilla en la nube.",
   keywords: ["software odontologico", "gestión dental", "clínica dental en la nube", "odontograma digital", "app odontologia", "historia clinica dental"],
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     title: "OdontoDrive | Evoluciona Tu Práctica Dental",
     description: "Gestión completa, facturación y odontogramas respaldados por Inteligencia Artificial en una sola plataforma.",
