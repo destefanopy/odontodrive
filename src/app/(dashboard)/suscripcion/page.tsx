@@ -67,7 +67,7 @@ function SuscripcionContent() {
     }
 
     // Fetch dynamic global plans
-    supabase.from('landing_regiones').select('planes').eq('slug', 'global').single().then(({ data }) => {
+    supabase.from('landing_regiones').select('planes').eq('slug', 'interno').single().then(({ data }) => {
       if (data && Array.isArray(data.planes) && data.planes.length > 0) {
         const colors = ["gray", "blue", "accent", "purple", "amber"];
         const ids = ["free", "basico", "estandar", "avanzado", "premium"];
