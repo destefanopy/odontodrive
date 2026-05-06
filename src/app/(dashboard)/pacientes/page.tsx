@@ -65,7 +65,8 @@ export default function PacientesPage() {
   );
 
   const isFreePlan = userPlan === 'free';
-  const hasReachedLimit = isFreePlan && pacientes.length >= 50;
+  const hasReachedLimit = isFreePlan && pacientes.length >= 30;
+  const isNearingLimit = isFreePlan && pacientes.length >= 25 && pacientes.length < 30;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 mt-4 lg:mt-0">
@@ -133,7 +134,7 @@ export default function PacientesPage() {
             <div>
               <h3 className="text-lg font-bold text-amber-900">Límite de pacientes alcanzado</h3>
               <p className="text-sm text-amber-800 mt-1">
-                Has llegado al límite de 50 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar al plan Básico o superior.
+                Has llegado al límite de 30 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar al plan Básico o superior.
               </p>
               <p className="text-xs text-amber-700/70 mt-2 font-medium italic">
                 * Con cualquier plan de pago obtienes pacientes ilimitados y almacenamiento expandido.
@@ -141,6 +142,29 @@ export default function PacientesPage() {
             </div>
           </div>
           <Link href="/suscripcion" className="flex-shrink-0 bg-amber-500 text-white px-6 py-3 rounded-full text-sm font-bold shadow-md hover:bg-amber-600 transition-colors flex items-center gap-2">
+            <Crown className="w-4 h-4" />
+            Ver Planes
+          </Link>
+        </div>
+      )}
+
+      {isNearingLimit && (
+        <div className="bg-blue-50 border border-blue-200 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-start gap-4">
+            <div className="bg-blue-100 p-3 rounded-full flex-shrink-0">
+              <AlertTriangle className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-blue-900">Aviso de límite próximo</h3>
+              <p className="text-sm text-blue-800 mt-1">
+                Te quedan {30 - pacientes.length} pacientes gratis. Al llegar a los 30, deberás adquirir un plan de pago para seguir creciendo.
+              </p>
+              <p className="text-xs text-blue-700/70 mt-2 font-medium italic">
+                * Con cualquier plan de pago obtienes pacientes ilimitados y almacenamiento expandido.
+              </p>
+            </div>
+          </div>
+          <Link href="/suscripcion" className="flex-shrink-0 bg-blue-600 text-white px-6 py-3 rounded-full text-sm font-bold shadow-md hover:bg-blue-700 transition-colors flex items-center gap-2">
             <Crown className="w-4 h-4" />
             Ver Planes
           </Link>

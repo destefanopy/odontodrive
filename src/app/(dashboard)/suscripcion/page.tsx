@@ -8,6 +8,13 @@ import { supabase } from "@/infrastructure/supabase";
 function SuscripcionContent() {
   const [isLoadingPlan, setIsLoadingPlan] = useState<string | null>(null);
   const [errorLog, setErrorLog] = useState<any>(null);
+  const [dynamicPlans, setDynamicPlans] = useState<any[]>([
+    { id: "free", name: "Free", price: "0", storage: "100 MB", features: ["Hasta 30 pacientes", "100 MB de almacenamiento", "15 Consentimientos gratuitos", "Análisis IA Básico"], isPopular: false, color: "gray" },
+    { id: "basico", name: "Básico", price: "4", storage: "1 GB", features: ["Pacientes ilimitados", "1 GB de almacenamiento rápido", "Consentimientos ilimitados", "Análisis IA Extendido"], isPopular: false, color: "blue" },
+    { id: "estandar", name: "Estándar", price: "10", storage: "5 GB", features: ["Pacientes ilimitados", "5 GB de almacenamiento DICOM", "Análisis IA Profundo y detallado", "Soporte prioritario asegurado"], isPopular: true, color: "accent" },
+    { id: "avanzado", name: "Avanzado", price: "20", storage: "20 GB", features: ["Pacientes ilimitados", "20 GB de almacenamiento masivo", "Análisis IA Médico sin límites", "Soporte prioritario 24/7"], isPopular: false, color: "purple" },
+    { id: "premium", name: "Premium", price: "30", storage: "40 GB", features: ["Pacientes ilimitados", "40 GB de almacenamiento expansible", "IA Dedicada de Máximo Rendimiento", "Soporte VIP Exclusivo 24/7"], isPopular: false, color: "amber", icon: "👑" },
+  ]);
 
   const searchParams = useSearchParams();
   const isSuccess = searchParams.get("success") === "true";
@@ -58,6 +65,25 @@ function SuscripcionContent() {
         .finally(() => setIsVerifying(false));
       });
     }
+
+    // Fetch dynamic global plans
+    supabase.from('landing_regiones').select('planes').eq('slug', 'global').single().then(({ data }) => {
+      if (data && Array.isArray(data.planes) && data.planes.length > 0) {
+        const colors = ["gray", "blue", "accent", "purple", "amber"];
+        const ids = ["free", "basico", "estandar", "avanzado", "premium"];
+        const mapped = data.planes.map((p: any, idx: number) => ({
+          id: ids[idx] || p.name.toLowerCase().replace(/\s+/g, ''),
+          name: p.name,
+          price: p.price,
+          storage: p.storage,
+          features: p.features,
+          isPopular: p.isPopular,
+          color: colors[idx % colors.length],
+          icon: idx === 4 ? "👑" : undefined
+        }));
+        setDynamicPlans(mapped);
+      }
+    });
   }, [isSuccess, searchParams]);
 
   const handleCheckout = async (planId: string) => {
@@ -176,52 +202,16 @@ function SuscripcionContent() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 xl:gap-8 items-start">
-        
-        {/* FREE */}
-        <PricingCard 
-          plan="Free" id="free"
-          storage="100 MB" price="0" 
-          features={["Hasta 50 pacientes", "100 MB de almacenamiento", "15 Consentimientos gratuitos", "Análisis IA Básico"]}
-          isPopular={false} color="gray"
-          onCheckout={handleCheckout} isLoading={isLoadingPlan === "free"}
-        />
-
-        {/* BASICO */}
-        <PricingCard 
-          plan="Básico" id="basico"
-          storage="1 GB" price="4" 
-          features={["Pacientes ilimitados", "1 GB de almacenamiento rápido", "Consentimientos ilimitados", "Análisis IA Extendido"]}
-          isPopular={false} color="blue"
-          onCheckout={handleCheckout} isLoading={isLoadingPlan === "basico"}
-        />
-
-        {/* ESTANDAR */}
-        <PricingCard 
-          plan="Estándar" id="estandar"
-          storage="5 GB" price="10" 
-          features={["Pacientes ilimitados", "5 GB de almacenamiento DICOM", "Análisis IA Profundo y detallado", "Soporte prioritario asegurado"]}
-          isPopular={true} color="accent"
-          onCheckout={handleCheckout} isLoading={isLoadingPlan === "estandar"}
-        />
-
-        {/* AVANZADO */}
-        <PricingCard 
-          plan="Avanzado" id="avanzado"
-          storage="20 GB" price="20" 
-          features={["Pacientes ilimitados", "20 GB de almacenamiento masivo", "Análisis IA Médico sin límites", "Soporte prioritario 24/7"]}
-          isPopular={false} color="purple"
-          onCheckout={handleCheckout} isLoading={isLoadingPlan === "avanzado"}
-        />
-
-        {/* PREMIUM */}
-        <PricingCard 
-          plan="Premium" id="premium"
-          storage="40 GB" price="30" 
-          features={["Pacientes ilimitados", "40 GB de almacenamiento expansible", "IA Dedicada de Máximo Rendimiento", "Soporte VIP Exclusivo 24/7"]}
-          isPopular={false} color="amber" icon="👑"
-          onCheckout={handleCheckout} isLoading={isLoadingPlan === "premium"}
-        />
-
+        {dynamicPlans.map((plan) => (
+          <PricingCard 
+            key={plan.id}
+            plan={plan.name} id={plan.id}
+            storage={plan.storage} price={plan.price} 
+            features={plan.features}
+            isPopular={plan.isPopular} color={plan.color} icon={plan.icon}
+            onCheckout={handleCheckout} isLoading={isLoadingPlan === plan.id}
+          />
+        ))}
       </div>
     </div>
   );
