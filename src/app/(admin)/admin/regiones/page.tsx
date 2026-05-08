@@ -308,17 +308,21 @@ export default function AdminRegiones() {
                           className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-accent outline-none bg-white"
                         />
 
-                        <label className="block text-xs font-bold text-gray-700 mb-1 mt-3">Límite de Pacientes (0 = Ilimitado)</label>
-                        <input 
-                          type="number" 
-                          value={p.max_patients ?? ''} 
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value);
-                            handlePlanChange(regionIndex, planIndex, 'max_patients', isNaN(val) ? undefined : val);
-                          }}
-                          className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-accent outline-none bg-white"
-                          placeholder="Ej. 150"
-                        />
+                        {region.slug === 'interno' && (
+                          <>
+                            <label className="block text-xs font-bold text-gray-700 mb-1 mt-3">Límite de Pacientes (0 = Ilimitado)</label>
+                            <input 
+                              type="number" 
+                              value={p.max_patients ?? ''} 
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                handlePlanChange(regionIndex, planIndex, 'max_patients', isNaN(val) ? undefined : val);
+                              }}
+                              className="w-full px-2 py-1.5 border border-gray-200 rounded text-sm focus:ring-1 focus:ring-accent outline-none bg-white"
+                              placeholder="Ej. 150"
+                            />
+                          </>
+                        )}
 
                         <label className="block text-xs font-bold text-gray-700 mb-1 mt-3">Características (separadas por coma)</label>
                         <textarea 
