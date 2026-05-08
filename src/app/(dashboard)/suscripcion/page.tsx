@@ -48,6 +48,9 @@ function SuscripcionContent() {
         .then(data => {
           if (data.success) {
             setVerifyStatus("success");
+            if (data.cancelOldLog) {
+              setErrorLog({ devLog: data.cancelOldLog, error: data.cancelOldLog.status === "success" ? "Cancelación antigua exitosa" : "Error al cancelar suscripción antigua (Race Condition atrapada)" });
+            }
             // Disparar evento para que el Sidebar se entere inmediatamente del cambio de plan
             if (typeof window !== "undefined") {
               window.dispatchEvent(new Event('planUpdated'));
@@ -144,6 +147,12 @@ function SuscripcionContent() {
             <p className="text-xl text-gray-600 font-medium mb-8">
               Tu cuenta ahora posee todos los beneficios del nuevo plan.
             </p>
+            {errorLog && (
+              <div className="bg-black text-green-400 p-4 rounded-xl text-xs font-mono text-left overflow-auto mb-8 mx-auto w-full max-w-2xl">
+                <p className="font-bold text-red-400 mb-2">{errorLog.error}</p>
+                <pre>{JSON.stringify(errorLog.devLog, null, 2)}</pre>
+              </div>
+            )}
           </>
         ) : (
           <>

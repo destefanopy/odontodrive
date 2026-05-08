@@ -63,6 +63,8 @@ export async function POST(req: Request) {
     const purchasedProductId = dodoData.product_id || (dodoData.items && dodoData.items[0]?.product_id) || (dodoData.product_cart && dodoData.product_cart[0]?.product_id);
     const nuevoPlan = dodoProductIds[purchasedProductId] || "estandar";
 
+    let cancelOldLog: any = null;
+
     // OBTENER VIEJO ID PARA CANCELAR Y EVITAR DOBLE COBRO (Race Condition Fix)
     const { data: perfilData } = await supabaseAdmin.from('perfiles').select('dodo_subscription_id').eq('id', userId).single();
     const oldDodoSubId = perfilData?.dodo_subscription_id;
@@ -71,8 +73,15 @@ export async function POST(req: Request) {
       console.log(`[Verify] Cancelando suscripción antigua ${oldDodoSubId} para evitar doble cobro...`);
       try {
         await dodoClient.subscriptions.update(oldDodoSubId, { status: "cancelled" });
+        cancelOldLog = { status: "success", oldSubId: oldDodoSubId, msg: "Suscripcion antigua cancelada correctamente" };
       } catch (dodoErr: any) {
         console.error("[Verify] Error al cancelar suscripcion antigua:", dodoErr);
+        cancelOldLog = { 
+          status: "failed", 
+          oldSubId: oldDodoSubId, 
+          msg: dodoErr?.message, 
+          dodoResponse: dodoErr?.response?.data || dodoErr?.data || "No response data"
+        };
         await supabaseAdmin.from('dodo_logs').insert([{ 
           log_data: { 
             error_type: "CancelOldSubscriptionFailed_Verify", 
@@ -102,7 +111,7 @@ export async function POST(req: Request) {
 
     await supabaseAdmin.from('dodo_logs').insert([{ log_data: { step: "verify_success", nuevoPlan } }]);
 
-    return NextResponse.json({ success: true, plan: nuevoPlan });
+    return NextResponse.json({ success: true, plan: nuevoPlan, cancelOldLog });
 
   } catch (error: any) {
     console.error("Error validando checkout:", error);
