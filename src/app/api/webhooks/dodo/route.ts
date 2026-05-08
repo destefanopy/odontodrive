@@ -92,8 +92,17 @@ export async function POST(req: Request) {
         console.log(`Cancelando suscripción antigua ${oldDodoSubId} para evitar doble cobro...`);
         try {
           await dodoClient.subscriptions.update(oldDodoSubId, { status: "cancelled" });
-        } catch (dodoErr) {
+        } catch (dodoErr: any) {
           console.error("Error al cancelar suscripcion antigua:", dodoErr);
+          // Guardar el error exacto en la base de datos para depuración
+          await supabaseAdmin.from('dodo_logs').insert([{ 
+            log_data: { 
+              error_type: "CancelOldSubscriptionFailed", 
+              old_sub_id: oldDodoSubId, 
+              message: dodoErr?.message,
+              response: dodoErr?.response?.data || dodoErr?.data || null
+            } 
+          }]);
           try {
             // @ts-ignore
             if (dodoClient.subscriptions.cancel) await dodoClient.subscriptions.cancel(oldDodoSubId);
