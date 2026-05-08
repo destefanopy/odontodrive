@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState } from 'react';
-import Image from 'next/image';
-import { Shield, Sparkles, TrendingUp, Mail, ChevronDown, ChevronUp, Bot, CreditCard, Download, RefreshCw } from 'lucide-react';
+import { Shield, Sparkles, TrendingUp, Mail, ChevronDown, CreditCard, Download, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function AyudaPage() {
+export default function LandingFAQ() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const faqs = [
@@ -47,7 +46,7 @@ export default function AyudaPage() {
     {
       icon: Mail,
       title: "Soporte y Contacto",
-      content: "¿Falta algo? ¿Ocurrió un error? ¡Escríbenos! Puedes enviar un correo directamente a soporte@odontodrive.com y nuestro equipo humano (yo solo soy el asistente 🤖) te atenderá a la brevedad.",
+      content: "¿Falta algo? ¿Ocurrió un error? ¡Escríbenos! Puedes enviar un correo directamente a soporte@odontodrive.com y nuestro equipo humano te atenderá a la brevedad.",
       color: "text-amber-500",
       bgColor: "bg-amber-50"
     },
@@ -61,41 +60,14 @@ export default function AyudaPage() {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20 mt-4 lg:mt-0 max-w-4xl mx-auto">
-      {/* Header del Robot */}
-      <div className="bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 rounded-3xl p-8 sm:p-12 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-8 border border-white/10">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none" />
+    <section className="py-24 bg-white relative">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-4">Preguntas Frecuentes</h2>
+          <p className="text-slate-600 text-lg">Todo lo que necesitas saber sobre OdontoDrive.</p>
+        </div>
         
-        <div className="w-32 h-32 sm:w-40 sm:h-40 shrink-0 bg-white/10 p-2 rounded-full backdrop-blur-sm border border-white/20 shadow-2xl relative z-10">
-          <div className="w-full h-full rounded-full overflow-hidden bg-white">
-            <Image 
-              src="/robot_1.jpg" 
-              alt="Odontodrive AI Robot" 
-              width={160} 
-              height={160}
-              className="object-cover w-full h-full"
-            />
-          </div>
-        </div>
-
-        <div className="text-center md:text-left relative z-10 flex-1">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 mb-4">
-            <Bot className="w-4 h-4 text-blue-300" />
-            <span className="text-xs font-bold tracking-wide text-blue-100 uppercase">Odontodrive AI</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-black mb-3 leading-tight">
-            ¿En qué te puedo <br className="hidden md:block" /> ayudar hoy?
-          </h1>
-          <p className="text-blue-100 text-sm sm:text-base max-w-lg leading-relaxed font-medium">
-            Soy tu asistente virtual. Aquí te explico cómo funciona Odontodrive por dentro y respondo las dudas más clásicas.
-          </p>
-        </div>
-      </div>
-
-      {/* FAQ Accordion */}
-      <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-2 sm:p-6">
-        <div className="space-y-3">
+        <div className="space-y-4">
           {faqs.map((faq, index) => {
             const isOpen = openFaq === index;
             const Icon = faq.icon;
@@ -104,27 +76,27 @@ export default function AyudaPage() {
               <div 
                 key={index} 
                 className={cn(
-                  "border border-gray-100 rounded-2xl transition-all duration-300 overflow-hidden",
-                  isOpen ? "bg-white shadow-md ring-1 ring-gray-100" : "bg-gray-50 hover:bg-gray-100/80"
+                  "border border-slate-200 rounded-3xl transition-all duration-300 overflow-hidden",
+                  isOpen ? "bg-white shadow-lg shadow-cyan-100/50 ring-1 ring-cyan-100" : "bg-slate-50 hover:bg-slate-100/80"
                 )}
               >
                 <button
                   onClick={() => setOpenFaq(isOpen ? null : index)}
-                  className="w-full flex items-center justify-between p-5 text-left transition-colors"
+                  className="w-full flex items-center justify-between p-6 text-left transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors", faq.bgColor)}>
-                      <Icon className={cn("w-6 h-6", faq.color)} />
+                  <div className="flex items-center gap-5">
+                    <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 transition-colors shadow-sm", faq.bgColor)}>
+                      <Icon className={cn("w-7 h-7", faq.color)} />
                     </div>
-                    <h3 className="text-base sm:text-lg font-bold text-gray-900">
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                       {faq.title}
                     </h3>
                   </div>
                   <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300",
-                    isOpen ? "bg-gray-900 text-white rotate-180" : "bg-white text-gray-400 border border-gray-200"
+                    "w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-transform duration-300 shadow-sm",
+                    isOpen ? "bg-slate-900 text-white rotate-180" : "bg-white text-slate-400 border border-slate-200"
                   )}>
-                    <ChevronDown className="w-4 h-4" />
+                    <ChevronDown className="w-5 h-5" />
                   </div>
                 </button>
                 
@@ -134,8 +106,8 @@ export default function AyudaPage() {
                     isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                   )}
                 >
-                  <div className="p-5 pt-0 pl-[5.25rem] pr-6 pb-6">
-                    <p className="text-gray-600 leading-relaxed font-medium text-sm sm:text-base">
+                  <div className="p-6 pt-0 pl-[6.5rem] pr-8 pb-8">
+                    <p className="text-slate-600 leading-relaxed font-medium text-base sm:text-lg">
                       {faq.content}
                     </p>
                   </div>
@@ -145,6 +117,6 @@ export default function AyudaPage() {
           })}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

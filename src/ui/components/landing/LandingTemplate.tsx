@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle2, Star, Target, Shield, Heart, MonitorSmartphone, ArrowRight, Activity, Smile, Search, HardDrive } from 'lucide-react';
 import Link from 'next/link';
+import LandingFAQ from './LandingFAQ';
 
 export interface PricingPlan {
   name: string;
@@ -189,6 +190,8 @@ export default function LandingTemplate({
           </div>
         </div>
       </section>
+
+      <LandingFAQ />
 
       {/* Footer */}
       <footer className="bg-slate-900 text-slate-400 py-12 text-center border-t border-slate-800">
