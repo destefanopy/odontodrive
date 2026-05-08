@@ -114,6 +114,21 @@ export const updatePacienteData = async (pacienteId: string, datos: Partial<Paci
   return true;
 };
 
+export const getDynamicPlanLimit = async (planName: string): Promise<number> => {
+  const { data, error } = await supabase.from('landing_regiones').select('planes').eq('slug', 'interno').single();
+  if (error || !data || !Array.isArray(data.planes)) return 30; // fallback seguro
+  
+  const userPlanObj = data.planes.find((p: any) => p.name.toLowerCase() === planName.toLowerCase());
+  if (!userPlanObj) return 30;
+
+  // Si max_patients es 0 o indefinido, consideramos ilimitado
+  if (userPlanObj.max_patients === 0 || userPlanObj.max_patients === undefined) {
+    return Infinity;
+  }
+  
+  return userPlanObj.max_patients;
+};
+
 /**
  * Registra un nuevo paciente en la base de datos real.
  * Respeta la separación de responsabilidades (SoC).
@@ -124,12 +139,14 @@ export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'
 
   // Verify plan limit
   const { data: perfil } = await supabase.from('perfiles').select('plan').eq('id', authData.user.id).single();
-  const plan = perfil?.plan || 'free';
+  const plan = (perfil?.plan || 'free').toLowerCase();
   
-  if (plan === 'free') {
+  const limitePacientes = await getDynamicPlanLimit(plan);
+  
+  if (limitePacientes !== Infinity) {
     const { count } = await supabase.from('pacientes').select('*', { count: 'exact', head: true }).eq('user_id', authData.user.id);
-    if (count !== null && count >= 30) {
-      throw new Error("Límite de pacientes alcanzado. Por favor, pásate al plan Básico o superior para registrar más (pacientes ilimitados).");
+    if (count !== null && count >= limitePacientes) {
+      throw new Error(`Límite de pacientes alcanzado (${limitePacientes}). Por favor, mejora tu plan para registrar más pacientes.`);
     }
   }
 

@@ -8,6 +8,7 @@ export interface PricingPlan {
   storage: string;
   features: string[];
   isPopular?: boolean;
+  max_patients?: number;
 }
 
 interface LandingProps {

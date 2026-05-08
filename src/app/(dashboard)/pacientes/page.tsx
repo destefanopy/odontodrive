@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getTodosLosPacientes, Paciente } from "@/core/api";
+import { getTodosLosPacientes, Paciente, getDynamicPlanLimit } from "@/core/api";
 import { Users, Plus, ChevronRight, Loader2, Search, Crown, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/infrastructure/supabase";
@@ -12,6 +12,7 @@ export default function PacientesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<string>("free");
+  const [dynamicLimit, setDynamicLimit] = useState<number>(30);
   const { step, nextStep, isClient, setSpecificStep } = useOnboarding();
 
   useEffect(() => {
@@ -26,6 +27,8 @@ export default function PacientesPage() {
             .single();
           if (perfil) {
             setUserPlan(perfil.plan || 'free');
+            const limit = await getDynamicPlanLimit(perfil.plan || 'free');
+            setDynamicLimit(limit);
           }
         }
         
@@ -64,9 +67,9 @@ export default function PacientesPage() {
     p.nombres_apellidos.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const isFreePlan = userPlan === 'free';
-  const hasReachedLimit = isFreePlan && pacientes.length >= 30;
-  const isNearingLimit = isFreePlan && pacientes.length >= 25 && pacientes.length < 30;
+  const limitePacientes = dynamicLimit;
+  const hasReachedLimit = limitePacientes !== Infinity && pacientes.length >= limitePacientes;
+  const isNearingLimit = limitePacientes !== Infinity && pacientes.length >= (limitePacientes - 5) && pacientes.length < limitePacientes;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20 mt-4 lg:mt-0">
@@ -134,10 +137,10 @@ export default function PacientesPage() {
             <div>
               <h3 className="text-lg font-bold text-amber-900">Límite de pacientes alcanzado</h3>
               <p className="text-sm text-amber-800 mt-1">
-                Has llegado al límite de 30 pacientes de tu plan gratuito. Para seguir creciendo, debes pasar al plan Básico o superior.
+                Has llegado al límite de {limitePacientes} pacientes de tu plan {userPlan === 'free' ? 'gratuito' : userPlan}. Para seguir creciendo, debes adquirir un plan superior.
               </p>
               <p className="text-xs text-amber-700/70 mt-2 font-medium italic">
-                * Con cualquier plan de pago obtienes pacientes ilimitados y almacenamiento expandido.
+                * Mejora tu plan para obtener pacientes ilimitados y almacenamiento expandido.
               </p>
             </div>
           </div>
@@ -157,10 +160,10 @@ export default function PacientesPage() {
             <div>
               <h3 className="text-lg font-bold text-blue-900">Aviso de límite próximo</h3>
               <p className="text-sm text-blue-800 mt-1">
-                Te quedan {30 - pacientes.length} pacientes gratis. Al llegar a los 30, deberás adquirir un plan de pago para seguir creciendo.
+                Te quedan {limitePacientes - pacientes.length} pacientes de tu cuota. Al llegar a {limitePacientes}, deberás mejorar tu plan para seguir creciendo.
               </p>
               <p className="text-xs text-blue-700/70 mt-2 font-medium italic">
-                * Con cualquier plan de pago obtienes pacientes ilimitados y almacenamiento expandido.
+                * Mejora tu plan para obtener pacientes ilimitados y almacenamiento expandido.
               </p>
             </div>
           </div>
