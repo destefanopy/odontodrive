@@ -118,7 +118,9 @@ export const getDynamicPlanLimit = async (planName: string): Promise<number> => 
   const { data, error } = await supabase.from('landing_regiones').select('planes').eq('slug', 'interno').single();
   if (error || !data || !Array.isArray(data.planes)) return 30; // fallback seguro
   
-  const userPlanObj = data.planes.find((p: any) => p.name.toLowerCase() === planName.toLowerCase());
+  const normalizeStr = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  
+  const userPlanObj = data.planes.find((p: any) => normalizeStr(p.name) === normalizeStr(planName));
   if (!userPlanObj) return 30;
 
   // Si max_patients es 0 o indefinido, consideramos ilimitado
