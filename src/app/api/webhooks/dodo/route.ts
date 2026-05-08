@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
+import DodoPayments from 'dodopayments';
+
+const dodoClient = new DodoPayments({
+  bearerToken: process.env.DODO_API_KEY || ''
+});
 
 // Necesitamos la Service Role Key para hacer bypass al RLS porque es un entorno de servidor sin token de usuario
 const supabaseAdmin = createClient(
@@ -59,7 +64,7 @@ export async function POST(req: Request) {
       // Buscar al usuario por email en nuestra tabla de perfiles 'public.perfiles'
       const { data: perfiles, error: searchError } = await supabaseAdmin
         .from('perfiles')
-        .select('id, email')
+        .select('id, email, dodo_subscription_id')
         .eq('email', customerEmail);
         
       if (searchError || !perfiles || perfiles.length === 0) {
@@ -67,6 +72,7 @@ export async function POST(req: Request) {
       }
 
       const userId = perfiles[0].id;
+      const oldDodoSubId = perfiles[0].dodo_subscription_id;
 
       // Determinar qué plan compró basándonos en el Product ID
       const dodoProductIds: Record<string, string> = {
@@ -81,6 +87,19 @@ export async function POST(req: Request) {
       const nuevoPlan = dodoProductIds[purchasedProductId] || "estandar"; // Fallback por defecto
 
       const dodoSubId = paymentData.subscription_id || event.data?.subscription_id || paymentData.id || null;
+
+      if (oldDodoSubId && oldDodoSubId !== dodoSubId) {
+        console.log(`Cancelando suscripción antigua ${oldDodoSubId} para evitar doble cobro...`);
+        try {
+          await dodoClient.subscriptions.update(oldDodoSubId, { status: "cancelled" });
+        } catch (dodoErr) {
+          console.error("Error al cancelar suscripcion antigua:", dodoErr);
+          try {
+            // @ts-ignore
+            if (dodoClient.subscriptions.cancel) await dodoClient.subscriptions.cancel(oldDodoSubId);
+          } catch(e){}
+        }
+      }
 
       // Usar la función RPC para actualizar 'perfiles' y 'plan_actual' en auth.users TODO A LA VEZ en modo Security Definer
       await supabaseAdmin.rpc('admin_mejorar_plan', {
