@@ -63,6 +63,31 @@ export async function POST(req: Request) {
     const purchasedProductId = dodoData.product_id || (dodoData.items && dodoData.items[0]?.product_id) || (dodoData.product_cart && dodoData.product_cart[0]?.product_id);
     const nuevoPlan = dodoProductIds[purchasedProductId] || "estandar";
 
+    // OBTENER VIEJO ID PARA CANCELAR Y EVITAR DOBLE COBRO (Race Condition Fix)
+    const { data: perfilData } = await supabaseAdmin.from('perfiles').select('dodo_subscription_id').eq('id', userId).single();
+    const oldDodoSubId = perfilData?.dodo_subscription_id;
+
+    if (oldDodoSubId && oldDodoSubId !== subscription_id) {
+      console.log(`[Verify] Cancelando suscripción antigua ${oldDodoSubId} para evitar doble cobro...`);
+      try {
+        await dodoClient.subscriptions.update(oldDodoSubId, { status: "cancelled" });
+      } catch (dodoErr: any) {
+        console.error("[Verify] Error al cancelar suscripcion antigua:", dodoErr);
+        await supabaseAdmin.from('dodo_logs').insert([{ 
+          log_data: { 
+            error_type: "CancelOldSubscriptionFailed_Verify", 
+            old_sub_id: oldDodoSubId, 
+            message: dodoErr?.message,
+            response: dodoErr?.response?.data || dodoErr?.data || null
+          } 
+        }]);
+        try {
+          // @ts-ignore
+          if (dodoClient.subscriptions.cancel) await dodoClient.subscriptions.cancel(oldDodoSubId);
+        } catch(e){}
+      }
+    }
+
     // 2. Delegar TODA la actualización a la función con privilegios máximos (SECURITY DEFINER) de Postgres
     const { error: rpcError } = await supabaseAdmin.rpc('admin_mejorar_plan', {
       user_id: userId,
