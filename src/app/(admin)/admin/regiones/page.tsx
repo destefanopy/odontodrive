@@ -105,6 +105,11 @@ export default function AdminRegiones() {
       return;
     }
 
+    if (region.slug === 'interno' || region.slug === 'global') {
+      alert("Esta región es vital para el sistema y no puede ser eliminada.");
+      return;
+    }
+
     if (!confirm(`¿Estás seguro de eliminar la región ${region.country_name}? Esta acción no se puede deshacer y la URL /${region.slug} dejará de funcionar.`)) return;
 
     try {
@@ -170,13 +175,15 @@ export default function AdminRegiones() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button 
-                    onClick={() => handleDelete(region)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
-                    title="Eliminar región"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                  {region.slug !== 'interno' && region.slug !== 'global' && (
+                    <button 
+                      onClick={() => handleDelete(region)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200"
+                      title="Eliminar región"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
                   <button 
                     onClick={() => handleSave(region)}
                     disabled={isSaving}
