@@ -6,9 +6,10 @@ import { Paciente, Pago, Deuda, createPago, getPagos, deletePago, createDeuda, g
 
 interface PagosViewProps {
   paciente: Paciente;
+  userRole?: string;
 }
 
-export default function PagosView({ paciente }: PagosViewProps) {
+export default function PagosView({ paciente, userRole = "doctor" }: PagosViewProps) {
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [deudas, setDeudas] = useState<Deuda[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +66,13 @@ export default function PagosView({ paciente }: PagosViewProps) {
     
     setIsSubmitting(true);
     try {
-      const isoDate = new Date(formulario.fecha || new Date()).toISOString();
+      // Fix date issue: parse YYYY-MM-DD as local noon to avoid timezone shift
+      let isoDate = new Date().toISOString();
+      if (formulario.fecha) {
+        const [y, m, d] = formulario.fecha.split('-');
+        const localDate = new Date(Number(y), Number(m)-1, Number(d), 12, 0, 0);
+        isoDate = localDate.toISOString();
+      }
       
       const operaciones = [];
       if (costoNumerico > 0) {
@@ -118,9 +125,13 @@ export default function PagosView({ paciente }: PagosViewProps) {
   
   const startEditing = (tx: any) => {
     setEditingKey(tx.key);
+    // Convert to local YYYY-MM-DD for the date picker
+    const tzOffset = tx.fecha.getTimezoneOffset() * 60000;
+    const localIso = new Date(tx.fecha.getTime() - tzOffset).toISOString().split('T')[0];
+
     setEditForm({
       concepto: tx.concepto,
-      fechaStr: tx.fecha.toISOString().split('T')[0],
+      fechaStr: localIso,
       costo: tx.deuda > 0 ? tx.deuda.toString() : '',
       abono: tx.abono > 0 ? tx.abono.toString() : ''
     });
@@ -133,9 +144,14 @@ export default function PagosView({ paciente }: PagosViewProps) {
     }
     
     try {
-      const localDate = new Date(editForm.fechaStr);
-      localDate.setMinutes(localDate.getMinutes() + localDate.getTimezoneOffset());
-      const isoDate = localDate.toISOString();
+      // Fix date issue: parse YYYY-MM-DD as local noon
+      let isoDate = new Date().toISOString();
+      if (editForm.fechaStr) {
+        const [y, m, d] = editForm.fechaStr.split('-');
+        const localDate = new Date(Number(y), Number(m)-1, Number(d), 12, 0, 0);
+        isoDate = localDate.toISOString();
+      }
+      
       const newCosto = Number(editForm.costo) || 0;
       const newAbono = Number(editForm.abono) || 0;
       
@@ -247,7 +263,8 @@ export default function PagosView({ paciente }: PagosViewProps) {
               placeholder="Tratamiento o Concepto..."
               value={formulario.concepto}
               onChange={e => setFormulario({...formulario, concepto: e.target.value})}
-              className="w-full px-5 py-4 rounded-2xl bg-gray-50 border border-transparent focus:border-gray-200 focus:bg-white focus:ring-2 focus:ring-gray-100 outline-none text-sm font-bold transition-all"
+              disabled={userRole === 'secretaria'}
+              className="w-full px-5 py-4 rounded-2xl bg-gray-50 border border-transparent focus:border-gray-200 focus:bg-white focus:ring-2 focus:ring-gray-100 outline-none text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
           
@@ -259,7 +276,8 @@ export default function PagosView({ paciente }: PagosViewProps) {
                 placeholder="0"
                 value={formulario.costo}
                 onChange={e => setFormulario({...formulario, costo: e.target.value})}
-                className="w-full pl-[4.5rem] pr-4 py-4 rounded-2xl bg-red-50/50 border border-transparent focus:border-red-100 focus:bg-red-50 focus:ring-2 focus:ring-red-100 outline-none font-black text-gray-900 transition-all text-sm placeholder:text-red-300"
+                disabled={userRole === 'secretaria'}
+                className="w-full pl-[4.5rem] pr-4 py-4 rounded-2xl bg-red-50/50 border border-transparent focus:border-red-100 focus:bg-red-50 focus:ring-2 focus:ring-red-100 outline-none font-black text-gray-900 transition-all text-sm placeholder:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             
@@ -338,7 +356,8 @@ export default function PagosView({ paciente }: PagosViewProps) {
                           type="text"
                           value={editForm.concepto}
                           onChange={(e) => setEditForm({ ...editForm, concepto: e.target.value })}
-                          className="w-full px-2 py-1.5 text-sm font-bold border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-accent"
+                          disabled={userRole === 'secretaria'}
+                          className="w-full px-2 py-1.5 text-sm font-bold border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
                           placeholder="Concepto..."
                         />
                         <div className="flex flex-wrap gap-2 items-center">
@@ -353,7 +372,8 @@ export default function PagosView({ paciente }: PagosViewProps) {
                             placeholder="Costo"
                             value={editForm.costo}
                             onChange={(e) => setEditForm({ ...editForm, costo: e.target.value })}
-                            className="px-2 py-1 text-xs border border-red-200 bg-red-50 rounded focus:outline-none focus:ring-1 focus:ring-red-400 w-24 placeholder:text-red-300 font-bold"
+                            disabled={userRole === 'secretaria'}
+                            className="px-2 py-1 text-xs border border-red-200 bg-red-50 rounded focus:outline-none focus:ring-1 focus:ring-red-400 w-24 placeholder:text-red-300 font-bold disabled:opacity-50"
                           />
                           <input
                             type="number"
@@ -407,13 +427,15 @@ export default function PagosView({ paciente }: PagosViewProps) {
                       <Edit2 className="w-4 h-4" />
                     </button>
                   )}
-                  <button 
-                    onClick={() => deleteItem(tx.deudaId, tx.pagoId)}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100"
-                    title="Eliminar este asiento contable"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {userRole !== 'secretaria' && (
+                    <button 
+                      onClick={() => deleteItem(tx.deudaId, tx.pagoId)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100"
+                      title="Eliminar este asiento contable"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

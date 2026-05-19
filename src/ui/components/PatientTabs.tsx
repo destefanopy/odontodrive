@@ -46,7 +46,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
   ];
 
   const tabs = userRole === 'secretaria' 
-    ? allTabs.filter(t => t.id === 'datos')
+    ? allTabs.filter(t => t.id === 'datos' || t.id === 'pagos')
     : allTabs;
 
   const scrollTabs = (offset: number) => {
@@ -168,7 +168,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
 
         {activeTab === "presupuestos" && <PresupuestosView paciente={paciente} />}
 
-        {activeTab === "pagos" && <PagosView paciente={paciente} />}
+        {activeTab === "pagos" && <PagosView paciente={paciente} userRole={userRole} />}
 
         {activeTab === "archivos" && (
           <ArchivosIA paciente={paciente} />
