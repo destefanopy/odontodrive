@@ -234,12 +234,13 @@ export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) throw new Error("No autenticado");
 
-  // Verify plan limit (usamos el perfil de quien ejecuta la acción, aunque sea la secretaria)
-  const { data: perfil } = await supabase.from('perfiles').select('plan').eq('id', authData.user.id).single();
+  const targetUserId = data.user_id || authData.user.id;
+
+  // Verify plan limit of the target user (doctor)
+  const { data: perfil } = await supabase.from('perfiles').select('plan').eq('id', targetUserId).single();
   const plan = (perfil?.plan || 'free').toLowerCase();
   
   const limitePacientes = await getDynamicPlanLimit(plan);
-  const targetUserId = data.user_id || authData.user.id;
   
   if (limitePacientes !== Infinity) {
     const { count } = await supabase.from('pacientes').select('*', { count: 'exact', head: true }).eq('user_id', targetUserId);

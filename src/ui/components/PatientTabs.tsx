@@ -46,7 +46,7 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
   ];
 
   const tabs = userRole === 'secretaria' 
-    ? allTabs.filter(t => t.id === 'datos' || t.id === 'archivos')
+    ? allTabs.filter(t => t.id === 'datos')
     : allTabs;
 
   const scrollTabs = (offset: number) => {

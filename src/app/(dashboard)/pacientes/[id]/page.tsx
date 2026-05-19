@@ -108,17 +108,21 @@ export default function PacientePerfilPage({ params }: PageProps) {
           </div>
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-row gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-          <div className="col-span-1 w-full">
-            <ExportarFichaBoton 
-              paciente={paciente}
-              antecedentes={initialAntecedentes}
-              initialOdontograma={initialOdontograma}
-              finalOdontograma={finalOdontograma}
-            />
-          </div>
-          <div className="col-span-1 w-full">
-            <EliminarPacienteBoton pacienteId={paciente.id} nombrePaciente={paciente.nombres_apellidos} />
-          </div>
+          {userRole !== 'secretaria' && (
+            <>
+              <div className="col-span-1 w-full">
+                <ExportarFichaBoton 
+                  paciente={paciente}
+                  antecedentes={initialAntecedentes}
+                  initialOdontograma={initialOdontograma}
+                  finalOdontograma={finalOdontograma}
+                />
+              </div>
+              <div className="col-span-1 w-full">
+                <EliminarPacienteBoton pacienteId={paciente.id} nombrePaciente={paciente.nombres_apellidos} />
+              </div>
+            </>
+          )}
           <div className="col-span-2 sm:col-span-1 w-full">
             <AgendarCitaBoton paciente={paciente} />
           </div>
