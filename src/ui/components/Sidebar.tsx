@@ -70,10 +70,10 @@ export default function Sidebar() {
 
   const doctorNavItems = [
     { name: "Finanzas", href: "/finanzas", icon: Wallet },
-    { name: "Configuración", href: "/cuenta", icon: Settings },
   ];
 
   const commonNavItems = [
+    { name: "Configuración", href: "/cuenta", icon: Settings },
     { name: "Ayuda y FAQ", href: "/ayuda", icon: HelpCircle },
   ];
 

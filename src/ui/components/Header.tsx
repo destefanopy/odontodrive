@@ -35,6 +35,8 @@ export default function Header() {
     premium: 40960 * 1024 * 1024,
   };
 
+  const [userRole, setUserRole] = useState<string>("doctor");
+
   useEffect(() => {
     let isMounted = true;
     
@@ -47,11 +49,12 @@ export default function Header() {
             avatarUrl: user.user_metadata?.avatar_url || null
           });
 
-          supabase.from('perfiles').select('plan, storage_usado_bytes').eq('id', user.id).single()
+          supabase.from('perfiles').select('plan, storage_usado_bytes, rol').eq('id', user.id).single()
             .then(({ data: perfil }) => {
               if (perfil && isMounted) {
                 setUserPlan(perfil.plan || 'free');
                 setStorageUsed(perfil.storage_usado_bytes || 0);
+                setUserRole(perfil.rol || 'doctor');
               }
             });
         }
@@ -147,7 +150,7 @@ export default function Header() {
             </div>
             
             <nav className="flex-1 w-full space-y-2">
-              {navItems.map((item) => {
+              {navItems.filter(item => !(userRole === 'secretaria' && item.name === 'Finanzas')).map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <Link
