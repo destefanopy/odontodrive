@@ -6,7 +6,8 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { Cita, Paciente, deleteCita, updateCita, getCitas } from "@/core/api";
 import NuevaCitaModal from "./NuevaCitaModal";
 import { useRouter } from "next/navigation";
@@ -257,7 +258,14 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
             <div className="space-y-4 mb-6 text-sm text-gray-700">
               <div>
                 <span className="font-bold text-gray-900 uppercase text-[10px]">{selectedEvent.extendedProps?.isTarea ? "Tarea:" : "Paciente:"}</span>
-                <p className="font-medium">{selectedEvent.title}</p>
+                <div className="flex items-center justify-between gap-2 mt-0.5">
+                  <p className="font-medium truncate">{selectedEvent.title}</p>
+                  {!selectedEvent.extendedProps?.isTarea && selectedEvent.extendedProps?.paciente_id && (
+                    <Link href={`/pacientes/${selectedEvent.extendedProps.paciente_id}`} className="text-gray-500 hover:text-[#31b8b3] transition-colors p-1.5 bg-gray-100 hover:bg-[#e6f7fa] rounded-lg shrink-0" title="Ver Ficha Clínica">
+                      <ExternalLink className="w-4 h-4" />
+                    </Link>
+                  )}
+                </div>
               </div>
               <div>
                 <span className="font-bold text-gray-900 uppercase text-[10px]">Motivo:</span>
