@@ -688,10 +688,13 @@ export async function createPago(pago: Omit<Pago, 'id' | 'user_id' | 'pacientes'
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) throw new Error("No autenticado");
 
+  const { data: pacienteData } = await supabase.from('pacientes').select('user_id').eq('id', pago.paciente_id).single();
+  const targetUserId = pacienteData?.user_id || authData.user.id;
+
   const payload = {
     ...pago,
     fecha_pago: pago.fecha_pago || new Date().toISOString(),
-    user_id: authData.user.id
+    user_id: targetUserId
   };
 
   const { error } = await supabase.from('pagos').insert(payload);
@@ -740,10 +743,13 @@ export async function createDeuda(deuda: Omit<Deuda, 'id' | 'user_id' | 'pacient
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) throw new Error("No autenticado");
 
+  const { data: pacienteData } = await supabase.from('pacientes').select('user_id').eq('id', deuda.paciente_id).single();
+  const targetUserId = pacienteData?.user_id || authData.user.id;
+
   const payload = {
     ...deuda,
     fecha: deuda.fecha || new Date().toISOString(),
-    user_id: authData.user.id
+    user_id: targetUserId
   };
 
   const { error } = await supabase.from('deudas').insert(payload);
