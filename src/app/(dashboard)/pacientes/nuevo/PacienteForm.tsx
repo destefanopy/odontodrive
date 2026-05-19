@@ -1,7 +1,7 @@
 "use client";
 
 import { createPaciente } from "@/core/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AlertCircle, ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { Card } from "@/ui/components/Card";
