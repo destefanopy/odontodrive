@@ -1,5 +1,6 @@
 "use client";
 import CalendarioMaestro from "@/ui/components/agenda/CalendarioMaestro";
+import CalendarioSecretaria from "@/ui/components/agenda/CalendarioSecretaria";
 import { useEffect, useState } from "react";
 import { getTodosLosPacientes, getCitasPorRango, Cita, Paciente, getDoctoresAsociados } from "@/core/api";
 import { Loader2 } from "lucide-react";
@@ -69,7 +70,11 @@ export default function AgendaPage() {
       </div>
       
       <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-sm p-4 lg:p-6 animate-in fade-in zoom-in-95 duration-300 relative z-10 h-[calc(100vh-140px)] min-h-0 mb-4 overflow-hidden">
-        <CalendarioMaestro initialCitas={initialCitas} pacientes={pacientes} userRole={userRole} doctoresAsociados={doctores} />
+        {userRole === 'secretaria' ? (
+          <CalendarioSecretaria initialCitas={initialCitas} pacientes={pacientes} userRole={userRole} doctoresAsociados={doctores} />
+        ) : (
+          <CalendarioMaestro initialCitas={initialCitas} pacientes={pacientes} />
+        )}
       </div>
     </div>
   );

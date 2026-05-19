@@ -9,11 +9,13 @@ interface NuevaCitaModalProps {
   pacientes: Paciente[];
   initialDate: Date | null;
   existingCita?: Cita | null;
+  userRole?: string;
+  doctoresAsociados?: {id: string, nombre: string}[];
   onSaveSuccess?: () => void;
   onClose: () => void;
 }
 
-export default function NuevaCitaModal({ pacientes, initialDate, existingCita, onSaveSuccess, onClose }: NuevaCitaModalProps) {
+export default function NuevaCitaSecretariaModal({ pacientes, initialDate, existingCita, userRole = 'doctor', doctoresAsociados = [], onSaveSuccess, onClose }: NuevaCitaModalProps) {
   const [isPending, setIsPending] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
@@ -21,6 +23,7 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
   const [tipoEvento, setTipoEvento] = useState<'cita' | 'tarea'>('cita');
   const [isNuevoPaciente, setIsNuevoPaciente] = useState(false);
   const [nuevoPacienteNombre, setNuevoPacienteNombre] = useState("");
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>(doctoresAsociados[0]?.id || "");
 
   // Buscador de pacientes
   const [searchTerm, setSearchTerm] = useState("");
@@ -148,13 +151,19 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
           fecha_fin: finalFechaFinStr,
         });
       } else {
-        await createCita({
+        const newCitaPayload: any = {
           paciente_id: finalPacienteId,
           nombre_paciente: finalNombrePaciente || "Evento",
           motivo,
           fecha_inicio: finalFechaInicioStr,
           fecha_fin: finalFechaFinStr,
-        });
+        };
+        
+        if (userRole === 'secretaria' && selectedDoctorId) {
+          newCitaPayload.user_id = selectedDoctorId;
+        }
+
+        await createCita(newCitaPayload);
       }
 
       if (onSaveSuccess) onSaveSuccess();
@@ -353,6 +362,26 @@ export default function NuevaCitaModal({ pacientes, initialDate, existingCita, o
               />
             </div>
           </div>
+
+          {userRole === 'secretaria' && doctoresAsociados.length > 0 && !existingCita && (
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                <User className="w-4 h-4 text-purple-600" />
+                Doctor Asignado
+              </label>
+              <select
+                value={selectedDoctorId}
+                onChange={(e) => setSelectedDoctorId(e.target.value)}
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#31b8b3] focus:border-transparent transition-all outline-none font-medium"
+              >
+                <option value="" disabled>Seleccione un doctor...</option>
+                {doctoresAsociados.map(doc => (
+                  <option key={doc.id} value={doc.id}>{doc.nombre || 'Dr(a).'}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <label className="text-sm font-bold text-gray-700 flex items-center gap-2">

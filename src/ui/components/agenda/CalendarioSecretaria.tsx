@@ -7,46 +7,85 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import esLocale from "@fullcalendar/core/locales/es";
 import { MessageCircle } from "lucide-react";
-import { Cita, Paciente, deleteCita, updateCita, getCitas } from "@/core/api";
-import NuevaCitaModal from "./NuevaCitaModal";
+import { Cita, Paciente, deleteCita, updateCita, getCitasPorRango } from "@/core/api";
+import NuevaCitaSecretariaModal from "./NuevaCitaSecretariaModal";
 import { useRouter } from "next/navigation";
 
 interface CalendarioProps {
   initialCitas: Cita[];
   pacientes: Paciente[];
+  userRole?: string;
+  doctoresAsociados?: {id: string, nombre: string}[];
 }
 
-export default function CalendarioMaestro({ initialCitas, pacientes }: CalendarioProps) {
-  const [citas, setCitas] = useState<Cita[]>(initialCitas);
+export default function CalendarioSecretaria({ initialCitas, pacientes, userRole = 'doctor', doctoresAsociados = [] }: CalendarioProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [editCitaInfo, setEditCitaInfo] = useState<Cita | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedDoctorFilter, setSelectedDoctorFilter] = useState<string>("all");
   const calendarRef = useRef<FullCalendar>(null);
+  const isFirstLoad = useRef(true);
 
-  const fetchUpdatedCitas = async () => {
+  const fetchEvents = async (info: any, successCallback: any, failureCallback: any) => {
     try {
-      const data = await getCitas();
-      setCitas(data);
+      let data;
+      if (isFirstLoad.current) {
+        data = initialCitas;
+        isFirstLoad.current = false;
+      } else {
+        data = await getCitasPorRango(info.startStr, info.endStr);
+      }
+
+      // Filtrar por doctor seleccionado si aplica
+      if (selectedDoctorFilter !== 'all') {
+        data = data.filter((cita) => cita.user_id === selectedDoctorFilter);
+      }
+      
+      const eventsData = data.map((cita) => {
+        const isTarea = !cita.paciente_id;
+        // Asignar colores por doctor si es vista "Todos" para secretarias
+        let bgColor = isTarea ? "#f97316" : "#10b981";
+        let bdColor = isTarea ? "#ea580c" : "#059669";
+        
+        if (!isTarea && selectedDoctorFilter === 'all' && userRole === 'secretaria' && doctoresAsociados.length > 0) {
+          const docIndex = doctoresAsociados.findIndex(d => d.id === cita.user_id);
+          const colors = [
+            { bg: '#3b82f6', bd: '#2563eb' }, // Blue
+            { bg: '#8b5cf6', bd: '#7c3aed' }, // Purple
+            { bg: '#ec4899', bd: '#db2777' }, // Pink
+            { bg: '#10b981', bd: '#059669' }, // Emerald
+          ];
+          const color = colors[docIndex % colors.length] || colors[3];
+          bgColor = color.bg;
+          bdColor = color.bd;
+        }
+
+        return {
+          id: cita.id,
+          title: cita.nombre_paciente,
+          extendedProps: { motivo: cita.motivo, paciente_id: cita.paciente_id, realCita: cita, isTarea, doctorId: cita.user_id },
+          start: cita.fecha_inicio,
+          end: cita.fecha_fin,
+          backgroundColor: bgColor, 
+          borderColor: bdColor, 
+        };
+      });
+      successCallback(eventsData);
     } catch (error) {
-      console.error("Error al actualizar citas", error);
+      console.error("Error fetching events", error);
+      failureCallback(error);
     }
   };
 
-  const events = citas.map((cita) => {
-    const isTarea = !cita.paciente_id;
-    return {
-      id: cita.id,
-      title: cita.nombre_paciente,
-      extendedProps: { motivo: cita.motivo, paciente_id: cita.paciente_id, realCita: cita, isTarea },
-      start: cita.fecha_inicio,
-      end: cita.fecha_fin,
-      backgroundColor: isTarea ? "#f97316" : "#10b981", 
-      borderColor: isTarea ? "#ea580c" : "#059669", 
-    };
-  });
+  // Refetch when filter changes
+  useEffect(() => {
+    if (!isFirstLoad.current) {
+      calendarRef.current?.getApi().refetchEvents();
+    }
+  }, [selectedDoctorFilter]);
 
   const handleDateClick = (arg: any) => {
     if (arg.view.type === "dayGridMonth") {
@@ -100,7 +139,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
       await deleteCita(selectedEvent.id);
       setIsEventModalOpen(false);
       setSelectedEvent(null);
-      await fetchUpdatedCitas();
+      calendarRef.current?.getApi().refetchEvents();
     } catch (error: any) {
       alert("Error: " + (error.message || "Error al borrar la cita."));
     } finally {
@@ -124,7 +163,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
         fecha_inicio: changeInfo.event.start.toISOString(),
         fecha_fin: newEnd.toISOString(),
       });
-      await fetchUpdatedCitas();
+      calendarRef.current?.getApi().refetchEvents();
     } catch (error) {
       alert("Error al mover la cita.");
       changeInfo.revert();
@@ -133,39 +172,73 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
 
   return (
     <>
-      <div className="h-full w-full calendarmacro">
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridDay"
-          headerToolbar={{
-            left: "prev,next today",
-            center: "title",
-            right: "dayGridMonth,timeGridWeek,timeGridDay",
-          }}
-          locales={[esLocale]}
-          locale="es"
-          slotMinTime="07:00:00"
-          slotMaxTime="22:00:00"
-          allDaySlot={false}
-          events={events}
-          dateClick={handleDateClick}
-          selectable={true}
-          select={handleSelect}
-          eventClick={handleEventClick}
-          editable={true}
-          eventDurationEditable={true}
-          eventDrop={handleEventChange}
-          eventResize={handleEventChange}
-          height="100%"
-          eventContent={(eventInfo) => (
-            <div className={`p-0.5 overflow-hidden flex flex-col h-full rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] relative pl-2 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 ${eventInfo.event.extendedProps.isTarea ? 'before:bg-orange-500 bg-orange-50 text-orange-900' : 'before:bg-[#31b8b3] bg-[#e6f7fa] text-[#1e7e7a]'}`}>
-              <div className="font-extrabold text-[9px] sm:text-[10px] leading-tight truncate px-0.5">{eventInfo.event.title}</div>
-              <div className="text-[8px] sm:text-[9px] opacity-80 font-medium truncate px-0.5 hidden sm:block">{eventInfo.timeText}</div>
-            </div>
-          )}
-          eventClassNames="!bg-transparent !border-none"
-        />
+      <div className="h-full w-full calendarmacro flex flex-col">
+        {userRole === 'secretaria' && doctoresAsociados.length > 0 && (
+          <div className="mb-4 bg-gray-50 border border-gray-100 rounded-2xl p-2 sm:p-3 overflow-x-auto shadow-sm flex items-center gap-2 shrink-0 hide-scrollbar">
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider pl-2 pr-3 whitespace-nowrap hidden sm:block">Agendas:</span>
+            <button
+              onClick={() => setSelectedDoctorFilter('all')}
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${selectedDoctorFilter === 'all' ? 'bg-[#31b8b3] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
+            >
+              Ver Todas
+            </button>
+            {doctoresAsociados.map(doc => (
+              <button
+                key={doc.id}
+                onClick={() => setSelectedDoctorFilter(doc.id)}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${selectedDoctorFilter === doc.id ? 'bg-[#31b8b3] text-white shadow-md' : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'}`}
+              >
+                {doc.nombre || "Dr(a)."}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex-1 min-h-0">
+          <FullCalendar
+            ref={calendarRef}
+            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+            initialView="timeGridDay"
+            headerToolbar={{
+              left: "prev,next today",
+              center: "title",
+              right: "dayGridMonth,timeGridWeek,timeGridDay",
+            }}
+            locales={[esLocale]}
+            locale="es"
+            slotMinTime="07:00:00"
+            slotMaxTime="22:00:00"
+            allDaySlot={false}
+            events={fetchEvents}
+            dateClick={handleDateClick}
+            selectable={true}
+            select={handleSelect}
+            eventClick={handleEventClick}
+            editable={true}
+            eventDurationEditable={true}
+            eventDrop={handleEventChange}
+            eventResize={handleEventChange}
+            height="100%"
+            eventContent={(eventInfo) => {
+              const bgClass = eventInfo.event.extendedProps.isTarea ? 'bg-orange-50 text-orange-900 before:bg-orange-500' : 'bg-transparent text-white before:bg-transparent';
+              const borderColors = eventInfo.event.extendedProps.isTarea ? '' : `border-l-4`;
+              
+              return (
+                <div 
+                  className={`p-0.5 overflow-hidden flex flex-col h-full rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] relative px-1.5`}
+                  style={{
+                    backgroundColor: eventInfo.event.extendedProps.isTarea ? undefined : eventInfo.event.backgroundColor,
+                    borderLeftColor: eventInfo.event.extendedProps.isTarea ? undefined : eventInfo.event.borderColor,
+                    borderLeftWidth: eventInfo.event.extendedProps.isTarea ? undefined : '3px'
+                  }}
+                >
+                  <div className="font-extrabold text-[9px] sm:text-[10px] leading-tight truncate px-0.5" style={{color: eventInfo.event.extendedProps.isTarea ? undefined : '#fff'}}>{eventInfo.event.title}</div>
+                  <div className="text-[8px] sm:text-[9px] font-medium truncate px-0.5 hidden sm:block" style={{color: eventInfo.event.extendedProps.isTarea ? undefined : 'rgba(255,255,255,0.9)'}}>{eventInfo.timeText}</div>
+                </div>
+              );
+            }}
+            eventClassNames="!bg-transparent !border-none"
+          />
+        </div>
       </div>
 
       <style jsx global>{`
@@ -237,11 +310,13 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
       `}</style>
 
       {isModalOpen && (
-        <NuevaCitaModal
+        <NuevaCitaSecretariaModal
           pacientes={pacientes}
           initialDate={selectedDate}
           existingCita={editCitaInfo}
-          onSaveSuccess={fetchUpdatedCitas}
+          userRole={userRole}
+          doctoresAsociados={doctoresAsociados}
+          onSaveSuccess={() => calendarRef.current?.getApi().refetchEvents()}
           onClose={() => {
             setIsModalOpen(false);
             setEditCitaInfo(null);
