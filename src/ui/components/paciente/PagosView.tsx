@@ -121,7 +121,7 @@ export default function PagosView({ paciente, userRole = "doctor" }: PagosViewPr
   };
 
   const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ concepto: '', fechaStr: '', costo: '', abono: '' });
+  const [editForm, setEditForm] = useState({ concepto: '', fechaStr: '', costo: '', abono: '', metodo_pago: 'Efectivo' });
   
   const startEditing = (tx: any) => {
     setEditingKey(tx.key);
@@ -133,7 +133,8 @@ export default function PagosView({ paciente, userRole = "doctor" }: PagosViewPr
       concepto: tx.concepto,
       fechaStr: localIso,
       costo: tx.deuda > 0 ? tx.deuda.toString() : '',
-      abono: tx.abono > 0 ? tx.abono.toString() : ''
+      abono: tx.abono > 0 ? tx.abono.toString() : '',
+      metodo_pago: tx.metodo_pago || 'Efectivo'
     });
   };
 
@@ -157,9 +158,9 @@ export default function PagosView({ paciente, userRole = "doctor" }: PagosViewPr
       
       const updates = [];
       if (tx.pagoId) {
-        updates.push(updatePago(tx.pagoId, { fecha_pago: isoDate, concepto: editForm.concepto, monto: newAbono }));
+        updates.push(updatePago(tx.pagoId, { fecha_pago: isoDate, concepto: editForm.concepto, monto: newAbono, metodo_pago: editForm.metodo_pago }));
       } else if (newAbono > 0) {
-        updates.push(createPago({ paciente_id: paciente.id, concepto: editForm.concepto, fecha_pago: isoDate, monto: newAbono, metodo_pago: tx.metodo_pago || 'Efectivo' }));
+        updates.push(createPago({ paciente_id: paciente.id, concepto: editForm.concepto, fecha_pago: isoDate, monto: newAbono, metodo_pago: editForm.metodo_pago }));
       }
       
       if (tx.deudaId) {
@@ -382,6 +383,15 @@ export default function PagosView({ paciente, userRole = "doctor" }: PagosViewPr
                             onChange={(e) => setEditForm({ ...editForm, abono: e.target.value })}
                             className="px-2 py-1 text-xs border border-emerald-200 bg-emerald-50 rounded focus:outline-none focus:ring-1 focus:ring-emerald-400 w-24 placeholder:text-emerald-300 font-bold"
                           />
+                          <select
+                            value={editForm.metodo_pago}
+                            onChange={(e) => setEditForm({ ...editForm, metodo_pago: e.target.value })}
+                            className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-accent font-bold"
+                          >
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Transferencia">Banco</option>
+                          </select>
                           <button onClick={() => handleSaveEdit(tx)} className="text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded hover:bg-emerald-100 text-xs font-bold shadow-sm">Guardar</button>
                           <button onClick={() => setEditingKey(null)} className="text-gray-500 bg-gray-100 border border-gray-200 px-3 py-1 rounded hover:bg-gray-200 text-xs font-bold shadow-sm">Cancelar</button>
                         </div>
