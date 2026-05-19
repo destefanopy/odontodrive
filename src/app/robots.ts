@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/dashboard/', '/admin/'],
+      disallow: ['/dashboard/', '/admin/', '/login', '/interno'],
     },
     sitemap: 'https://www.odontodrive.com/sitemap.xml',
   };

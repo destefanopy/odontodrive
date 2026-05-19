@@ -4,25 +4,52 @@ import { supabase } from '@/infrastructure/supabase';
 
 export const revalidate = 60; // 1 minute cache
 
-export const metadata: Metadata = {
-  title: "OdontoDrive | Sistema de Gestión Odontológica Premium con IA",
-  description: "Descubre el Software Clínico diseñado por Odontólogos para Odontólogos. Historias clínicas, odontograma cruzado y gestión financiera sencilla en la nube.",
-  keywords: ["software odontologico", "gestión dental", "clínica dental en la nube", "odontograma digital", "app odontologia", "historia clinica dental"],
-  alternates: {
-    canonical: '/',
-  },
-  openGraph: {
-    title: "OdontoDrive | Evoluciona Tu Práctica Dental",
-    description: "Gestión completa, facturación y odontogramas respaldados por Inteligencia Artificial en una sola plataforma.",
-    type: "website",
-    url: "https://odontodrive.com"
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "OdontoDrive",
-    description: "La herramienta SaaS definitiva para administrar de punta a punta tu clínica dental."
+export async function generateMetadata(): Promise<Metadata> {
+  let title = "OdontoDrive | Sistema de Gestión Odontológica Premium con IA";
+  let description = "Descubre el Software Clínico diseñado por Odontólogos para Odontólogos. Historias clínicas, odontograma cruzado y gestión financiera sencilla en la nube.";
+
+  try {
+    const { data, error } = await supabase
+      .from('landing_regiones')
+      .select('seo_title, seo_description')
+      .eq('slug', 'global')
+      .single();
+
+    if (!error && data) {
+      if (data.seo_title) title = data.seo_title;
+      if (data.seo_description) description = data.seo_description;
+    }
+  } catch (err) {
+    console.error("Error fetching global metadata:", err);
   }
-};
+
+  return {
+    title,
+    description,
+    keywords: [
+      "software odontologico", "gestión dental", "clínica dental en la nube", 
+      "odontograma digital", "app odontologia", "historia clinica dental",
+      "programa para dentistas", "software para clínica dental", 
+      "agenda odontológica", "historias clínicas digitales", 
+      "facturación odontológica", "sistema para dentistas",
+      "odontograma interactivo", "software dental con inteligencia artificial"
+    ],
+    alternates: {
+      canonical: '/',
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: "https://odontodrive.com"
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description
+    }
+  };
+}
 
 export default async function GlobalLandingPage() {
   const globalPlans: PricingPlan[] = [

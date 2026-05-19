@@ -44,7 +44,98 @@ export interface Cita {
   motivo: string;
   fecha_inicio: string; // ISO String
   fecha_fin: string;    // ISO String
+  user_id?: string;
 }
+
+export const getDoctoresAsociados = async (): Promise<{id: string, nombre: string}[]> => {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) return [];
+
+  // Buscar todos los doctor_id vinculados a esta secretaria
+  const { data: relaciones, error } = await supabase
+    .from('doctor_secretaria')
+    .select('doctor_id')
+    .eq('secretaria_id', authData.user.id);
+
+  if (error || !relaciones || relaciones.length === 0) return [];
+
+  const doctorIds = relaciones.map(r => r.doctor_id);
+
+  // Obtener los nombres de esos doctores
+  const { data: doctores, error: errDocs } = await supabase
+    .from('perfiles')
+    .select('id, nombre')
+    .in('id', doctorIds);
+
+  if (errDocs) return [];
+  return doctores as {id: string, nombre: string}[];
+};
+
+export const getSecretariasDelDoctor = async () => {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) return [];
+
+  const { data: relaciones } = await supabase
+    .from('doctor_secretaria')
+    .select('secretaria_id')
+    .eq('doctor_id', authData.user.id);
+
+  if (!relaciones || relaciones.length === 0) return [];
+
+  const secretariasIds = relaciones.map(r => r.secretaria_id);
+
+  const { data: perfiles } = await supabase
+    .from('perfiles')
+    .select('id, nombre')
+    .in('id', secretariasIds);
+
+  return perfiles || [];
+};
+
+export const vincularmeComoSecretaria = async (doctorId: string) => {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
+  // 1. Verificar que el doctor existe
+  const { data: doctor, error: errDoc } = await supabase
+    .from('perfiles')
+    .select('id')
+    .eq('id', doctorId)
+    .single();
+
+  if (errDoc || !doctor) {
+    throw new Error("Código de Doctor inválido. Verifica y vuelve a intentar.");
+  }
+
+  // 2. Insertar relación
+  const { error: errInsert } = await supabase
+    .from('doctor_secretaria')
+    .insert({ doctor_id: doctorId, secretaria_id: authData.user.id });
+
+  if (errInsert) {
+    if (errInsert.code === '23505') throw new Error("Ya estás vinculada a este doctor.");
+    throw new Error("Error al establecer la vinculación.");
+  }
+
+  // 3. Actualizar mi propio rol a secretaria
+  await supabase
+    .from('perfiles')
+    .update({ rol: 'secretaria' })
+    .eq('id', authData.user.id);
+};
+
+export const desvincularSecretaria = async (secretariaId: string) => {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
+  const { error } = await supabase
+    .from('doctor_secretaria')
+    .delete()
+    .eq('doctor_id', authData.user.id)
+    .eq('secretaria_id', secretariaId);
+
+  if (error) throw new Error("Error al desvincular.");
+};
 
 /**
  * Obtiene los últimos pacientes registrados en la base de datos real.
@@ -324,9 +415,49 @@ export const getCitas = async (): Promise<Cita[]> => {
   return data as Cita[];
 };
 
+export const getCitasPorRango = async (start: string, end: string): Promise<Cita[]> => {
+  const { data, error } = await supabase
+    .from('citas')
+    .select('*')
+    .gte('fecha_fin', start)
+    .lte('fecha_inicio', end)
+    .order('fecha_inicio', { ascending: true });
+
+  if (error) {
+    console.error('Error buscando citas por rango:', error.message);
+    return [];
+  }
+  return data as Cita[];
+};
+
+export const getCitasManana = async (): Promise<Cita[]> => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  const endOfTomorrow = new Date(tomorrow);
+  endOfTomorrow.setHours(23, 59, 59, 999);
+
+  const { data, error } = await supabase
+    .from('citas')
+    .select('*')
+    .gte('fecha_inicio', tomorrow.toISOString())
+    .lte('fecha_inicio', endOfTomorrow.toISOString())
+    .order('fecha_inicio', { ascending: true });
+
+  if (error) {
+    console.error('Error buscando citas de mañana:', error.message);
+    return [];
+  }
+  return data as Cita[];
+};
+
 export async function createCita(cita: Omit<Cita, "id" | "created_at">) {
   const { data: authData } = await supabase.auth.getUser();
-  const { error } = await supabase.from("citas").insert({ ...cita, user_id: authData.user?.id });
+  const payload = { ...cita };
+  if (!payload.user_id) {
+    payload.user_id = authData.user?.id;
+  }
+  const { error } = await supabase.from("citas").insert(payload);
   
   if (error) {
     console.error("Error al agendar cita:", error.message);

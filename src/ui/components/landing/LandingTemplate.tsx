@@ -31,8 +31,6 @@ export default function LandingTemplate({
 }: LandingProps) {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-cyan-200 selection:text-cyan-900">
-      <title>{seoTitle}</title>
-      <meta name="description" content={seoDescription} />
       
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-cyan-100/50">

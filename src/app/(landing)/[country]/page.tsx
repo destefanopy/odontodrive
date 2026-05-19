@@ -14,10 +14,56 @@ interface PageProps {
 // Currently, we will just fetch dynamically. 
 
 export async function generateMetadata({ params }: PageProps): Promise<import('next').Metadata> {
+  const countrySlug = params.country.toLowerCase();
+  let title = `OdontoDrive | Software Dental para ${params.country.toUpperCase()}`;
+  let description = `Descubre OdontoDrive en ${params.country.toUpperCase()}. Software clínico, historias odontológicas y odontogramas.`;
+  let countryName = params.country;
+
+  try {
+    const { data, error } = await supabase
+      .from('landing_regiones')
+      .select('seo_title, seo_description, country_name')
+      .eq('slug', countrySlug)
+      .single();
+
+    if (!error && data) {
+      if (data.seo_title) title = data.seo_title;
+      if (data.seo_description) description = data.seo_description;
+      if (data.country_name) countryName = data.country_name;
+    }
+  } catch (err) {
+    console.error("Error fetching regional metadata:", err);
+  }
+
   return {
+    title,
+    description,
+    keywords: [
+      `software odontologico ${countryName}`,
+      `gestión dental ${countryName}`,
+      `programa para clínica dental en ${countryName}`,
+      `odontograma digital ${countryName}`,
+      `app odontologia ${countryName}`,
+      `historias clinicas dentales ${countryName}`,
+      `software dental ${countryName}`,
+      `sistema para dentistas en ${countryName}`,
+      `programa para dentistas ${countryName}`,
+      "clínica dental en la nube"
+    ],
     alternates: {
-      canonical: `/${params.country.toLowerCase()}`,
+      canonical: `/${countrySlug}`,
     },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      url: `https://odontodrive.com/${countrySlug}`
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description
+    }
   };
 }
 

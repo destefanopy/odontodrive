@@ -1,27 +1,48 @@
 "use client";
 import CalendarioMaestro from "@/ui/components/agenda/CalendarioMaestro";
 import { useEffect, useState } from "react";
-import { getCitas, getTodosLosPacientes, Cita, Paciente } from "@/core/api";
+import { getTodosLosPacientes, getCitasPorRango, Cita, Paciente, getDoctoresAsociados } from "@/core/api";
 import { Loader2 } from "lucide-react";
 import RecordatoriosMananaBoton from "@/ui/components/agenda/RecordatoriosMananaBoton";
+import { supabase } from "@/infrastructure/supabase";
 
 export default function AgendaPage() {
-  const [citas, setCitas] = useState<Cita[]>([]);
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [initialCitas, setInitialCitas] = useState<Cita[]>([]);
+  const [userRole, setUserRole] = useState<string>("doctor");
+  const [doctores, setDoctores] = useState<{id: string, nombre: string}[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getCitas(), getTodosLosPacientes()])
-      .then(([c, p]) => {
-        setCitas(c);
+    const fetchAgendaData = async () => {
+      const today = new Date();
+      const start = new Date(today.getFullYear(), today.getMonth(), -15).toISOString();
+      const end = new Date(today.getFullYear(), today.getMonth() + 1, 15).toISOString();
+
+      try {
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData.user) {
+          const { data: perfil } = await supabase.from('perfiles').select('rol').eq('id', authData.user.id).single();
+          const rol = perfil?.rol || 'doctor';
+          setUserRole(rol);
+
+          if (rol === 'secretaria') {
+            const docs = await getDoctoresAsociados();
+            setDoctores(docs);
+          }
+        }
+
+        const [p, c] = await Promise.all([getTodosLosPacientes(), getCitasPorRango(start, end)]);
         setPacientes(p);
-      })
-      .catch((err) => {
+        setInitialCitas(c);
+      } catch (err) {
         console.error("Error catastrofico cargando agenda:", err);
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchAgendaData();
   }, []);
 
   if (loading) {
@@ -43,12 +64,12 @@ export default function AgendaPage() {
           </p>
         </div>
         <div>
-          <RecordatoriosMananaBoton citas={citas} pacientes={pacientes} />
+          <RecordatoriosMananaBoton pacientes={pacientes} />
         </div>
       </div>
       
       <div className="flex-1 bg-white rounded-3xl border border-gray-100 shadow-sm p-4 lg:p-6 animate-in fade-in zoom-in-95 duration-300 relative z-10 h-[calc(100vh-140px)] min-h-0 mb-4 overflow-hidden">
-        <CalendarioMaestro initialCitas={citas} pacientes={pacientes} />
+        <CalendarioMaestro initialCitas={initialCitas} pacientes={pacientes} userRole={userRole} doctoresAsociados={doctores} />
       </div>
     </div>
   );

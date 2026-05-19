@@ -1,30 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { Cita, Paciente } from "@/core/api";
+import { useState, useEffect } from "react";
+import { Cita, Paciente, getCitasManana } from "@/core/api";
 import { MessageCircle, Bell, X, PhoneMissed } from "lucide-react";
 
-export default function RecordatoriosMananaBoton({ citas, pacientes }: { citas: Cita[], pacientes: Paciente[] }) {
+export default function RecordatoriosMananaBoton({ pacientes }: { pacientes: Paciente[] }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [citasManana, setCitasManana] = useState<Cita[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const getLocalDateStr = (d: Date) => {
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  };
+  useEffect(() => {
+    getCitasManana()
+      .then((data) => {
+        setCitasManana(data);
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setLoading(false));
+  }, []);
 
-  // Calcular las citas de mañana
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = getLocalDateStr(tomorrow);
-
-  const citasManana = citas.filter((c) => {
-    if (!c.fecha_inicio) return false;
-    const citaDateStr = getLocalDateStr(new Date(c.fecha_inicio));
-    return citaDateStr === tomorrowStr;
-  });
-
-  if (citasManana.length === 0) {
+  if (loading || citasManana.length === 0) {
     return null;
   }
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
 
   return (
     <>

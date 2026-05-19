@@ -14,6 +14,7 @@ export default function Sidebar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userPlan, setUserPlan] = useState<string>("free");
   const [storageUsed, setStorageUsed] = useState<number>(0);
+  const [userRole, setUserRole] = useState<string>("doctor");
   const [userData, setUserData] = useState<{name: string, email: string, avatarUrl: string | null} | null>(null);
   const router = useRouter();
 
@@ -39,11 +40,12 @@ export default function Sidebar() {
             avatarUrl: data.user.user_metadata?.avatar_url || null
           });
 
-          supabase.from('perfiles').select('plan, storage_usado_bytes').eq('id', data.user.id).single()
+          supabase.from('perfiles').select('plan, storage_usado_bytes, rol').eq('id', data.user.id).single()
             .then(({ data: perfil }) => {
               if (perfil && isMounted) {
                 setUserPlan(perfil.plan || 'free');
                 setStorageUsed(perfil.storage_usado_bytes || 0);
+                setUserRole(perfil.rol || 'doctor');
               }
             });
         }
@@ -61,18 +63,33 @@ export default function Sidebar() {
     };
   }, []);
 
-  const navItems = [
+  const baseNavItems = [
     { name: "Calendario", href: "/agenda", icon: Calendar },
     { name: "Pacientes", href: "/pacientes", icon: Users },
+  ];
+
+  const doctorNavItems = [
     { name: "Finanzas", href: "/finanzas", icon: Wallet },
     { name: "Configuración", href: "/cuenta", icon: Settings },
+  ];
+
+  const commonNavItems = [
     { name: "Ayuda y FAQ", href: "/ayuda", icon: HelpCircle },
-    ...(isAdmin ? [
-      { name: "Admin Usuarios", href: "/admin", icon: Shield },
-      { name: "Admin Regiones", href: "/admin/regiones", icon: Globe },
-      { name: "Admin Documentos", href: "/admin/documentos", icon: FileText },
-      { name: "Admin Noticias", href: "/admin/noticias", icon: FileText }
-    ] : [])
+  ];
+
+  const adminNavItems = isAdmin ? [
+    { name: "Admin Usuarios", href: "/admin", icon: Shield },
+    { name: "Admin Clínicas B2B", href: "/admin/clinicas", icon: Users },
+    { name: "Admin Regiones", href: "/admin/regiones", icon: Globe },
+    { name: "Admin Documentos", href: "/admin/documentos", icon: FileText },
+    { name: "Admin Noticias", href: "/admin/noticias", icon: FileText }
+  ] : [];
+
+  const navItems = [
+    ...baseNavItems,
+    ...(userRole !== 'secretaria' ? doctorNavItems : []),
+    ...commonNavItems,
+    ...adminNavItems
   ];
 
   const handleLogout = async () => {

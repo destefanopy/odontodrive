@@ -44,9 +44,17 @@ export default function MiCuentaPage() {
 
   const [supportContact, setSupportContact] = useState({ telefono: "+595 962 122644", email: "destefanopy@gmail.com" });
 
+  // Gestión de Equipo / Secretarias
+  const [userId, setUserId] = useState<string>("");
+  const [userRole, setUserRole] = useState<string>("doctor");
+  const [secretarias, setSecretarias] = useState<{id: string, nombre: string}[]>([]);
+  const [codigoDoctor, setCodigoDoctor] = useState("");
+  const [isLinking, setIsLinking] = useState(false);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
+        setUserId(user.id);
         setEmail(user.email || "");
         setTelefono(user.user_metadata?.phone || "");
         setFullName(user.user_metadata?.full_name || user.user_metadata?.name || "");
@@ -61,11 +69,12 @@ export default function MiCuentaPage() {
         setClinicColor(user.user_metadata?.clinic_color || "#e8701a");
         setCurrencySymbol(user.user_metadata?.currency_symbol || "Gs.");
         
-        supabase.from('perfiles').select('plan, created_at, storage_usado_bytes')
+        supabase.from('perfiles').select('rol, plan, created_at, storage_usado_bytes')
           .eq('id', user.id).single()
           .then(({ data }) => {
             if (data) {
               setUserPlan(data.plan || "free");
+              setUserRole(data.rol || "doctor");
               setStorageUsed(data.storage_usado_bytes || 0);
               if (data.created_at) {
                 const date = new Date(data.created_at);
@@ -85,6 +94,14 @@ export default function MiCuentaPage() {
       }
     });
   }, []);
+
+  useEffect(() => {
+    import('@/core/api').then(({ getSecretariasDelDoctor }) => {
+      if (userRole === 'doctor' && userPlan !== 'free') {
+        getSecretariasDelDoctor().then(setSecretarias).catch(console.error);
+      }
+    });
+  }, [userRole, userPlan]);
 
   const handleCancelPlan = async () => {
     if (cancelText.toLowerCase() !== "cancelar") return;
@@ -563,6 +580,120 @@ export default function MiCuentaPage() {
             </form>
           </div>
         </div>
+        {/* Sección: Mi Equipo (Sólo Doctores Premium) */}
+        {userRole === 'doctor' && userPlan !== 'free' && (
+          <div className="md:col-span-3 mt-6">
+            <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(6,81,237,0.1)] border border-gray-100 overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">Mi Equipo (Secretarias)</h3>
+                  <p className="text-sm text-gray-500">Comparte tu código con tu secretaria para que pueda unirse a tu clínica.</p>
+                </div>
+                <div className="bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Tu Código:</span>
+                  <code className="text-sm font-black text-accent bg-accent/10 px-2 py-0.5 rounded select-all">{userId}</code>
+                </div>
+              </div>
+              <div className="p-6">
+                {secretarias.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <User className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                    <h4 className="text-sm font-bold text-gray-700">Aún no tienes secretarias vinculadas</h4>
+                    <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+                      Pídele a tu secretaria que cree una cuenta gratuita en Odontodrive y use tu código en esta misma sección.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {secretarias.map((sec) => (
+                      <div key={sec.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50 hover:bg-white hover:shadow-sm transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold">
+                            {(sec.nombre || "S")[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900">{sec.nombre || "Secretaria"}</p>
+                            <p className="text-xs text-gray-500 font-medium tracking-wide">Acceso Activo</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!confirm("¿Seguro que deseas revocar el acceso a esta secretaria?")) return;
+                            try {
+                              const { desvincularSecretaria } = await import('@/core/api');
+                              await desvincularSecretaria(sec.id);
+                              setSecretarias(secretarias.filter(s => s.id !== sec.id));
+                              setMessage({ text: "Acceso revocado exitosamente.", type: "success" });
+                            } catch (error: any) {
+                              setMessage({ text: error.message || "Error al desvincular.", type: "error" });
+                            }
+                          }}
+                          className="text-xs font-bold text-red-500 hover:text-white hover:bg-red-500 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                          Revocar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sección: Vincularse a Clínica (Sólo si es free/secretaria) */}
+        {(userRole === 'secretaria' || (userRole === 'doctor' && userPlan === 'free')) && (
+          <div className="md:col-span-3 mt-6">
+            <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(6,81,237,0.1)] border border-gray-100 overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 bg-[#e6f7fa]/30">
+                <h3 className="text-lg font-bold text-gray-900">Vincularme a una Clínica</h3>
+                <p className="text-sm text-gray-500">Si eres secretaria o asistente, ingresa el código del Doctor para acceder a su agenda.</p>
+              </div>
+              <div className="p-6 bg-gray-50/50">
+                <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!codigoDoctor.trim()) return;
+                    setIsLinking(true);
+                    try {
+                      const { vincularmeComoSecretaria } = await import('@/core/api');
+                      await vincularmeComoSecretaria(codigoDoctor.trim());
+                      setMessage({ text: "¡Vinculación exitosa! Eres parte de la clínica. Recargando...", type: "success" });
+                      setTimeout(() => window.location.href = "/agenda", 1500);
+                    } catch (error: any) {
+                      setMessage({ text: error.message || "Error al vincular.", type: "error" });
+                    } finally {
+                      setIsLinking(false);
+                    }
+                  }} 
+                  className="max-w-md flex flex-col sm:flex-row gap-3"
+                >
+                  <input
+                    type="text"
+                    value={codigoDoctor}
+                    onChange={(e) => setCodigoDoctor(e.target.value)}
+                    placeholder="Pega el código del Doctor aquí..."
+                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent sm:text-sm outline-none bg-white font-medium shadow-sm"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={isLinking}
+                    className="px-6 py-3 bg-accent text-white font-bold rounded-xl hover:bg-[#279490] transition-all disabled:opacity-50 whitespace-nowrap shadow-md hover:shadow-lg"
+                  >
+                    {isLinking ? 'Verificando...' : 'Unirme'}
+                  </button>
+                </form>
+                {userRole === 'secretaria' && (
+                  <p className="mt-4 text-xs font-bold text-accent bg-accent/10 px-3 py-2 rounded-xl inline-block">
+                    ✓ Ya tienes el rol de Secretaria Activo. Puedes seguir vinculándote a más doctores.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
