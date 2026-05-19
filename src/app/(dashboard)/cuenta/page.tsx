@@ -47,6 +47,7 @@ export default function MiCuentaPage() {
   // Gestión de Equipo / Secretarias
   const [userId, setUserId] = useState<string>("");
   const [userRole, setUserRole] = useState<string>("doctor");
+  const [patientCount, setPatientCount] = useState<number>(0);
   const [secretarias, setSecretarias] = useState<{id: string, nombre: string}[]>([]);
   const [codigoDoctor, setCodigoDoctor] = useState("");
   const [isLinking, setIsLinking] = useState(false);
@@ -81,6 +82,11 @@ export default function MiCuentaPage() {
                 setCreatedAt(date.toLocaleDateString("es-ES", { year: 'numeric', month: 'long', day: 'numeric' }));
               }
             }
+          });
+          
+        supabase.from('pacientes').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
+          .then(({ count }) => {
+            setPatientCount(count || 0);
           });
       }
     });
@@ -641,8 +647,8 @@ export default function MiCuentaPage() {
           </div>
         )}
 
-        {/* Sección: Vincularse a Clínica (Sólo si es free/secretaria) */}
-        {(userRole === 'secretaria' || (userRole === 'doctor' && userPlan === 'free')) && (
+        {/* Sección: Vincularse a Clínica (Sólo si es free/secretaria y no tiene pacientes) */}
+        {(userRole === 'secretaria' || (userRole === 'doctor' && userPlan === 'free' && patientCount === 0)) && (
           <div className="md:col-span-3 mt-6">
             <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(6,81,237,0.1)] border border-gray-100 overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 bg-[#e6f7fa]/30">

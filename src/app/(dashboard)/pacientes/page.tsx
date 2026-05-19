@@ -12,6 +12,7 @@ export default function PacientesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [userPlan, setUserPlan] = useState<string>("free");
+  const [userRole, setUserRole] = useState<string>("doctor");
   const [dynamicLimit, setDynamicLimit] = useState<number>(30);
   const { step, nextStep, isClient, setSpecificStep } = useOnboarding();
 
@@ -22,11 +23,12 @@ export default function PacientesPage() {
         if (authData?.user) {
           const { data: perfil } = await supabase
             .from('perfiles')
-            .select('plan')
+            .select('plan, rol')
             .eq('id', authData.user.id)
             .single();
           if (perfil) {
             setUserPlan(perfil.plan || 'free');
+            setUserRole(perfil.rol || 'doctor');
             const limit = await getDynamicPlanLimit(perfil.plan || 'free');
             setDynamicLimit(limit);
           }
@@ -67,7 +69,7 @@ export default function PacientesPage() {
     p.nombres_apellidos.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const limitePacientes = dynamicLimit;
+  const limitePacientes = userRole === 'secretaria' ? Infinity : dynamicLimit;
   const hasReachedLimit = limitePacientes !== Infinity && pacientes.length >= limitePacientes;
   const isNearingLimit = limitePacientes !== Infinity && pacientes.length >= (limitePacientes - 5) && pacientes.length < limitePacientes;
 
