@@ -96,24 +96,15 @@ export const vincularmeComoSecretaria = async (doctorId: string) => {
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) throw new Error("No autenticado");
 
-  // 1. Verificar que el doctor existe
-  const { data: doctor, error: errDoc } = await supabase
-    .from('perfiles')
-    .select('id')
-    .eq('id', doctorId)
-    .single();
-
-  if (errDoc || !doctor) {
-    throw new Error("Código de Doctor inválido. Verifica y vuelve a intentar.");
-  }
-
-  // 2. Insertar relación
+  // 1. Intentar insertar la relación directamente
+  // Si el doctor no existe, fallará por foreign key constraint (23503)
   const { error: errInsert } = await supabase
     .from('doctor_secretaria')
     .insert({ doctor_id: doctorId, secretaria_id: authData.user.id });
 
   if (errInsert) {
     if (errInsert.code === '23505') throw new Error("Ya estás vinculada a este doctor.");
+    if (errInsert.code === '23503') throw new Error("Código de Doctor inválido. Verifica y vuelve a intentar.");
     throw new Error("Error al establecer la vinculación.");
   }
 
