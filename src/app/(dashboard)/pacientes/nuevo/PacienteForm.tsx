@@ -15,6 +15,34 @@ export default function PacienteForm() {
   const router = useRouter();
   const { step, nextStep, isClient } = useOnboarding();
 
+  const [userRole, setUserRole] = useState<string>("doctor");
+  const [doctoresAsociados, setDoctoresAsociados] = useState<{id: string, nombre: string}[]>([]);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>("");
+
+  useEffect(() => {
+    import('@/infrastructure/supabase').then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase.from('perfiles').select('rol').eq('id', user.id).single()
+            .then(({ data }) => {
+              if (data) {
+                const rol = data.rol || 'doctor';
+                setUserRole(rol);
+                if (rol === 'secretaria') {
+                  import('@/core/api').then(({ getDoctoresAsociados }) => {
+                    getDoctoresAsociados().then(docs => {
+                      setDoctoresAsociados(docs);
+                      if (docs.length > 0) setSelectedDoctorId(docs[0].id);
+                    });
+                  });
+                }
+              }
+            });
+        }
+      });
+    });
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
@@ -30,8 +58,19 @@ export default function PacienteForm() {
       return;
     }
 
+    if (userRole === 'secretaria' && !selectedDoctorId) {
+      setError("Debes seleccionar un doctor para asignarle este paciente.");
+      setPending(false);
+      return;
+    }
+
     try {
-      const nuevoPaciente = await createPaciente({ nombres_apellidos, telefono_celular });
+      const payload: any = { nombres_apellidos, telefono_celular };
+      if (userRole === 'secretaria' && selectedDoctorId) {
+        payload.user_id = selectedDoctorId;
+      }
+      
+      const nuevoPaciente = await createPaciente(payload);
       if (step === 1) nextStep(); // Avanza al paso 2 al crear el paciente
       
       if (nuevoPaciente?.id) {
@@ -91,6 +130,30 @@ export default function PacienteForm() {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all text-sm outline-none"
             />
           </div>
+          
+          {userRole === 'secretaria' && (
+            <div className="space-y-2 md:col-span-2">
+              <label htmlFor="doctor_id" className="text-sm font-bold text-gray-700">
+                Asignar al Doctor *
+              </label>
+              <select
+                id="doctor_id"
+                value={selectedDoctorId}
+                onChange={(e) => setSelectedDoctorId(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all text-sm outline-none font-medium"
+                required
+              >
+                {doctoresAsociados.length === 0 ? (
+                  <option value="">Cargando doctores...</option>
+                ) : (
+                  doctoresAsociados.map(doc => (
+                    <option key={doc.id} value={doc.id}>{doc.nombre || "Doctor"}</option>
+                  ))
+                )}
+              </select>
+              <p className="text-xs text-gray-500">Este paciente será visible en la agenda y listado del doctor seleccionado.</p>
+            </div>
+          )}
         </div>
       </Card>
 

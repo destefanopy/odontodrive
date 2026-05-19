@@ -124,8 +124,15 @@ export default function NuevaCitaSecretariaModal({ pacientes, initialDate, exist
           if (!nuevoPacienteNombre.trim()) {
             throw new Error("El nombre del nuevo paciente es obligatorio.");
           }
+          if (userRole === 'secretaria' && !selectedDoctorId) {
+            throw new Error("Debes seleccionar un doctor para asignarle el paciente.");
+          }
           // Crear paciente on the fly
-          const nuevo = await createPaciente({ nombres_apellidos: nuevoPacienteNombre.trim(), telefono_celular: null });
+          const payload: any = { nombres_apellidos: nuevoPacienteNombre.trim(), telefono_celular: null };
+          if (userRole === 'secretaria' && selectedDoctorId) {
+            payload.user_id = selectedDoctorId;
+          }
+          const nuevo = await createPaciente(payload);
           if (!nuevo) throw new Error("Error al crear el nuevo paciente");
           finalPacienteId = nuevo.id;
           finalNombrePaciente = nuevo.nombres_apellidos;

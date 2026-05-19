@@ -22,10 +22,22 @@ export default function PacientePerfilPage({ params }: PageProps) {
   const [initialOdontograma, setOdontogramaInicial] = useState<any>(null);
   const [finalOdontograma, setOdontogramaFinal] = useState<any>(null);
   const [initialAntecedentes, setAntecedentes] = useState<AntecedentesMedicos | null>(null);
+  const [userRole, setUserRole] = useState<string>('doctor');
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   const loadData = useCallback(() => {
+    import('@/infrastructure/supabase').then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          supabase.from('perfiles').select('rol').eq('id', user.id).single()
+            .then(({ data }) => {
+              if (data) setUserRole(data.rol || 'doctor');
+            });
+        }
+      });
+    });
+
     Promise.all([
       getPacienteById(params.id),
       getOdontograma(params.id, 'inicial'),
@@ -120,6 +132,7 @@ export default function PacientePerfilPage({ params }: PageProps) {
         finalOdontograma={finalOdontograma}
         initialAntecedentes={initialAntecedentes}
         onUpdate={loadData}
+        userRole={userRole}
       />
     </div>
   );

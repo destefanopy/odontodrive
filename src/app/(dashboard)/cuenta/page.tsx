@@ -49,6 +49,7 @@ export default function MiCuentaPage() {
   const [userRole, setUserRole] = useState<string>("doctor");
   const [patientCount, setPatientCount] = useState<number>(0);
   const [secretarias, setSecretarias] = useState<{id: string, nombre: string}[]>([]);
+  const [doctoresAsociados, setDoctoresAsociados] = useState<{id: string, nombre: string}[]>([]);
   const [codigoDoctor, setCodigoDoctor] = useState("");
   const [isLinking, setIsLinking] = useState(false);
 
@@ -102,9 +103,11 @@ export default function MiCuentaPage() {
   }, []);
 
   useEffect(() => {
-    import('@/core/api').then(({ getSecretariasDelDoctor }) => {
+    import('@/core/api').then(({ getSecretariasDelDoctor, getDoctoresAsociados }) => {
       if (userRole === 'doctor' && userPlan !== 'free') {
         getSecretariasDelDoctor().then(setSecretarias).catch(console.error);
+      } else if (userRole === 'secretaria') {
+        getDoctoresAsociados().then(setDoctoresAsociados).catch(console.error);
       }
     });
   }, [userRole, userPlan]);
@@ -637,6 +640,62 @@ export default function MiCuentaPage() {
                           className="text-xs font-bold text-red-500 hover:text-white hover:bg-red-500 px-3 py-1.5 rounded-lg transition-all"
                         >
                           Revocar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Sección: Mis Doctores (Sólo Secretarias) */}
+        {userRole === 'secretaria' && (
+          <div className="md:col-span-3 mt-6">
+            <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(6,81,237,0.1)] border border-gray-100 overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+                <h3 className="text-lg font-bold text-gray-900">Mis Doctores Asociados</h3>
+                <p className="text-sm text-gray-500">Agendas a las que tienes acceso actualmente.</p>
+              </div>
+              <div className="p-6">
+                {doctoresAsociados.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <User className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                    <h4 className="text-sm font-bold text-gray-700">No estás vinculada a ningún doctor</h4>
+                    <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+                      Ingresa el código del doctor más abajo para unirte a su clínica.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {doctoresAsociados.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50 hover:bg-white hover:shadow-sm transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold">
+                            {(doc.nombre || "D")[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900">{doc.nombre}</p>
+                            <p className="text-xs text-gray-500 font-medium tracking-wide">Acceso Activo</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!confirm("¿Seguro que deseas desvincularte de este doctor? Perderás el acceso a su agenda.")) return;
+                            try {
+                              const { desvincularmeComoSecretaria } = await import('@/core/api');
+                              await desvincularmeComoSecretaria(doc.id);
+                              setDoctoresAsociados(doctoresAsociados.filter(d => d.id !== doc.id));
+                              setMessage({ text: "Desvinculación exitosa.", type: "success" });
+                              setTimeout(() => window.location.reload(), 1500);
+                            } catch (error: any) {
+                              setMessage({ text: error.message || "Error al desvincularse.", type: "error" });
+                            }
+                          }}
+                          className="text-xs font-bold text-red-500 hover:text-white hover:bg-red-500 px-3 py-1.5 rounded-lg transition-all"
+                        >
+                          Desvincularme
                         </button>
                       </div>
                     ))}

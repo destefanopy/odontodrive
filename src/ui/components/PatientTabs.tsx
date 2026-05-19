@@ -24,15 +24,16 @@ interface PatientTabsProps {
   finalOdontograma: Record<number, string>;
   initialAntecedentes?: AntecedentesMedicos | null;
   onUpdate?: () => void;
+  userRole?: string;
 }
 
-export default function PatientTabs({ paciente, initialOdontograma, finalOdontograma, initialAntecedentes, onUpdate }: PatientTabsProps) {
+export default function PatientTabs({ paciente, initialOdontograma, finalOdontograma, initialAntecedentes, onUpdate, userRole = "doctor" }: PatientTabsProps) {
   const [activeTab, setActiveTab] = useState<TabValue>("datos");
   const [odontoTipo, setOdontoTipo] = useState<"inicial" | "final">("inicial");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { step, complete, isClient } = useOnboarding();
 
-  const tabs = [
+  const allTabs = [
     { id: "datos", label: "Datos Personales", icon: User },
     { id: "ficha", label: "Historia Médica", icon: FileText },
     { id: "consentimientos", label: "Consentimientos", icon: FileSignature },
@@ -43,6 +44,10 @@ export default function PatientTabs({ paciente, initialOdontograma, finalOdontog
     { id: "ia", label: "OdontólogoIA", icon: BrainCircuit },
     { id: "recetario", label: "Recetario", icon: ClipboardList },
   ];
+
+  const tabs = userRole === 'secretaria' 
+    ? allTabs.filter(t => t.id === 'datos' || t.id === 'archivos')
+    : allTabs;
 
   const scrollTabs = (offset: number) => {
     if (scrollContainerRef.current) {

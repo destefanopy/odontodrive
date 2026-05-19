@@ -128,6 +128,19 @@ export const desvincularSecretaria = async (secretariaId: string) => {
   if (error) throw new Error("Error al desvincular.");
 };
 
+export const desvincularmeComoSecretaria = async (doctorId: string) => {
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) throw new Error("No autenticado");
+
+  const { error } = await supabase
+    .from('doctor_secretaria')
+    .delete()
+    .eq('doctor_id', doctorId)
+    .eq('secretaria_id', authData.user.id);
+
+  if (error) throw new Error("Error al desvincularse del doctor.");
+};
+
 /**
  * Obtiene los últimos pacientes registrados en la base de datos real.
  * Respeta la separación de responsabilidades (SoC).
@@ -217,27 +230,31 @@ export const getDynamicPlanLimit = async (planName: string): Promise<number> => 
  * Registra un nuevo paciente en la base de datos real.
  * Respeta la separación de responsabilidades (SoC).
  */
-export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'>): Promise<Paciente | null> => {
+export const createPaciente = async (data: Omit<Paciente, 'id' | 'fecha_ingreso'> & { user_id?: string }): Promise<Paciente | null> => {
   const { data: authData } = await supabase.auth.getUser();
   if (!authData.user) throw new Error("No autenticado");
 
-  // Verify plan limit
+  // Verify plan limit (usamos el perfil de quien ejecuta la acción, aunque sea la secretaria)
   const { data: perfil } = await supabase.from('perfiles').select('plan').eq('id', authData.user.id).single();
   const plan = (perfil?.plan || 'free').toLowerCase();
   
   const limitePacientes = await getDynamicPlanLimit(plan);
+  const targetUserId = data.user_id || authData.user.id;
   
   if (limitePacientes !== Infinity) {
-    const { count } = await supabase.from('pacientes').select('*', { count: 'exact', head: true }).eq('user_id', authData.user.id);
+    const { count } = await supabase.from('pacientes').select('*', { count: 'exact', head: true }).eq('user_id', targetUserId);
     if (count !== null && count >= limitePacientes) {
       throw new Error(`Límite de pacientes alcanzado (${limitePacientes}). Por favor, mejora tu plan para registrar más pacientes.`);
     }
   }
 
   const fechaIngreso = new Date().toISOString(); 
+  // Remuevo user_id del data para no sobreescribirlo accidentalmente si venía
+  const { user_id, ...pacienteData } = data as any;
+
   const { data: newPaciente, error } = await supabase
     .from('pacientes')
-    .insert([{ ...data, fecha_ingreso: fechaIngreso, user_id: authData.user.id }])
+    .insert([{ ...pacienteData, fecha_ingreso: fechaIngreso, user_id: targetUserId }])
     .select('*')
     .single();
 
