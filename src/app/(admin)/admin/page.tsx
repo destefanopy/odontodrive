@@ -179,7 +179,10 @@ export default function AdminConsole() {
     let nuevosHoy = 0;
     let nuevosSemana = 0;
     let conectadosHoy = 0;
-    let inactivos = 0;
+    let conectadosSemana = 0;
+    let inactivos30 = 0;
+    let inactivos7 = 0;
+    let totalDoctores = 0;
     
     const hoyStr = new Date().toISOString().split('T')[0];
     const inicioSemana = new Date();
@@ -187,12 +190,17 @@ export default function AdminConsole() {
     
     const hace30Dias = new Date();
     hace30Dias.setDate(hace30Dias.getDate() - 30);
+
+    const hace7Dias = new Date();
+    hace7Dias.setDate(hace7Dias.getDate() - 7);
     
     const countsPorPlan: Record<string, number> = {
       basico: 0, estandar: 0, avanzado: 0, premium: 0, free: 0
     };
 
     users.forEach(u => {
+      if (!u.es_admin) totalDoctores++;
+
       const created = u.created_at ? new Date(u.created_at) : null;
       const lastLogin = u.ultimo_login || u.ultimo_acceso_app ? new Date(u.ultimo_login || u.ultimo_acceso_app || '') : null;
       
@@ -203,9 +211,12 @@ export default function AdminConsole() {
       
       if (lastLogin) {
          if (lastLogin.toISOString().split('T')[0] === hoyStr) conectadosHoy++;
-         if (lastLogin < hace30Dias) inactivos++;
+         if (lastLogin >= inicioSemana) conectadosSemana++;
+         if (lastLogin < hace30Dias) inactivos30++;
+         if (lastLogin < hace7Dias) inactivos7++;
       } else {
-         if (created && created < hace30Dias) inactivos++;
+         if (created && created < hace30Dias) inactivos30++;
+         if (created && created < hace7Dias) inactivos7++;
       }
       
       const planStr = u.plan || 'free';
@@ -216,7 +227,7 @@ export default function AdminConsole() {
        .filter(k => countsPorPlan[k] > 0)
        .map(k => ({ name: k.charAt(0).toUpperCase() + k.slice(1), value: countsPorPlan[k] }));
 
-    return { nuevosHoy, nuevosSemana, conectadosHoy, inactivos, planData };
+    return { nuevosHoy, nuevosSemana, conectadosHoy, conectadosSemana, inactivos30, inactivos7, totalDoctores, planData };
   }, [users]);
 
   const COLORS = ['#3b82f6', '#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b', '#64748b'];
@@ -348,14 +359,32 @@ export default function AdminConsole() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
             <Users className="w-6 h-6" />
           </div>
           <div>
+            <p className="text-sm font-bold text-gray-500">Total Doctores</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.totalDoctores}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
             <p className="text-sm font-bold text-gray-500">Nuevos Hoy</p>
             <p className="text-2xl font-black text-gray-900">{metricas.nuevosHoy}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 flex-shrink-0">
+            <TrendingUp className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-500">Nuevos Sem.</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.nuevosSemana}</p>
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
@@ -368,12 +397,21 @@ export default function AdminConsole() {
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 flex-shrink-0">
-            <TrendingUp className="w-6 h-6" />
+          <div className="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 flex-shrink-0">
+            <Activity className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-500">Nuevos en la Semana</p>
-            <p className="text-2xl font-black text-gray-900">{metricas.nuevosSemana}</p>
+            <p className="text-sm font-bold text-gray-500">Conectados Sem.</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.conectadosSemana}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 flex-shrink-0">
+            <Clock className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-500">Inactivos (+7d)</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.inactivos7}</p>
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
@@ -382,7 +420,7 @@ export default function AdminConsole() {
           </div>
           <div>
             <p className="text-sm font-bold text-gray-500">Inactivos (+30d)</p>
-            <p className="text-2xl font-black text-gray-900">{metricas.inactivos}</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.inactivos30}</p>
           </div>
         </div>
       </div>
