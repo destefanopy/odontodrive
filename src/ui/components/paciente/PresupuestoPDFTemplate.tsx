@@ -161,10 +161,9 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
             <span className="font-bold text-gray-800 text-lg">{doctorName}</span>
             <span className="text-gray-700 font-medium">{clinicTitle}</span>
             {clinicRegProf && (
-              <span className="text-gray-700 font-medium mt-0.5">Registro Prof. N° {clinicRegProf}</span>
+              <span className="text-gray-700 font-medium mt-0.5">Reg. Prof. N° {clinicRegProf}</span>
             )}
             <span className="text-gray-600 text-[11px] mt-2 text-center max-w-[250px] leading-tight">
-              {clinicName && <span className="font-bold block">{clinicName}</span>}
               {clinicAddress && <span>{clinicAddress}</span>}
               {clinicAddress && clinicPhone && <span> • </span>}
               {clinicPhone && <span>Tel: {clinicPhone}</span>}

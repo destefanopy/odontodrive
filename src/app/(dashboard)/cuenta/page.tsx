@@ -236,6 +236,31 @@ export default function MiCuentaPage() {
     }
   };
 
+  const handleDeleteSignature = async () => {
+    if (!confirm("¿Seguro que deseas eliminar tu firma?")) return;
+    setIsLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuario no autenticado");
+
+      const currentMetadata = user.user_metadata || {};
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          ...currentMetadata,
+          clinic_signature_url: ""
+        }
+      });
+      if (updateError) throw new Error("Error al eliminar la firma de tu perfil.");
+
+      setClinicSignatureUrl("");
+      setMessage({ text: "Firma eliminada correctamente.", type: "success" });
+    } catch (err: any) {
+      setMessage({ text: err.message || "Hubo un error al eliminar la firma", type: "error" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -530,11 +555,22 @@ export default function MiCuentaPage() {
                         </div>
                       )}
                       <div className="flex-1 space-y-3">
-                        <label className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-sm transition-all shadow-sm">
-                          <UploadCloud className="w-4 h-4" />
-                          {isUploadingSignature ? 'Subiendo...' : 'Subir Firma (PNG)'}
-                          <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleSignatureUpload} disabled={isUploadingSignature} />
-                        </label>
+                        <div className="flex items-center gap-3">
+                          <label className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-sm transition-all shadow-sm">
+                            <UploadCloud className="w-4 h-4" />
+                            {isUploadingSignature ? 'Subiendo...' : 'Subir Firma (PNG)'}
+                            <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleSignatureUpload} disabled={isUploadingSignature} />
+                          </label>
+                          {clinicSignatureUrl && (
+                            <button
+                              type="button"
+                              onClick={handleDeleteSignature}
+                              className="px-3 py-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-sm font-bold transition-all"
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500">Sube una imagen de tu firma, preferiblemente en formato PNG con fondo transparente.</p>
                       </div>
                     </div>
