@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/core/auth";
-import { Shield, ShieldAlert, Star, Ban, CheckCircle, Search, RefreshCw, ArrowUp, ArrowDown, Download, Loader2, Users, Activity, Clock, TrendingUp } from "lucide-react";
+import { Shield, ShieldAlert, Star, Ban, CheckCircle, Search, RefreshCw, ArrowUp, ArrowDown, Download, Loader2, Users, Activity, Clock, TrendingUp, HardDrive } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 interface Profile {
@@ -183,10 +183,14 @@ export default function AdminConsole() {
     let inactivos30 = 0;
     let inactivos7 = 0;
     let totalDoctores = 0;
+    let mbTotales = 0;
+    let pacientesHoy = 0;
+    let pacientesSemana = 0;
     
     const hoyStr = new Date().toISOString().split('T')[0];
     const inicioSemana = new Date();
     inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
+    const inicioSemanaStr = inicioSemana.toISOString().split('T')[0];
     
     const hace30Dias = new Date();
     hace30Dias.setDate(hace30Dias.getDate() - 30);
@@ -200,6 +204,10 @@ export default function AdminConsole() {
 
     users.forEach(u => {
       if (!u.es_admin) totalDoctores++;
+      
+      if (u.espacio_usado_bytes) {
+         mbTotales += (u.espacio_usado_bytes / (1024 * 1024));
+      }
 
       const created = u.created_at ? new Date(u.created_at) : null;
       const lastLogin = u.ultimo_login || u.ultimo_acceso_app ? new Date(u.ultimo_login || u.ultimo_acceso_app || '') : null;
@@ -223,12 +231,22 @@ export default function AdminConsole() {
       countsPorPlan[planStr] = (countsPorPlan[planStr] || 0) + 1;
     });
 
+    growthData.patientsDaily.forEach(d => {
+       const dateStr = (d as any).rawDate as string;
+       if (dateStr === hoyStr) pacientesHoy += d.count;
+       if (dateStr >= inicioSemanaStr) pacientesSemana += d.count;
+    });
+
     const planData = Object.keys(countsPorPlan)
        .filter(k => countsPorPlan[k] > 0)
        .map(k => ({ name: k.charAt(0).toUpperCase() + k.slice(1), value: countsPorPlan[k] }));
 
-    return { nuevosHoy, nuevosSemana, conectadosHoy, conectadosSemana, inactivos30, inactivos7, totalDoctores, planData };
-  }, [users]);
+    return { 
+      nuevosHoy, nuevosSemana, conectadosHoy, conectadosSemana, 
+      inactivos30, inactivos7, totalDoctores, mbTotales, 
+      pacientesHoy, pacientesSemana, planData 
+    };
+  }, [users, growthData.patientsDaily]);
 
   const COLORS = ['#3b82f6', '#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b', '#64748b'];
 
@@ -359,7 +377,7 @@ export default function AdminConsole() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
             <Users className="w-6 h-6" />
@@ -406,6 +424,33 @@ export default function AdminConsole() {
           </div>
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center text-pink-600 flex-shrink-0">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-500">Pacientes Hoy</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.pacientesHoy}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 flex-shrink-0">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-500">Pacientes Sem.</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.pacientesSemana}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-600 flex-shrink-0">
+            <HardDrive className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-500">Uso Total (MB)</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.mbTotales.toFixed(1)}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 flex-shrink-0">
             <Clock className="w-6 h-6" />
           </div>
@@ -426,22 +471,52 @@ export default function AdminConsole() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-gray-900">Registros por Día (Doctores)</h3>
+            <h3 className="text-lg font-bold text-gray-900">Crecimiento de Profesionales</h3>
           </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={growthData.doctorsDaily}>
+              <AreaChart data={growthData.doctorsCumulative}>
+                <defs>
+                  <linearGradient id="colorDoctors" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                  cursor={{ fill: '#f8fafc' }}
                 />
-                <Bar dataKey="count" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Nuevos Doctores" />
-              </BarChart>
+                <Area type="monotone" dataKey="count" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorDoctors)" name="Total Doctores" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-900">Crecimiento de Pacientes (Global)</h3>
+          </div>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={growthData.patientsCumulative}>
+                <defs>
+                  <linearGradient id="colorPatients" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Area type="monotone" dataKey="count" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorPatients)" name="Total Pacientes" />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
