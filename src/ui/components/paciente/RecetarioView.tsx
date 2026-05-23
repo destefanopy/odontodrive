@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Paciente, RecetaDB, getRecetas, createReceta, updateReceta } from "@/core/api";
 import { supabase } from "@/infrastructure/supabase";
-import { Plus, Trash2, Printer, ClipboardList, Loader2 } from "lucide-react";
-import { useReactToPrint } from "react-to-print";
+import { Plus, Trash2, Printer, ClipboardList, Loader2, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RecetarioViewProps {
@@ -107,14 +106,29 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
     setMedicamentos(medicamentos.filter((m) => m.id !== id));
   };
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `Receta_${paciente.nombres_apellidos.replace(/\s+/g, '_')}`,
-    pageStyle: `
-      @page { size: A4 landscape; margin: 0; }
-      @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-    `
-  });
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    if (!printRef.current) return;
+    setIsExporting(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const element = printRef.current;
+      const opt = {
+        margin:       0,
+        filename:     `Receta_${paciente.nombres_apellidos.replace(/\s+/g, "_")}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error("Error al exportar PDF:", error);
+      alert("Hubo un error al generar el PDF.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   if (loadingConfig) {
     return (
@@ -225,14 +239,14 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => {
-                handlePrint();
+                handleExport();
                 handleGuardar();
               }}
-              disabled={medicamentos.length === 0 || isSaving}
+              disabled={medicamentos.length === 0 || isSaving || isExporting}
               className="flex items-center justify-center gap-2 px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl shadow-md hover:bg-black transition-all disabled:opacity-50"
             >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Printer className="w-4 h-4" />}
-              Guardar e Imprimir
+              {(isSaving || isExporting) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              Guardar y Descargar
             </button>
           </div>
         </div>

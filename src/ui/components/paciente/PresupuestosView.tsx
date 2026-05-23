@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useTransition, useEffect } from "react";
-import { Plus, Trash2, Printer, Save, FileText, CheckCircle2 } from "lucide-react";
-import { useReactToPrint } from "react-to-print";
+import { Plus, Trash2, Printer, Save, FileText, CheckCircle2, Loader2, Download } from "lucide-react";
 import PresupuestoPDFTemplate from "./PresupuestoPDFTemplate";
 import { Paciente, createPresupuesto, getPresupuestos, deletePresupuesto, PresupuestoDB, updatePresupuesto } from "@/core/api";
 import { authService } from "@/core/auth";
@@ -65,11 +64,29 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
   };
 
   const printRef = useRef<HTMLDivElement>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `Presupuesto_${paciente.nombres_apellidos.replace(/\s+/g, '_')}`,
-  });
+  const handleExport = async () => {
+    if (!printRef.current) return;
+    setIsExporting(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const element = printRef.current;
+      const opt = {
+        margin:       10,
+        filename:     `Presupuesto_${paciente.nombres_apellidos.replace(/\s+/g, "_")}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error("Error al exportar PDF:", error);
+      alert("Hubo un error al generar el PDF.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleCreateNew = () => {
     setActiveId(null);
@@ -238,11 +255,12 @@ export default function PresupuestosView({ paciente }: PresupuestosViewProps) {
             </button>
             
             <button
-              onClick={() => handlePrint()}
-              className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-black transition-all"
+              onClick={handleExport}
+              disabled={isExporting}
+              className="flex items-center gap-2 bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md hover:bg-black transition-all disabled:opacity-70"
             >
-              <Printer className="w-4 h-4" />
-              {activeId ? "Reimprimir PDF" : "Imprimir / Exportar PDF"}
+              {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              {isExporting ? "Generando..." : (activeId ? "Descargar PDF" : "Exportar PDF")}
             </button>
           </div>
         </div>
