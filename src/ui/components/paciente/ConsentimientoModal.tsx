@@ -208,20 +208,33 @@ export function ConsentimientoModal({ paciente, isOpen, onClose, onSuccess }: Co
   };
 
   const handlePrint = async () => {
+    // Para evitar bloqueos de pop-up en Safari, abrimos la ventana de forma síncrona
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write('<div style="font-family: sans-serif; padding: 20px;">Generando documento PDF, por favor espere...</div>');
+    }
+
     const pdf = await generatePDF();
     if (pdf) {
       const blob = pdf.output('blob');
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Consentimiento_${paciente.nombres_apellidos.replace(/\s+/g, '_')}.pdf`;
-      a.target = '_blank';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      
+      if (newWindow) {
+        newWindow.location.href = url;
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Consentimiento_${paciente.nombres_apellidos.replace(/\s+/g, '_')}.pdf`;
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       setStep('preview');
       // No cerramos el modal para que el usuario pueda seguir viendo la vista previa
+    } else if (newWindow) {
+      newWindow.close();
     }
   };
 

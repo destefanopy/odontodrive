@@ -224,9 +224,9 @@ export default function RecetarioView({ paciente }: RecetarioViewProps) {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={async () => {
-                await handleGuardar();
+              onClick={() => {
                 handlePrint();
+                handleGuardar();
               }}
               disabled={medicamentos.length === 0 || isSaving}
               className="flex items-center justify-center gap-2 px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl shadow-md hover:bg-black transition-all disabled:opacity-50"
