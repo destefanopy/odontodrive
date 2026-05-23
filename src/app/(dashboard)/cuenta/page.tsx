@@ -18,6 +18,7 @@ export default function MiCuentaPage() {
   const [clinicAddress, setClinicAddress] = useState("");
   const [clinicPhone, setClinicPhone] = useState("");
   const [clinicLogoUrl, setClinicLogoUrl] = useState("");
+  const [clinicSignatureUrl, setClinicSignatureUrl] = useState("");
   const [clinicTitle, setClinicTitle] = useState("Odontólogo/a");
   const [clinicRegProf, setClinicRegProf] = useState("");
   const [clinicCity, setClinicCity] = useState("");
@@ -25,6 +26,7 @@ export default function MiCuentaPage() {
   const [clinicColor, setClinicColor] = useState("#e8701a");
   const [currencySymbol, setCurrencySymbol] = useState("Gs.");
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingSignature, setIsUploadingSignature] = useState(false);
 
   const PRESET_COLORS = [
     { name: 'Naranja', value: '#e8701a' },
@@ -64,6 +66,7 @@ export default function MiCuentaPage() {
         setClinicAddress(user.user_metadata?.clinic_address || "");
         setClinicPhone(user.user_metadata?.clinic_phone || "");
         setClinicLogoUrl(user.user_metadata?.clinic_logo_url || "");
+        setClinicSignatureUrl(user.user_metadata?.clinic_signature_url || "");
         setClinicTitle(user.user_metadata?.clinic_title || "Odontólogo/a");
         setClinicRegProf(user.user_metadata?.clinic_reg_prof || "");
         setClinicCity(user.user_metadata?.clinic_city || "");
@@ -188,6 +191,51 @@ export default function MiCuentaPage() {
     }
   };
 
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingSignature(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuario no autenticado");
+
+      const fileExt = file.name.split('.').pop();
+      const filePath = `firmas/${user.id}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('pacientes_archivos')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw new Error("Error subiendo la firma: " + uploadError.message);
+
+      const { data, error: signError } = await supabase.storage
+        .from('pacientes_archivos')
+        .createSignedUrl(filePath, 315360000); // 10 años de validez
+
+      if (signError || !data?.signedUrl) throw new Error("No se pudo firmar la URL de la firma.");
+
+      const newSignatureUrl = data.signedUrl;
+      setClinicSignatureUrl(newSignatureUrl);
+
+      const currentMetadata = user.user_metadata || {};
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          ...currentMetadata,
+          clinic_signature_url: newSignatureUrl
+        }
+      });
+      if (updateError) throw new Error("Se subió la firma pero falló al guardar en tu perfil.");
+
+      setMessage({ text: "Firma subida y guardada correctamente. Recargando...", type: "success" });
+      setTimeout(() => window.location.reload(), 800);
+    } catch (err: any) {
+      setMessage({ text: err.message || "Hubo un error al subir la firma", type: "error" });
+    } finally {
+      setIsUploadingSignature(false);
+    }
+  };
+
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -208,6 +256,7 @@ export default function MiCuentaPage() {
         clinic_address: clinicAddress,
         clinic_phone: clinicPhone,
         clinic_logo_url: clinicLogoUrl,
+        clinic_signature_url: clinicSignatureUrl,
         clinic_title: clinicTitle,
         clinic_reg_prof: clinicRegProf,
         clinic_city: clinicCity,
@@ -463,6 +512,30 @@ export default function MiCuentaPage() {
                           <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleLogoUpload} disabled={isUploadingLogo} />
                         </label>
                         <p className="text-xs text-gray-500">Mínimo 300x300px con fondo transparente recomendado. Se guarda al instante.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 space-y-2 pt-4">
+                    <label className="text-sm font-bold text-gray-700">Firma del Profesional</label>
+                    <div className="flex items-center gap-6">
+                      {clinicSignatureUrl ? (
+                        <div className="relative group">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={clinicSignatureUrl} alt="Firma" className="h-20 w-auto object-contain rounded-xl border-2 border-gray-100 bg-white shadow-sm px-2" />
+                        </div>
+                      ) : (
+                        <div className="w-40 h-20 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center text-xs text-center text-gray-400 font-medium px-2">
+                          Sin firma
+                        </div>
+                      )}
+                      <div className="flex-1 space-y-3">
+                        <label className="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold rounded-xl text-sm transition-all shadow-sm">
+                          <UploadCloud className="w-4 h-4" />
+                          {isUploadingSignature ? 'Subiendo...' : 'Subir Firma (PNG)'}
+                          <input type="file" className="hidden" accept="image/png, image/jpeg, image/webp" onChange={handleSignatureUpload} disabled={isUploadingSignature} />
+                        </label>
+                        <p className="text-xs text-gray-500">Sube una imagen de tu firma, preferiblemente en formato PNG con fondo transparente.</p>
                       </div>
                     </div>
                   </div>

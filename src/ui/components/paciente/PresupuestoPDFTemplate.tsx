@@ -16,6 +16,7 @@ interface PDFProps {
   doctorName?: string;
   clinicColor?: string;
   clinicLogoUrl?: string;
+  clinicSignatureUrl?: string;
   clinicTitle?: string;
   clinicRegProf?: string;
   clinicName?: string;
@@ -34,6 +35,7 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
     doctorName = "Odontólogo(a)",
     clinicColor = "#059669",
     clinicLogoUrl = "",
+    clinicSignatureUrl = "",
     clinicTitle = "Odontólogo(a)",
     clinicRegProf = "",
     clinicName = "",
@@ -46,7 +48,7 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
     const dateStr = new Date().toLocaleDateString("es-PY", { year: 'numeric', month: 'long', day: 'numeric' });
 
     return (
-      <div ref={ref} className="bg-white p-12 text-gray-900" style={{ width: "210mm", minHeight: "297mm", margin: "0 auto" }}>
+      <div ref={ref} className="bg-white p-10 text-gray-900" style={{ width: "190mm", minHeight: "277mm", margin: "0 auto", boxSizing: "border-box" }}>
         
         {/* Header */}
         <div 
@@ -152,8 +154,15 @@ const PresupuestoPDFTemplate = forwardRef<HTMLDivElement, PDFProps>(
           </div>
           
           <div className="flex flex-col items-center mt-12 w-80 pt-6 relative border-t-2 border-dashed border-gray-300">
+            {clinicSignatureUrl && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={clinicSignatureUrl} alt="Firma" className="h-16 w-auto object-contain mb-1 absolute bottom-full pb-2" />
+            )}
             <span className="font-bold text-gray-800 text-lg">{doctorName}</span>
             <span className="text-gray-700 font-medium">{clinicTitle}</span>
+            {clinicRegProf && (
+              <span className="text-gray-700 font-medium mt-0.5">Registro Prof. N° {clinicRegProf}</span>
+            )}
             <span className="text-gray-600 text-[11px] mt-2 text-center max-w-[250px] leading-tight">
               {clinicName && <span className="font-bold block">{clinicName}</span>}
               {clinicAddress && <span>{clinicAddress}</span>}
