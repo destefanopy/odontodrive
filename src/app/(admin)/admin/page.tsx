@@ -3,8 +3,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/core/auth";
-import { Shield, ShieldAlert, Star, Ban, CheckCircle, Search, RefreshCw, ArrowUp, ArrowDown, Download, Loader2 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Shield, ShieldAlert, Star, Ban, CheckCircle, Search, RefreshCw, ArrowUp, ArrowDown, Download, Loader2, Users, Activity, Clock, TrendingUp } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 interface Profile {
   id: string;
@@ -53,7 +53,32 @@ export default function AdminConsole() {
   const [configSoporte, setConfigSoporte] = useState({ telefono: "", email: "" });
   const [isSavingConfig, setIsSavingConfig] = useState(false);
 
-  const [growthData, setGrowthData] = useState<{ doctors: ChartData[], patients: ChartData[] }>({ doctors: [], patients: [] });
+  const [growthData, setGrowthData] = useState<{ 
+    doctorsCumulative: ChartData[], 
+    patientsCumulative: ChartData[],
+    doctorsDaily: ChartData[],
+    patientsDaily: ChartData[]
+  }>({ doctorsCumulative: [], patientsCumulative: [], doctorsDaily: [], patientsDaily: [] });
+
+  const fillMissingDates = (data: {date: string, count: number}[]) => {
+    if (!data || data.length === 0) return [];
+    const sorted = [...data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const start = new Date(sorted[0].date);
+    const end = new Date();
+    const map = new Map(sorted.map(d => [d.date.split('T')[0], d.count]));
+    const filled = [];
+    let current = new Date(start);
+    while (current <= end) {
+      const dateStr = current.toISOString().split('T')[0];
+      filled.push({
+        rawDate: dateStr,
+        date: current.toLocaleDateString('es-ES', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+        count: map.get(dateStr) || 0
+      });
+      current.setDate(current.getDate() + 1);
+    }
+    return filled;
+  };
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>({ key: 'created_at', direction: 'desc' });
   const tableRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -126,19 +151,20 @@ export default function AdminConsole() {
     try {
       const { data, error } = await authService.adminGetGrowthStats();
       if (!error && data) {
+        const filledDocs = fillMissingDates(data.doctors || []);
+        const filledPats = fillMissingDates(data.patients || []);
+        
         let docTotal = 0;
-        const docs = (data.doctors || []).map((d: any) => ({ 
-          date: new Date(d.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', timeZone: 'UTC' }), 
-          count: (docTotal += d.count) 
-        }));
-        
+        const docsCumulative = filledDocs.map(d => ({ date: d.date, count: (docTotal += d.count) }));
         let patTotal = 0;
-        const pats = (data.patients || []).map((d: any) => ({ 
-          date: new Date(d.date).toLocaleDateString('es-ES', { month: 'short', day: 'numeric', timeZone: 'UTC' }), 
-          count: (patTotal += d.count) 
-        }));
-        
-        setGrowthData({ doctors: docs, patients: pats });
+        const patsCumulative = filledPats.map(d => ({ date: d.date, count: (patTotal += d.count) }));
+
+        setGrowthData({ 
+          doctorsCumulative: docsCumulative, 
+          patientsCumulative: patsCumulative,
+          doctorsDaily: filledDocs.map(d => ({ date: d.date, count: d.count })),
+          patientsDaily: filledPats.map(d => ({ date: d.date, count: d.count }))
+        });
       }
     } catch (err) {}
   };
@@ -148,6 +174,52 @@ export default function AdminConsole() {
     fetchConfig();
     fetchGrowthData();
   }, []);
+
+  const metricas = React.useMemo(() => {
+    let nuevosHoy = 0;
+    let nuevosSemana = 0;
+    let conectadosHoy = 0;
+    let inactivos = 0;
+    
+    const hoyStr = new Date().toISOString().split('T')[0];
+    const inicioSemana = new Date();
+    inicioSemana.setDate(inicioSemana.getDate() - inicioSemana.getDay());
+    
+    const hace30Dias = new Date();
+    hace30Dias.setDate(hace30Dias.getDate() - 30);
+    
+    const countsPorPlan: Record<string, number> = {
+      basico: 0, estandar: 0, avanzado: 0, premium: 0, free: 0
+    };
+
+    users.forEach(u => {
+      const created = u.created_at ? new Date(u.created_at) : null;
+      const lastLogin = u.ultimo_login || u.ultimo_acceso_app ? new Date(u.ultimo_login || u.ultimo_acceso_app || '') : null;
+      
+      if (created) {
+         if (created.toISOString().split('T')[0] === hoyStr) nuevosHoy++;
+         if (created >= inicioSemana) nuevosSemana++;
+      }
+      
+      if (lastLogin) {
+         if (lastLogin.toISOString().split('T')[0] === hoyStr) conectadosHoy++;
+         if (lastLogin < hace30Dias) inactivos++;
+      } else {
+         if (created && created < hace30Dias) inactivos++;
+      }
+      
+      const planStr = u.plan || 'free';
+      countsPorPlan[planStr] = (countsPorPlan[planStr] || 0) + 1;
+    });
+
+    const planData = Object.keys(countsPorPlan)
+       .filter(k => countsPorPlan[k] > 0)
+       .map(k => ({ name: k.charAt(0).toUpperCase() + k.slice(1), value: countsPorPlan[k] }));
+
+    return { nuevosHoy, nuevosSemana, conectadosHoy, inactivos, planData };
+  }, [users]);
+
+  const COLORS = ['#3b82f6', '#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b', '#64748b'];
 
   const sortedUsers = React.useMemo(() => {
     let sortableItems = [...users];
@@ -276,50 +348,103 @@ export default function AdminConsole() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Crecimiento de Profesionales</h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-500">Nuevos Hoy</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.nuevosHoy}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0">
+            <Activity className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-500">Conectados Hoy</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.conectadosHoy}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 flex-shrink-0">
+            <TrendingUp className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-500">Nuevos en la Semana</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.nuevosSemana}</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-600 flex-shrink-0">
+            <Clock className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-gray-500">Inactivos (+30d)</p>
+            <p className="text-2xl font-black text-gray-900">{metricas.inactivos}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 lg:col-span-2">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-900">Registros por Día (Doctores)</h3>
+          </div>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={growthData.doctors}>
-                <defs>
-                  <linearGradient id="colorDoctors" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
+              <BarChart data={growthData.doctorsDaily}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  cursor={{ fill: '#f8fafc' }}
                 />
-                <Area type="monotone" dataKey="count" stroke="#0ea5e9" strokeWidth={3} fillOpacity={1} fill="url(#colorDoctors)" name="Total Doctores" />
-              </AreaChart>
+                <Bar dataKey="count" fill="#0ea5e9" radius={[4, 4, 0, 0]} name="Nuevos Doctores" />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">Crecimiento de Pacientes (Global)</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={growthData.patients}>
-                <defs>
-                  <linearGradient id="colorPatients" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="date" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                />
-                <Area type="monotone" dataKey="count" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorPatients)" name="Total Pacientes" />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-bold text-gray-900">Distribución de Planes</h3>
+          </div>
+          <div className="h-64 flex items-center justify-center">
+            {metricas.planData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={metricas.planData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {metricas.planData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-gray-400">Sin datos</p>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2 justify-center mt-2">
+            {metricas.planData.map((entry, index) => (
+              <div key={entry.name} className="flex items-center gap-1.5 text-xs font-bold text-gray-600">
+                <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                {entry.name} ({entry.value})
+              </div>
+            ))}
           </div>
         </div>
       </div>
