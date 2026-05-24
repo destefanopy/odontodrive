@@ -90,42 +90,14 @@ function SuscripcionContent() {
   }, [isSuccess, searchParams]);
 
   const handleCheckout = async (planId: string) => {
-    try {
-      setErrorLog(null);
-      if (planId === "free") return; 
-      setIsLoadingPlan(planId);
-      
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-
-      if (!token) throw new Error("Debes iniciar sesión primero.");
-      
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          planId: planId.toLowerCase()
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        // Guardamos todo el objeto de error para que el Odontólogo vea el Dev Log
-        setErrorLog(data);
-        throw new Error(data.error || "Fallo en Checkout");
-      }
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (err: any) {
-      if (!errorLog) setErrorLog({ error: err.message });
-    } finally {
-      setIsLoadingPlan(null);
-    }
+    if (planId === "free") return; 
+    
+    // TEMPORARY FIX: Redirect to WhatsApp instead of Dodopayments
+    const phoneNumber = "595986909320"; 
+    const message = `Hola Odontodrive! Me gustaría suscribirme al plan ${planId.toUpperCase()} y pagarlo manualmente. ¿Me pueden enviar los datos para transferencia o MercadoPago?`;
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
   };
 
   // ======== PANTALLA DE ÉXITO ========
@@ -291,7 +263,7 @@ function PricingCard({ plan, id, storage, price, features, isPopular, color, ico
         disabled={isLoading || id === 'free'}
         className={`w-full py-3 rounded-xl font-bold flex justify-center items-center gap-2 text-sm transition-all focus:ring-2 focus:ring-offset-2 focus:ring-accent ${btnMap[color]} disabled:opacity-50`}
       >
-        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (id === 'free' ? 'Plan Actual' : `Elegir ${plan}`)}
+        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (id === 'free' ? 'Plan Actual' : `Solicitar ${plan} por WhatsApp`)}
       </button>
     </div>
   );
