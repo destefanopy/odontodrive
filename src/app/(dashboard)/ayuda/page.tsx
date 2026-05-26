@@ -33,7 +33,7 @@ export default function AyudaPage() {
     {
       icon: Download,
       title: "Disponibilidad de Datos",
-      content: "Con Odontodrive siempre dispones de tus datos, tenemos la opción de exportar ficha donde podes descargar en un formato compatible de lectura.",
+      content: "Con Odontodrive siempre dispones de tus datos. Si en algún momento decides ya no usar nuestros servicios, recuerda que eres dueño de tu información y puedes exportar en PDF todas tus fichas.",
       color: "text-indigo-500",
       bgColor: "bg-indigo-50"
     },
