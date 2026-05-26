@@ -18,7 +18,7 @@ interface CalendarioProps {
 }
 
 export default function CalendarioMaestro({ initialCitas, pacientes }: CalendarioProps) {
-  const [citas, setCitas] = useState<Cita[]>(initialCitas);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
@@ -27,27 +27,37 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
   const [isDeleting, setIsDeleting] = useState(false);
   const calendarRef = useRef<FullCalendar>(null);
 
-  const fetchUpdatedCitas = async () => {
+  const isFirstLoad = useRef(true);
+
+  const fetchEvents = async (info: any, successCallback: any, failureCallback: any) => {
     try {
-      const data = await getCitas();
-      setCitas(data);
+      let data;
+      if (isFirstLoad.current) {
+        data = initialCitas;
+        isFirstLoad.current = false;
+      } else {
+        const { getCitasPorRango } = await import('@/core/api');
+        data = await getCitasPorRango(info.startStr, info.endStr);
+      }
+
+      const eventsData = data.map((cita: any) => {
+        const isTarea = !cita.paciente_id;
+        return {
+          id: cita.id,
+          title: cita.nombre_paciente,
+          extendedProps: { motivo: cita.motivo, paciente_id: cita.paciente_id, realCita: cita, isTarea },
+          start: cita.fecha_inicio,
+          end: cita.fecha_fin,
+          backgroundColor: isTarea ? "#f97316" : "#10b981", 
+          borderColor: isTarea ? "#ea580c" : "#059669", 
+        };
+      });
+      successCallback(eventsData);
     } catch (error) {
-      console.error("Error al actualizar citas", error);
+      console.error("Error fetching events", error);
+      failureCallback(error);
     }
   };
-
-  const events = citas.map((cita) => {
-    const isTarea = !cita.paciente_id;
-    return {
-      id: cita.id,
-      title: cita.nombre_paciente,
-      extendedProps: { motivo: cita.motivo, paciente_id: cita.paciente_id, realCita: cita, isTarea },
-      start: cita.fecha_inicio,
-      end: cita.fecha_fin,
-      backgroundColor: isTarea ? "#f97316" : "#10b981", 
-      borderColor: isTarea ? "#ea580c" : "#059669", 
-    };
-  });
 
   const handleDateClick = (arg: any) => {
     if (arg.view.type === "dayGridMonth") {
@@ -101,7 +111,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
       await deleteCita(selectedEvent.id);
       setIsEventModalOpen(false);
       setSelectedEvent(null);
-      await fetchUpdatedCitas();
+      calendarRef.current?.getApi().refetchEvents();
     } catch (error: any) {
       alert("Error: " + (error.message || "Error al borrar la cita."));
     } finally {
@@ -125,7 +135,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
         fecha_inicio: changeInfo.event.start.toISOString(),
         fecha_fin: newEnd.toISOString(),
       });
-      await fetchUpdatedCitas();
+      calendarRef.current?.getApi().refetchEvents();
     } catch (error) {
       alert("Error al mover la cita.");
       changeInfo.revert();
@@ -150,7 +160,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           slotMaxTime="22:00:00"
           allDaySlot={false}
           slotEventOverlap={false}
-          events={events}
+          events={fetchEvents}
           dateClick={handleDateClick}
           selectable={true}
           select={handleSelect}
@@ -243,7 +253,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           pacientes={pacientes}
           initialDate={selectedDate}
           existingCita={editCitaInfo}
-          onSaveSuccess={fetchUpdatedCitas}
+          onSaveSuccess={() => calendarRef.current?.getApi().refetchEvents()}
           onClose={() => {
             setIsModalOpen(false);
             setEditCitaInfo(null);
