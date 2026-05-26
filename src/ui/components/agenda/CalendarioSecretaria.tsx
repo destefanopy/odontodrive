@@ -209,6 +209,7 @@ export default function CalendarioSecretaria({ initialCitas, pacientes, userRole
             slotMinTime="07:00:00"
             slotMaxTime="22:00:00"
             allDaySlot={false}
+            slotEventOverlap={false}
             events={fetchEvents}
             dateClick={handleDateClick}
             selectable={true}

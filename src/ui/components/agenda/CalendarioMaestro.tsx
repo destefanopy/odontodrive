@@ -149,6 +149,7 @@ export default function CalendarioMaestro({ initialCitas, pacientes }: Calendari
           slotMinTime="07:00:00"
           slotMaxTime="22:00:00"
           allDaySlot={false}
+          slotEventOverlap={false}
           events={events}
           dateClick={handleDateClick}
           selectable={true}
