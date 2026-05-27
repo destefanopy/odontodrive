@@ -210,20 +210,29 @@ export const updatePacienteData = async (pacienteId: string, datos: Partial<Paci
 };
 
 export const getDynamicPlanLimit = async (planName: string): Promise<number> => {
-  const { data, error } = await supabase.from('landing_regiones').select('planes').eq('slug', 'interno').single();
-  if (error || !data || !Array.isArray(data.planes)) return 30; // fallback seguro
-  
-  const normalizeStr = (str: string) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  
-  const userPlanObj = data.planes.find((p: any) => normalizeStr(p.name) === normalizeStr(planName));
-  if (!userPlanObj) return 30;
+  try {
+    const { data, error } = await supabase.from('landing_regiones').select('planes').eq('slug', 'interno').single();
+    if (error || !data || !Array.isArray(data.planes)) return 30; // fallback seguro
+    
+    const normalizeStr = (str: string) => {
+      if (!str) return "";
+      return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    };
+    
+    const userPlanObj = data.planes.find((p: any) => normalizeStr(p.name) === normalizeStr(planName));
+    if (!userPlanObj) return 30;
 
-  // Si max_patients es 0 o indefinido, consideramos ilimitado
-  if (userPlanObj.max_patients === 0 || userPlanObj.max_patients === undefined) {
-    return Infinity;
+    // Si max_patients es 0, <= 0, o indefinido, consideramos ilimitado
+    const maxPatients = Number(userPlanObj.max_patients);
+    if (isNaN(maxPatients) || maxPatients <= 0) {
+      return Infinity;
+    }
+    
+    return maxPatients;
+  } catch (err) {
+    console.error("Error obteniendo el límite del plan:", err);
+    return 30;
   }
-  
-  return userPlanObj.max_patients;
 };
 
 /**
