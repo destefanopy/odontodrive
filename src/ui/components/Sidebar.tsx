@@ -78,6 +78,7 @@ export default function Sidebar() {
   ];
 
   const adminNavItems = isAdmin ? [
+    { name: "Pruebas Pagopar", href: "/pagopar-test", icon: Wallet },
     { name: "Admin Usuarios", href: "/admin", icon: Shield },
     { name: "Admin Clínicas B2B", href: "/admin/clinicas", icon: Users },
     { name: "Admin Regiones", href: "/admin/regiones", icon: Globe },
