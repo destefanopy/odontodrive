@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
-    const publicKey = process.env.PAGOPAR_PUBLIC_KEY;
-    const privateKey = process.env.PAGOPAR_PRIVATE_KEY;
+    const body = await req.json().catch(() => ({}));
+    const publicKey = body.publicKey || process.env.PAGOPAR_PUBLIC_KEY;
+    const privateKey = body.privateKey || process.env.PAGOPAR_PRIVATE_KEY;
     
     if (!publicKey || !privateKey) {
       return NextResponse.json({ respuesta: false, resultado: "Faltan tokens de Pagopar en .env.local" }, { status: 400 });

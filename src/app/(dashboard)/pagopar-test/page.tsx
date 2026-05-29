@@ -9,6 +9,8 @@ export default function PagoparTestPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [logs, setLogs] = useState<string[]>([]);
+  const [publicKey, setPublicKey] = useState("");
+  const [privateKey, setPrivateKey] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -31,7 +33,11 @@ export default function PagoparTestPage() {
   const handleAgregarCliente = async () => {
     addLog("Iniciando 'Agregar Cliente'...");
     try {
-      const res = await fetch("/api/pagopar/suscripcion/agregar-cliente", { method: "POST" });
+      const res = await fetch("/api/pagopar/suscripcion/agregar-cliente", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicKey, privateKey })
+      });
       const data = await res.json();
       addLog("Respuesta Agregar Cliente:", data);
     } catch (err: any) {
@@ -42,7 +48,11 @@ export default function PagoparTestPage() {
   const handleAgregarTarjeta = async () => {
     addLog("Iniciando 'Agregar Tarjeta'...");
     try {
-      const res = await fetch("/api/pagopar/suscripcion/agregar-tarjeta", { method: "POST" });
+      const res = await fetch("/api/pagopar/suscripcion/agregar-tarjeta", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicKey, privateKey })
+      });
       const data = await res.json();
       addLog("Respuesta Agregar Tarjeta:", data);
       
@@ -60,7 +70,11 @@ export default function PagoparTestPage() {
   const handleSimularCron = async () => {
     addLog("Iniciando 'Simular Cron' (Cobro)...");
     try {
-      const res = await fetch("/api/pagopar/suscripcion/cobrar-prueba", { method: "POST" });
+      const res = await fetch("/api/pagopar/suscripcion/cobrar-prueba", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicKey, privateKey })
+      });
       const data = await res.json();
       addLog("Respuesta Simular Cron:", data);
     } catch (err: any) {
@@ -81,6 +95,31 @@ export default function PagoparTestPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Credenciales de Pagopar (Staging)</CardTitle>
+            <p className="text-sm text-gray-500">
+              Pega aquí tus tokens para la prueba. Si están en el .env de Vercel, no es necesario rellenar esto.
+            </p>
+          </CardHeader>
+          <CardContent className="flex flex-col md:flex-row gap-4">
+            <input 
+              type="text" 
+              placeholder="Public Key" 
+              value={publicKey} 
+              onChange={(e) => setPublicKey(e.target.value)}
+              className="flex-1 px-4 py-2 border rounded-md"
+            />
+            <input 
+              type="text" 
+              placeholder="Private Key" 
+              value={privateKey} 
+              onChange={(e) => setPrivateKey(e.target.value)}
+              className="flex-1 px-4 py-2 border rounded-md"
+            />
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Paso 1: Catastro</CardTitle>
