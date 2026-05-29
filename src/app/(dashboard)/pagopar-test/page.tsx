@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/infrastructure/supabase";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/ui/components/Card";
-import { Button } from "@/ui/components/Button";
 
 export default function PagoparTestPage() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -90,12 +89,12 @@ export default function PagoparTestPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={handleAgregarCliente} className="w-full bg-blue-600 hover:bg-blue-700">
+            <button onClick={handleAgregarCliente} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
               1. Agregar Cliente en Pagopar
-            </Button>
-            <Button onClick={handleAgregarTarjeta} className="w-full bg-indigo-600 hover:bg-indigo-700">
+            </button>
+            <button onClick={handleAgregarTarjeta} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition-colors">
               2. Catastrar Tarjeta (Iframe)
-            </Button>
+            </button>
           </CardContent>
         </Card>
 
@@ -107,9 +106,9 @@ export default function PagoparTestPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={handleSimularCron} className="w-full bg-green-600 hover:bg-green-700">
+            <button onClick={handleSimularCron} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors">
               3. Simular CRON (Pagar)
-            </Button>
+            </button>
           </CardContent>
         </Card>
       </div>
