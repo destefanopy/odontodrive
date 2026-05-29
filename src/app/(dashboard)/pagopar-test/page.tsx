@@ -15,6 +15,12 @@ export default function PagoparTestPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Cargar credenciales guardadas si existen
+    const storedPublic = localStorage.getItem("pagoparPublicKey");
+    const storedPrivate = localStorage.getItem("pagoparPrivateKey");
+    if (storedPublic) setPublicKey(storedPublic);
+    if (storedPrivate) setPrivateKey(storedPrivate);
+
     supabase.auth.getUser().then(({ data }) => {
       if (data?.user?.email === 'destefanopy@gmail.com') {
         setIsAdmin(true);
@@ -29,6 +35,12 @@ export default function PagoparTestPage() {
     const timestamp = new Date().toLocaleTimeString();
     const logStr = data ? `${message}\n${JSON.stringify(data, null, 2)}` : message;
     setLogs(prev => [`[${timestamp}] ${logStr}`, ...prev]);
+  };
+
+  const handleGuardarCredenciales = () => {
+    localStorage.setItem("pagoparPublicKey", publicKey);
+    localStorage.setItem("pagoparPrivateKey", privateKey);
+    addLog("Credenciales guardadas en el navegador.");
   };
 
   const handleAgregarCliente = async () => {
@@ -142,21 +154,29 @@ export default function PagoparTestPage() {
               Pega aquí tus tokens para la prueba. Si están en el .env de Vercel, no es necesario rellenar esto.
             </p>
           </CardHeader>
-          <CardContent className="flex flex-col md:flex-row gap-4">
-            <input 
-              type="text" 
-              placeholder="Public Key" 
-              value={publicKey} 
-              onChange={(e) => setPublicKey(e.target.value)}
-              className="flex-1 px-4 py-2 border rounded-md"
-            />
-            <input 
-              type="text" 
-              placeholder="Private Key" 
-              value={privateKey} 
-              onChange={(e) => setPrivateKey(e.target.value)}
-              className="flex-1 px-4 py-2 border rounded-md"
-            />
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              <input 
+                type="text" 
+                placeholder="Public Key" 
+                value={publicKey} 
+                onChange={(e) => setPublicKey(e.target.value)}
+                className="flex-1 px-4 py-2 border rounded-md"
+              />
+              <input 
+                type="text" 
+                placeholder="Private Key" 
+                value={privateKey} 
+                onChange={(e) => setPrivateKey(e.target.value)}
+                className="flex-1 px-4 py-2 border rounded-md"
+              />
+              <button 
+                onClick={handleGuardarCredenciales}
+                className="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded transition-colors"
+              >
+                Guardar
+              </button>
+            </div>
           </CardContent>
         </Card>
 

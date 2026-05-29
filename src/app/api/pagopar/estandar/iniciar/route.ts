@@ -52,8 +52,7 @@ export async function POST(req: Request) {
       ],
       fecha_maxima_pago: new Date(Date.now() + 86400000).toISOString().replace("T", " ").substring(0, 19),
       id_pedido_comercio: idPedidoTemporal,
-      descripcion_resumen: "Suscripcion Prueba",
-      forma_pago: 1 // Efectivo/Varios
+      descripcion_resumen: "Suscripcion Prueba"
     };
 
     const res = await fetch("https://api.pagopar.com/api/comercios/2.0/iniciar-transaccion", {
