@@ -11,6 +11,7 @@ export default function PagoparTestPage() {
   const [logs, setLogs] = useState<string[]>([]);
   const [publicKey, setPublicKey] = useState("");
   const [privateKey, setPrivateKey] = useState("");
+  const [hashPedido, setHashPedido] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -82,6 +83,45 @@ export default function PagoparTestPage() {
     }
   };
 
+  const handleIniciarEstandar = async () => {
+    addLog("Iniciando 'Pedido Estándar' (Paso 1)...");
+    try {
+      const res = await fetch("/api/pagopar/estandar/iniciar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicKey, privateKey })
+      });
+      const data = await res.json();
+      addLog("Respuesta Iniciar Estándar:", data);
+      
+      if (data.respuesta && data.resultado?.[0]?.data) {
+        setHashPedido(data.resultado[0].data);
+        addLog(`hash_pedido guardado: ${data.resultado[0].data}. Ahora simula el pago en Pagopar con la tarjeta 4111...`);
+      }
+    } catch (err: any) {
+      addLog("Error en Iniciar Estándar:", err.message);
+    }
+  };
+
+  const handleConsultarEstandar = async () => {
+    if (!hashPedido) {
+      addLog("Error: No hay hash_pedido. Inicia un pedido primero.");
+      return;
+    }
+    addLog(`Consultando pedido ${hashPedido} (Paso 3)...`);
+    try {
+      const res = await fetch("/api/pagopar/estandar/consultar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publicKey, privateKey, hashPedido })
+      });
+      const data = await res.json();
+      addLog("Respuesta Consultar Estándar:", data);
+    } catch (err: any) {
+      addLog("Error en Consultar Estándar:", err.message);
+    }
+  };
+
   if (loading) return <div>Cargando...</div>;
   if (!isAdmin) return null;
 
@@ -117,6 +157,24 @@ export default function PagoparTestPage() {
               onChange={(e) => setPrivateKey(e.target.value)}
               className="flex-1 px-4 py-2 border rounded-md"
             />
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2 border-2 border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="text-green-800">Circuito de Producción (Flujo Estándar)</CardTitle>
+            <p className="text-sm text-green-700">
+              Usa estos botones para cumplir los pasos 1, 2 y 3 obligatorios de Pagopar y que te habiliten Producción. 
+              El Webhook (Paso 2) es automático cuando simulas el pago en la consola de Pagopar.
+            </p>
+          </CardHeader>
+          <CardContent className="flex flex-col md:flex-row gap-4">
+            <button onClick={handleIniciarEstandar} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded transition-colors shadow-md">
+              Paso 1. Iniciar Pedido Estándar
+            </button>
+            <button onClick={handleConsultarEstandar} className="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded transition-colors shadow-md">
+              Paso 3. Consultar Pedido (Tras pagar)
+            </button>
           </CardContent>
         </Card>
 
