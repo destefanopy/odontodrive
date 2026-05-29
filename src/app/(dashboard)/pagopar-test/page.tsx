@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/infrastructure/supabase";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/ui/components/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/components/Card";
 
 export default function PagoparTestPage() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -84,9 +84,9 @@ export default function PagoparTestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Paso 1: Catastro</CardTitle>
-            <CardDescription>
+            <p className="text-sm text-gray-500">
               Registra al usuario actual en Pagopar y solicita guardar una tarjeta.
-            </CardDescription>
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <button onClick={handleAgregarCliente} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors">
@@ -101,9 +101,9 @@ export default function PagoparTestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Paso 2: Cobro Automático</CardTitle>
-            <CardDescription>
+            <p className="text-sm text-gray-500">
               Simula el CRON que debita automáticamente de las tarjetas guardadas.
-            </CardDescription>
+            </p>
           </CardHeader>
           <CardContent className="space-y-4">
             <button onClick={handleSimularCron} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors">
@@ -116,7 +116,7 @@ export default function PagoparTestPage() {
       <Card>
         <CardHeader>
           <CardTitle>Consola de Respuesta (Logs)</CardTitle>
-          <CardDescription>Aquí verás los JSON que responde Pagopar</CardDescription>
+          <p className="text-sm text-gray-500">Aquí verás los JSON que responde Pagopar</p>
         </CardHeader>
         <CardContent>
           <div className="bg-gray-900 text-green-400 p-4 rounded-xl font-mono text-xs h-[400px] overflow-y-auto whitespace-pre-wrap shadow-inner border border-gray-700">
